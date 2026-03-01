@@ -1,0 +1,1595 @@
+[ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 1; @symbol_importdef<0> = [Toybox,1,7,13]; @symbol_importdef<1> = [Lang,1,14,18]; ]
+import Toybox.Lang;
+[ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 2; @symbol_usingdef<0> = [Toybox,2,6,12]; @symbol_usingdef<1> = [WatchUi,2,13,20]; ]
+using Toybox.WatchUi;
+[ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 3; @symbol_usingdef<0> = [Toybox,3,6,12]; @symbol_usingdef<1> = [WatchUi,3,13,20]; @symbol_usingAlias = [Ui,3,24,26]; ]
+using Toybox.WatchUi as :Ui;
+[ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 4; @symbol_usingdef<0> = [Toybox,4,6,12]; @symbol_usingdef<1> = [Graphics,4,13,21]; ]
+using Toybox.Graphics;
+[ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 5; @symbol_usingdef<0> = [Toybox,5,6,12]; @symbol_usingdef<1> = [Graphics,5,13,21]; @symbol_usingAlias = [Gfx,5,25,28]; ]
+using Toybox.Graphics as :Gfx;
+[ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 7; @symbol_moduledef = [Rez,7,7,10]; ]
+module Rez {
+    [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 7; ]
+    <init> {
+    }
+    [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 8; @symbol_moduledef = [Drawables,8,11,20]; ]
+    module Drawables {
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 8; ]
+        <init> {
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 9; @position = 27; initialized = true; @symbol_vardef = [LauncherIcon,9,27,39]; @symbol_type<0> = [ResourceId,9,43,53]; ]
+        var LauncherIcon as ResourceId;
+    }
+    [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 12; @symbol_moduledef = [Strings,12,11,18]; ]
+    module Strings {
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 12; ]
+        <init> {
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 13; @position = 27; initialized = true; @symbol_vardef = [AppName,13,27,34]; @symbol_type<0> = [ResourceId,13,38,48]; ]
+        var AppName as ResourceId;
+    }
+    [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 16; @symbol_moduledef = [Styles,16,11,17]; ]
+    module Styles {
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 16; ]
+        <init> {
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 17; @symbol_moduledef = [prompt_font_enhanced_readability__body_with_title,17,15,64]; ]
+        module prompt_font_enhanced_readability__body_with_title {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 17; ]
+            <init> {
+[ "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen" 18 18 ]
+                symbol [ Graphics %tmp.1 18 34 42 ];
+                %tmp.1 = getm $.Toybox.Graphics;
+                symbol [ TEXT_JUSTIFY_CENTER %tmp.2 18 43 62 ];
+                %tmp.2 = getv %tmp.1 :TEXT_JUSTIFY_CENTER;
+                putv self :justification %tmp.2;
+[ "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen" 19 18 ]
+                symbol [ Graphics %tmp.3 19 25 33 ];
+                %tmp.3 = getm $.Toybox.Graphics;
+                symbol [ FONT_SMALL %tmp.4 19 34 44 ];
+                %tmp.4 = getv %tmp.3 :FONT_SMALL;
+                putv self :font %tmp.4;
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 18; @position = 18; @symbol_constdef = [justification,18,18,31]; ]
+            const justification;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 19; @position = 18; @symbol_constdef = [font,19,18,22]; ]
+            const font;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 22; @symbol_moduledef = [system_size__menu_header,22,15,39]; ]
+        module system_size__menu_header {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 22; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 23; @position = 18; @symbol_constdef = [width,23,18,23]; @symbol_type<0> = [Number,23,27,33]; ]
+            const width as Number = 454;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 24; @position = 18; @symbol_constdef = [height,24,18,24]; @symbol_type<0> = [Number,24,28,34]; ]
+            const height as Number = 105;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 27; @symbol_moduledef = [system_loc__hint_button_left_bottom,27,15,50]; ]
+        module system_loc__hint_button_left_bottom {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 27; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 28; @position = 18; @symbol_constdef = [exclude,28,18,25]; @symbol_type<0> = [Boolean,28,29,36]; ]
+            const exclude as Boolean = true;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 31; @symbol_moduledef = [prompt_font_enhanced_readability__body_no_title,31,15,62]; ]
+        module prompt_font_enhanced_readability__body_no_title {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 31; ]
+            <init> {
+[ "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen" 32 18 ]
+                symbol [ Graphics %tmp.5 32 34 42 ];
+                %tmp.5 = getm $.Toybox.Graphics;
+                symbol [ TEXT_JUSTIFY_CENTER %tmp.6 32 43 62 ];
+                %tmp.6 = getv %tmp.5 :TEXT_JUSTIFY_CENTER;
+                symbol [ Graphics %tmp.7 32 63 71 ];
+                %tmp.7 = getm $.Toybox.Graphics;
+                symbol [ TEXT_JUSTIFY_VCENTER %tmp.8 32 72 92 ];
+                %tmp.8 = getv %tmp.7 :TEXT_JUSTIFY_VCENTER;
+                %tmp.9 = bitor %tmp.6 %tmp.8;
+                putv self :justification %tmp.9;
+[ "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen" 33 18 ]
+                symbol [ Graphics %tmp.10 33 25 33 ];
+                %tmp.10 = getm $.Toybox.Graphics;
+                symbol [ FONT_SMALL %tmp.11 33 34 44 ];
+                %tmp.11 = getv %tmp.10 :FONT_SMALL;
+                putv self :font %tmp.11;
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 32; @position = 18; @symbol_constdef = [justification,32,18,31]; ]
+            const justification;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 33; @position = 18; @symbol_constdef = [font,33,18,22]; ]
+            const font;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 36; @symbol_moduledef = [prompt_loc__body_no_title,36,15,40]; ]
+        module prompt_loc__body_no_title {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 36; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 37; @position = 18; @symbol_constdef = [x,37,18,19]; @symbol_type<0> = [Number,37,23,29]; ]
+            const x as Number = 45;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 38; @position = 18; @symbol_constdef = [y,38,18,19]; @symbol_type<0> = [Number,38,23,29]; ]
+            const y as Number = 68;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 41; @symbol_moduledef = [system_icon_dark__about,41,15,38]; ]
+        module system_icon_dark__about {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 41; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 42; @position = 18; @symbol_constdef = [filename,42,18,26]; @symbol_type<0> = [String,42,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\system_icon_dark__about.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 43; @position = 18; @symbol_constdef = [compress,43,18,26]; @symbol_type<0> = [String,43,30,36]; ]
+            const compress as String = "true";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 44; @position = 18; @symbol_constdef = [dithering,44,18,27]; @symbol_type<0> = [String,44,31,37]; ]
+            const dithering as String = "none";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 45; @position = 18; @symbol_constdef = [automaticPalette,45,18,34]; @symbol_type<0> = [String,45,38,44]; ]
+            const automaticPalette as String = "true";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 46; @position = 18; @symbol_constdef = [packingFormat,46,18,31]; @symbol_type<0> = [String,46,35,41]; ]
+            const packingFormat as String = "png";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 49; @symbol_moduledef = [system_icon_light__question,49,15,42]; ]
+        module system_icon_light__question {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 49; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 50; @position = 18; @symbol_constdef = [filename,50,18,26]; @symbol_type<0> = [String,50,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\system_icon_light__question.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 51; @position = 18; @symbol_constdef = [compress,51,18,26]; @symbol_type<0> = [String,51,30,36]; ]
+            const compress as String = "true";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 52; @position = 18; @symbol_constdef = [dithering,52,18,27]; @symbol_type<0> = [String,52,31,37]; ]
+            const dithering as String = "none";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 53; @position = 18; @symbol_constdef = [automaticPalette,53,18,34]; @symbol_type<0> = [String,53,38,44]; ]
+            const automaticPalette as String = "true";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 54; @position = 18; @symbol_constdef = [packingFormat,54,18,31]; @symbol_type<0> = [String,54,35,41]; ]
+            const packingFormat as String = "png";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 57; @symbol_moduledef = [system_loc__hint_button_left_top,57,15,47]; ]
+        module system_loc__hint_button_left_top {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 57; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 58; @position = 18; @symbol_constdef = [exclude,58,18,25]; @symbol_type<0> = [Boolean,58,29,36]; ]
+            const exclude as Boolean = true;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 61; @symbol_moduledef = [prompt_font__title,61,15,33]; ]
+        module prompt_font__title {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 61; ]
+            <init> {
+[ "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen" 62 18 ]
+                symbol [ Graphics %tmp.12 62 34 42 ];
+                %tmp.12 = getm $.Toybox.Graphics;
+                symbol [ TEXT_JUSTIFY_CENTER %tmp.13 62 43 62 ];
+                %tmp.13 = getv %tmp.12 :TEXT_JUSTIFY_CENTER;
+                symbol [ Graphics %tmp.14 62 63 71 ];
+                %tmp.14 = getm $.Toybox.Graphics;
+                symbol [ TEXT_JUSTIFY_VCENTER %tmp.15 62 72 92 ];
+                %tmp.15 = getv %tmp.14 :TEXT_JUSTIFY_VCENTER;
+                %tmp.16 = bitor %tmp.13 %tmp.15;
+                putv self :justification %tmp.16;
+[ "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen" 63 18 ]
+                symbol [ Graphics %tmp.17 63 25 33 ];
+                %tmp.17 = getm $.Toybox.Graphics;
+                symbol [ FONT_XTINY %tmp.18 63 34 44 ];
+                %tmp.18 = getv %tmp.17 :FONT_XTINY;
+                putv self :font %tmp.18;
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 62; @position = 18; @symbol_constdef = [justification,62,18,31]; ]
+            const justification;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 63; @position = 18; @symbol_constdef = [font,63,18,22]; ]
+            const font;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 66; @symbol_moduledef = [system_icon_dark__discard,66,15,40]; ]
+        module system_icon_dark__discard {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 66; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 67; @position = 18; @symbol_constdef = [filename,67,18,26]; @symbol_type<0> = [String,67,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\system_icon_dark__discard.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 68; @position = 18; @symbol_constdef = [compress,68,18,26]; @symbol_type<0> = [String,68,30,36]; ]
+            const compress as String = "true";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 69; @position = 18; @symbol_constdef = [dithering,69,18,27]; @symbol_type<0> = [String,69,31,37]; ]
+            const dithering as String = "none";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 70; @position = 18; @symbol_constdef = [automaticPalette,70,18,34]; @symbol_type<0> = [String,70,38,44]; ]
+            const automaticPalette as String = "true";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 71; @position = 18; @symbol_constdef = [packingFormat,71,18,31]; @symbol_type<0> = [String,71,35,41]; ]
+            const packingFormat as String = "png";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 74; @symbol_moduledef = [system_size__menu_item,74,15,37]; ]
+        module system_size__menu_item {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 74; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 75; @position = 18; @symbol_constdef = [width,75,18,23]; @symbol_type<0> = [Number,75,27,33]; ]
+            const width as Number = 454;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 76; @position = 18; @symbol_constdef = [height,76,18,24]; @symbol_type<0> = [Number,76,28,34]; ]
+            const height as Number = 116;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 79; @symbol_moduledef = [system_color_dark__text,79,15,38]; ]
+        module system_color_dark__text {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 79; ]
+            <init> {
+[ "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen" 81 18 ]
+                symbol [ Graphics %tmp.19 81 31 39 ];
+                %tmp.19 = getm $.Toybox.Graphics;
+                symbol [ COLOR_TRANSPARENT %tmp.20 81 40 57 ];
+                %tmp.20 = getv %tmp.19 :COLOR_TRANSPARENT;
+                putv self :background %tmp.20;
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 80; @position = 18; @symbol_constdef = [color,80,18,23]; @symbol_type<0> = [Number,80,27,33]; ]
+            const color as Number = 0xFFFFFF;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 81; @position = 18; @symbol_constdef = [background,81,18,28]; ]
+            const background;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 84; @symbol_moduledef = [system_icon_destructive__discard,84,15,47]; ]
+        module system_icon_destructive__discard {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 84; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 85; @position = 18; @symbol_constdef = [filename,85,18,26]; @symbol_type<0> = [String,85,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\system_icon_destructive__discard.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 86; @position = 18; @symbol_constdef = [dithering,86,18,27]; @symbol_type<0> = [String,86,31,37]; ]
+            const dithering as String = "none";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 87; @position = 18; @symbol_constdef = [packingFormat,87,18,31]; @symbol_type<0> = [String,87,35,41]; ]
+            const packingFormat as String = "png";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 90; @symbol_moduledef = [system_icon_dark__hint_action_menu,90,15,49]; ]
+        module system_icon_dark__hint_action_menu {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 90; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 91; @position = 18; @symbol_constdef = [filename,91,18,26]; @symbol_type<0> = [String,91,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\system_icon_dark__hint_action_menu.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 92; @position = 18; @symbol_constdef = [dithering,92,18,27]; @symbol_type<0> = [String,92,31,37]; ]
+            const dithering as String = "none";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 93; @position = 18; @symbol_constdef = [packingFormat,93,18,31]; @symbol_type<0> = [String,93,35,41]; ]
+            const packingFormat as String = "png";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 96; @symbol_moduledef = [prompt_size__title,96,15,33]; ]
+        module prompt_size__title {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 96; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 97; @position = 18; @symbol_constdef = [width,97,18,23]; @symbol_type<0> = [Number,97,27,33]; ]
+            const width as Number = 192;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 98; @position = 18; @symbol_constdef = [height,98,18,24]; @symbol_type<0> = [Number,98,28,34]; ]
+            const height as Number = 81;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 101; @symbol_moduledef = [confirmation_font__body,101,15,38]; ]
+        module confirmation_font__body {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 101; ]
+            <init> {
+[ "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen" 102 18 ]
+                symbol [ Graphics %tmp.21 102 34 42 ];
+                %tmp.21 = getm $.Toybox.Graphics;
+                symbol [ TEXT_JUSTIFY_CENTER %tmp.22 102 43 62 ];
+                %tmp.22 = getv %tmp.21 :TEXT_JUSTIFY_CENTER;
+                symbol [ Graphics %tmp.23 102 63 71 ];
+                %tmp.23 = getm $.Toybox.Graphics;
+                symbol [ TEXT_JUSTIFY_VCENTER %tmp.24 102 72 92 ];
+                %tmp.24 = getv %tmp.23 :TEXT_JUSTIFY_VCENTER;
+                %tmp.25 = bitor %tmp.22 %tmp.24;
+                putv self :justification %tmp.25;
+[ "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen" 103 18 ]
+                symbol [ Graphics %tmp.26 103 25 33 ];
+                %tmp.26 = getm $.Toybox.Graphics;
+                symbol [ FONT_TINY %tmp.27 103 34 43 ];
+                %tmp.27 = getv %tmp.26 :FONT_TINY;
+                putv self :font %tmp.27;
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 102; @position = 18; @symbol_constdef = [justification,102,18,31]; ]
+            const justification;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 103; @position = 18; @symbol_constdef = [font,103,18,22]; ]
+            const font;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 106; @symbol_moduledef = [system_color_dark__background,106,15,44]; ]
+        module system_color_dark__background {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 106; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 107; @position = 18; @symbol_constdef = [color,107,18,23]; @symbol_type<0> = [Number,107,27,33]; ]
+            const color as Number = 0x000000;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 108; @position = 18; @symbol_constdef = [background,108,18,28]; @symbol_type<0> = [Number,108,32,38]; ]
+            const background as Number = 0x000000;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 111; @symbol_moduledef = [system_icon_destructive__hint_button_left_top,111,15,60]; ]
+        module system_icon_destructive__hint_button_left_top {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 111; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 112; @position = 18; @symbol_constdef = [exclude,112,18,25]; @symbol_type<0> = [Boolean,112,29,36]; ]
+            const exclude as Boolean = true;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 115; @symbol_moduledef = [system_size__launch_icon,115,15,39]; ]
+        module system_size__launch_icon {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 115; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 116; @position = 18; @symbol_constdef = [scaleX,116,18,24]; @symbol_type<0> = [Number,116,28,34]; ]
+            const scaleX as Number = 70;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 117; @position = 18; @symbol_constdef = [scaleY,117,18,24]; @symbol_type<0> = [Number,117,28,34]; ]
+            const scaleY as Number = 70;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 118; @position = 18; @symbol_constdef = [scaleRelativeTo,118,18,33]; @symbol_type<0> = [String,118,37,43]; ]
+            const scaleRelativeTo as String = "screen";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 121; @symbol_moduledef = [confirmation_input__confirm,121,15,42]; ]
+        module confirmation_input__confirm {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 121; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 122; @position = 18; @symbol_constdef = [y1,122,18,20]; @symbol_type<0> = [Number,122,24,30]; ]
+            const y1 as Number = 345;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 123; @position = 18; @symbol_constdef = [x1,123,18,20]; @symbol_type<0> = [Number,123,24,30]; ]
+            const x1 as Number = 84;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 124; @position = 18; @symbol_constdef = [y2,124,18,20]; @symbol_type<0> = [Number,124,24,30]; ]
+            const y2 as Number = 454;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 125; @position = 18; @symbol_constdef = [x2,125,18,20]; @symbol_type<0> = [Number,125,24,30]; ]
+            const x2 as Number = 370;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 128; @symbol_moduledef = [prompt_font__body_with_title,128,15,43]; ]
+        module prompt_font__body_with_title {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 128; ]
+            <init> {
+[ "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen" 129 18 ]
+                symbol [ Graphics %tmp.28 129 34 42 ];
+                %tmp.28 = getm $.Toybox.Graphics;
+                symbol [ TEXT_JUSTIFY_CENTER %tmp.29 129 43 62 ];
+                %tmp.29 = getv %tmp.28 :TEXT_JUSTIFY_CENTER;
+                putv self :justification %tmp.29;
+[ "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen" 130 18 ]
+                symbol [ Graphics %tmp.30 130 25 33 ];
+                %tmp.30 = getm $.Toybox.Graphics;
+                symbol [ FONT_TINY %tmp.31 130 34 43 ];
+                %tmp.31 = getv %tmp.30 :FONT_TINY;
+                putv self :font %tmp.31;
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 129; @position = 18; @symbol_constdef = [justification,129,18,31]; ]
+            const justification;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 130; @position = 18; @symbol_constdef = [font,130,18,22]; ]
+            const font;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 133; @symbol_moduledef = [confirmation_loc__body,133,15,37]; ]
+        module confirmation_loc__body {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 133; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 134; @position = 18; @symbol_constdef = [x,134,18,19]; @symbol_type<0> = [Number,134,23,29]; ]
+            const x as Number = 93;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 135; @position = 18; @symbol_constdef = [y,135,18,19]; @symbol_type<0> = [Number,135,23,29]; ]
+            const y as Number = 91;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 138; @symbol_moduledef = [system_icon_destructive__hint_button_left_bottom,138,15,63]; ]
+        module system_icon_destructive__hint_button_left_bottom {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 138; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 139; @position = 18; @symbol_constdef = [exclude,139,18,25]; @symbol_type<0> = [Boolean,139,29,36]; ]
+            const exclude as Boolean = true;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 142; @symbol_moduledef = [prompt_color_dark__background,142,15,44]; ]
+        module prompt_color_dark__background {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 142; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 143; @position = 18; @symbol_constdef = [color,143,18,23]; @symbol_type<0> = [Number,143,27,33]; ]
+            const color as Number = 0x000000;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 144; @position = 18; @symbol_constdef = [background,144,18,28]; @symbol_type<0> = [Number,144,32,38]; ]
+            const background as Number = 0x000000;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 147; @symbol_moduledef = [system_icon_destructive__hint_action_menu,147,15,56]; ]
+        module system_icon_destructive__hint_action_menu {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 147; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 148; @position = 18; @symbol_constdef = [filename,148,18,26]; @symbol_type<0> = [String,148,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\system_icon_destructive__hint_action_menu.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 149; @position = 18; @symbol_constdef = [dithering,149,18,27]; @symbol_type<0> = [String,149,31,37]; ]
+            const dithering as String = "none";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 150; @position = 18; @symbol_constdef = [packingFormat,150,18,31]; @symbol_type<0> = [String,150,35,41]; ]
+            const packingFormat as String = "png";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 153; @symbol_moduledef = [system_loc__hint_action_menu,153,15,43]; ]
+        module system_loc__hint_action_menu {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 153; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 154; @position = 18; @symbol_constdef = [x,154,18,19]; @symbol_type<0> = [Number,154,23,29]; ]
+            const x as Number = 227;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 155; @position = 18; @symbol_constdef = [horizontalJustification,155,18,41]; @symbol_type<0> = [String,155,45,51]; ]
+            const horizontalJustification as String = "center";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 156; @position = 18; @symbol_constdef = [y,156,18,19]; @symbol_type<0> = [Number,156,23,29]; ]
+            const y as Number = 370;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 159; @symbol_moduledef = [confirmation_icon__hint_confirm,159,15,46]; ]
+        module confirmation_icon__hint_confirm {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 159; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 160; @position = 18; @symbol_constdef = [filename,160,18,26]; @symbol_type<0> = [String,160,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\confirmation_icon__hint_completion.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 161; @position = 18; @symbol_constdef = [dithering,161,18,27]; @symbol_type<0> = [String,161,31,37]; ]
+            const dithering as String = "none";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 162; @position = 18; @symbol_constdef = [packingFormat,162,18,31]; @symbol_type<0> = [String,162,35,41]; ]
+            const packingFormat as String = "png";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 165; @symbol_moduledef = [system_loc__hint_button_left_middle,165,15,50]; ]
+        module system_loc__hint_button_left_middle {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 165; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 166; @position = 18; @symbol_constdef = [exclude,166,18,25]; @symbol_type<0> = [Boolean,166,29,36]; ]
+            const exclude as Boolean = true;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 169; @symbol_moduledef = [prompt_size__body_no_title,169,15,41]; ]
+        module prompt_size__body_no_title {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 169; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 170; @position = 18; @symbol_constdef = [width,170,18,23]; @symbol_type<0> = [Number,170,27,33]; ]
+            const width as Number = 363;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 171; @position = 18; @symbol_constdef = [height,171,18,24]; @symbol_type<0> = [Number,171,28,34]; ]
+            const height as Number = 295;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 174; @symbol_moduledef = [system_icon_light__hint_button_left_top,174,15,54]; ]
+        module system_icon_light__hint_button_left_top {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 174; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 175; @position = 18; @symbol_constdef = [exclude,175,18,25]; @symbol_type<0> = [Boolean,175,29,36]; ]
+            const exclude as Boolean = true;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 178; @symbol_moduledef = [prompt_color_light__background,178,15,45]; ]
+        module prompt_color_light__background {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 178; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 179; @position = 18; @symbol_constdef = [color,179,18,23]; @symbol_type<0> = [Number,179,27,33]; ]
+            const color as Number = 0x000000;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 180; @position = 18; @symbol_constdef = [background,180,18,28]; @symbol_type<0> = [Number,180,32,38]; ]
+            const background as Number = 0x000000;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 183; @symbol_moduledef = [confirmation_input__delete,183,15,41]; ]
+        module confirmation_input__delete {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 183; ]
+            <init> {
+[ "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen" 184 18 ]
+                symbol [ WatchUi %tmp.32 184 27 34 ];
+                %tmp.32 = getm $.Toybox.WatchUi;
+                symbol [ KEY_ENTER %tmp.33 184 35 44 ];
+                %tmp.33 = getv %tmp.32 :KEY_ENTER;
+                putv self :button %tmp.33;
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 184; @position = 18; @symbol_constdef = [button,184,18,24]; ]
+            const button;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 187; @symbol_moduledef = [system_icon_dark__hint_button_left_top,187,15,53]; ]
+        module system_icon_dark__hint_button_left_top {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 187; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 188; @position = 18; @symbol_constdef = [exclude,188,18,25]; @symbol_type<0> = [Boolean,188,29,36]; ]
+            const exclude as Boolean = true;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 191; @symbol_moduledef = [system_input__action_menu,191,15,40]; ]
+        module system_input__action_menu {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 191; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 192; @position = 18; @symbol_constdef = [y1,192,18,20]; @symbol_type<0> = [Number,192,24,30]; ]
+            const y1 as Number = 370;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 193; @position = 18; @symbol_constdef = [x1,193,18,20]; @symbol_type<0> = [Number,193,24,30]; ]
+            const x1 as Number = 113;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 194; @position = 18; @symbol_constdef = [y2,194,18,20]; @symbol_type<0> = [Number,194,24,30]; ]
+            const y2 as Number = 454;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 195; @position = 18; @symbol_constdef = [x2,195,18,20]; @symbol_type<0> = [Number,195,24,30]; ]
+            const x2 as Number = 341;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 198; @symbol_moduledef = [system_icon_light__save,198,15,38]; ]
+        module system_icon_light__save {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 198; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 199; @position = 18; @symbol_constdef = [filename,199,18,26]; @symbol_type<0> = [String,199,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\system_icon_light__save.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 200; @position = 18; @symbol_constdef = [compress,200,18,26]; @symbol_type<0> = [String,200,30,36]; ]
+            const compress as String = "true";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 201; @position = 18; @symbol_constdef = [dithering,201,18,27]; @symbol_type<0> = [String,201,31,37]; ]
+            const dithering as String = "none";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 202; @position = 18; @symbol_constdef = [automaticPalette,202,18,34]; @symbol_type<0> = [String,202,38,44]; ]
+            const automaticPalette as String = "true";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 203; @position = 18; @symbol_constdef = [packingFormat,203,18,31]; @symbol_type<0> = [String,203,35,41]; ]
+            const packingFormat as String = "png";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 206; @symbol_moduledef = [prompt_color_light__body,206,15,39]; ]
+        module prompt_color_light__body {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 206; ]
+            <init> {
+[ "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen" 208 18 ]
+                symbol [ Graphics %tmp.34 208 31 39 ];
+                %tmp.34 = getm $.Toybox.Graphics;
+                symbol [ COLOR_TRANSPARENT %tmp.35 208 40 57 ];
+                %tmp.35 = getv %tmp.34 :COLOR_TRANSPARENT;
+                putv self :background %tmp.35;
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 207; @position = 18; @symbol_constdef = [color,207,18,23]; @symbol_type<0> = [Number,207,27,33]; ]
+            const color as Number = 0xFFFFFF;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 208; @position = 18; @symbol_constdef = [background,208,18,28]; ]
+            const background;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 211; @symbol_moduledef = [system_loc__subwindow,211,15,36]; ]
+        module system_loc__subwindow {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 211; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 212; @position = 18; @symbol_constdef = [exclude,212,18,25]; @symbol_type<0> = [Boolean,212,29,36]; ]
+            const exclude as Boolean = true;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 215; @symbol_moduledef = [system_icon_light__warning,215,15,41]; ]
+        module system_icon_light__warning {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 215; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 216; @position = 18; @symbol_constdef = [filename,216,18,26]; @symbol_type<0> = [String,216,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\system_icon_light__warning.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 217; @position = 18; @symbol_constdef = [compress,217,18,26]; @symbol_type<0> = [String,217,30,36]; ]
+            const compress as String = "true";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 218; @position = 18; @symbol_constdef = [dithering,218,18,27]; @symbol_type<0> = [String,218,31,37]; ]
+            const dithering as String = "none";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 219; @position = 18; @symbol_constdef = [automaticPalette,219,18,34]; @symbol_type<0> = [String,219,38,44]; ]
+            const automaticPalette as String = "true";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 220; @position = 18; @symbol_constdef = [packingFormat,220,18,31]; @symbol_type<0> = [String,220,35,41]; ]
+            const packingFormat as String = "png";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 223; @symbol_moduledef = [confirmation_color_light__body,223,15,45]; ]
+        module confirmation_color_light__body {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 223; ]
+            <init> {
+[ "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen" 225 18 ]
+                symbol [ Graphics %tmp.36 225 31 39 ];
+                %tmp.36 = getm $.Toybox.Graphics;
+                symbol [ COLOR_TRANSPARENT %tmp.37 225 40 57 ];
+                %tmp.37 = getv %tmp.36 :COLOR_TRANSPARENT;
+                putv self :background %tmp.37;
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 224; @position = 18; @symbol_constdef = [color,224,18,23]; @symbol_type<0> = [Number,224,27,33]; ]
+            const color as Number = 0xFFFFFF;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 225; @position = 18; @symbol_constdef = [background,225,18,28]; ]
+            const background;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 228; @symbol_moduledef = [confirmation_icon_light__hint_keep,228,15,49]; ]
+        module confirmation_icon_light__hint_keep {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 228; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 229; @position = 18; @symbol_constdef = [filename,229,18,26]; @symbol_type<0> = [String,229,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\confirmation_icon__hint_keep.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 230; @position = 18; @symbol_constdef = [dithering,230,18,27]; @symbol_type<0> = [String,230,31,37]; ]
+            const dithering as String = "none";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 231; @position = 18; @symbol_constdef = [packingFormat,231,18,31]; @symbol_type<0> = [String,231,35,41]; ]
+            const packingFormat as String = "png";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 234; @symbol_moduledef = [activity_color_light__background,234,15,47]; ]
+        module activity_color_light__background {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 234; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 235; @position = 18; @symbol_constdef = [color,235,18,23]; @symbol_type<0> = [Number,235,27,33]; ]
+            const color as Number = 0x000000;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 236; @position = 18; @symbol_constdef = [background,236,18,28]; @symbol_type<0> = [Number,236,32,38]; ]
+            const background as Number = 0x000000;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 239; @symbol_moduledef = [system_icon_positive__hint_button_right_top,239,15,58]; ]
+        module system_icon_positive__hint_button_right_top {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 239; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 240; @position = 18; @symbol_constdef = [filename,240,18,26]; @symbol_type<0> = [String,240,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\system_icon_positive__hint_button_right_top.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 241; @position = 18; @symbol_constdef = [dithering,241,18,27]; @symbol_type<0> = [String,241,31,37]; ]
+            const dithering as String = "none";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 244; @symbol_moduledef = [system_size__screen,244,15,34]; ]
+        module system_size__screen {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 244; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 245; @position = 18; @symbol_constdef = [width,245,18,23]; @symbol_type<0> = [Number,245,27,33]; ]
+            const width as Number = 454;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 246; @position = 18; @symbol_constdef = [height,246,18,24]; @symbol_type<0> = [Number,246,28,34]; ]
+            const height as Number = 454;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 249; @symbol_moduledef = [system_icon_destructive__hint_button_right_bottom,249,15,64]; ]
+        module system_icon_destructive__hint_button_right_bottom {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 249; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 250; @position = 18; @symbol_constdef = [filename,250,18,26]; @symbol_type<0> = [String,250,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\system_icon_light__hint_button_right_bottom.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 251; @position = 18; @symbol_constdef = [dithering,251,18,27]; @symbol_type<0> = [String,251,31,37]; ]
+            const dithering as String = "none";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 254; @symbol_moduledef = [system_color_light__background,254,15,45]; ]
+        module system_color_light__background {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 254; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 255; @position = 18; @symbol_constdef = [color,255,18,23]; @symbol_type<0> = [Number,255,27,33]; ]
+            const color as Number = 0x000000;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 256; @position = 18; @symbol_constdef = [background,256,18,28]; @symbol_type<0> = [Number,256,32,38]; ]
+            const background as Number = 0x000000;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 259; @symbol_moduledef = [system_icon_destructive__hint_button_right_top,259,15,61]; ]
+        module system_icon_destructive__hint_button_right_top {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 259; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 260; @position = 18; @symbol_constdef = [filename,260,18,26]; @symbol_type<0> = [String,260,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\system_icon_destructive__hint_button_right_top.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 261; @position = 18; @symbol_constdef = [dithering,261,18,27]; @symbol_type<0> = [String,261,31,37]; ]
+            const dithering as String = "none";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 264; @symbol_moduledef = [confirmation_loc__hint_confirm,264,15,45]; ]
+        module confirmation_loc__hint_confirm {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 264; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 265; @position = 18; @symbol_constdef = [x,265,18,19]; @symbol_type<0> = [Number,265,23,29]; ]
+            const x as Number = 227;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 266; @position = 18; @symbol_constdef = [horizontalJustification,266,18,41]; @symbol_type<0> = [String,266,45,51]; ]
+            const horizontalJustification as String = "center";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 267; @position = 18; @symbol_constdef = [y,267,18,19]; @symbol_type<0> = [Number,267,23,29]; ]
+            const y as Number = 345;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 270; @symbol_moduledef = [activity_color_dark__text,270,15,40]; ]
+        module activity_color_dark__text {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 270; ]
+            <init> {
+[ "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen" 272 18 ]
+                symbol [ Graphics %tmp.38 272 31 39 ];
+                %tmp.38 = getm $.Toybox.Graphics;
+                symbol [ COLOR_TRANSPARENT %tmp.39 272 40 57 ];
+                %tmp.39 = getv %tmp.38 :COLOR_TRANSPARENT;
+                putv self :background %tmp.39;
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 271; @position = 18; @symbol_constdef = [color,271,18,23]; @symbol_type<0> = [Number,271,27,33]; ]
+            const color as Number = 0xFFFFFF;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 272; @position = 18; @symbol_constdef = [background,272,18,28]; ]
+            const background;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 275; @symbol_moduledef = [confirmation_input__keep,275,15,39]; ]
+        module confirmation_input__keep {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 275; ]
+            <init> {
+[ "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen" 276 18 ]
+                symbol [ WatchUi %tmp.40 276 27 34 ];
+                %tmp.40 = getm $.Toybox.WatchUi;
+                symbol [ KEY_ESC %tmp.41 276 35 42 ];
+                %tmp.41 = getv %tmp.40 :KEY_ESC;
+                putv self :button %tmp.41;
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 276; @position = 18; @symbol_constdef = [button,276,18,24]; ]
+            const button;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 279; @symbol_moduledef = [prompt_loc__body_with_title,279,15,42]; ]
+        module prompt_loc__body_with_title {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 279; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 280; @position = 18; @symbol_constdef = [x,280,18,19]; @symbol_type<0> = [Number,280,23,29]; ]
+            const x as Number = 45;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 281; @position = 18; @symbol_constdef = [y,281,18,19]; @symbol_type<0> = [Number,281,23,29]; ]
+            const y as Number = 114;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 284; @symbol_moduledef = [system_icon_dark__search,284,15,39]; ]
+        module system_icon_dark__search {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 284; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 285; @position = 18; @symbol_constdef = [filename,285,18,26]; @symbol_type<0> = [String,285,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\system_icon_dark__search.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 286; @position = 18; @symbol_constdef = [compress,286,18,26]; @symbol_type<0> = [String,286,30,36]; ]
+            const compress as String = "true";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 287; @position = 18; @symbol_constdef = [dithering,287,18,27]; @symbol_type<0> = [String,287,31,37]; ]
+            const dithering as String = "none";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 288; @position = 18; @symbol_constdef = [automaticPalette,288,18,34]; @symbol_type<0> = [String,288,38,44]; ]
+            const automaticPalette as String = "true";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 289; @position = 18; @symbol_constdef = [packingFormat,289,18,31]; @symbol_type<0> = [String,289,35,41]; ]
+            const packingFormat as String = "png";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 292; @symbol_moduledef = [activity_color_light__text,292,15,41]; ]
+        module activity_color_light__text {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 292; ]
+            <init> {
+[ "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen" 294 18 ]
+                symbol [ Graphics %tmp.42 294 31 39 ];
+                %tmp.42 = getm $.Toybox.Graphics;
+                symbol [ COLOR_TRANSPARENT %tmp.43 294 40 57 ];
+                %tmp.43 = getv %tmp.42 :COLOR_TRANSPARENT;
+                putv self :background %tmp.43;
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 293; @position = 18; @symbol_constdef = [color,293,18,23]; @symbol_type<0> = [Number,293,27,33]; ]
+            const color as Number = 0xFFFFFF;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 294; @position = 18; @symbol_constdef = [background,294,18,28]; ]
+            const background;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 297; @symbol_moduledef = [confirmation_icon__hint_keep,297,15,43]; ]
+        module confirmation_icon__hint_keep {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 297; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 298; @position = 18; @symbol_constdef = [filename,298,18,26]; @symbol_type<0> = [String,298,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\confirmation_icon__hint_keep.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 299; @position = 18; @symbol_constdef = [dithering,299,18,27]; @symbol_type<0> = [String,299,31,37]; ]
+            const dithering as String = "none";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 300; @position = 18; @symbol_constdef = [packingFormat,300,18,31]; @symbol_type<0> = [String,300,35,41]; ]
+            const packingFormat as String = "png";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 303; @symbol_moduledef = [system_icon_dark__save,303,15,37]; ]
+        module system_icon_dark__save {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 303; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 304; @position = 18; @symbol_constdef = [filename,304,18,26]; @symbol_type<0> = [String,304,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\system_icon_dark__save.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 305; @position = 18; @symbol_constdef = [compress,305,18,26]; @symbol_type<0> = [String,305,30,36]; ]
+            const compress as String = "true";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 306; @position = 18; @symbol_constdef = [dithering,306,18,27]; @symbol_type<0> = [String,306,31,37]; ]
+            const dithering as String = "none";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 307; @position = 18; @symbol_constdef = [automaticPalette,307,18,34]; @symbol_type<0> = [String,307,38,44]; ]
+            const automaticPalette as String = "true";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 308; @position = 18; @symbol_constdef = [packingFormat,308,18,31]; @symbol_type<0> = [String,308,35,41]; ]
+            const packingFormat as String = "png";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 311; @symbol_moduledef = [system_icon_destructive__hint_button_left_middle,311,15,63]; ]
+        module system_icon_destructive__hint_button_left_middle {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 311; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 312; @position = 18; @symbol_constdef = [exclude,312,18,25]; @symbol_type<0> = [Boolean,312,29,36]; ]
+            const exclude as Boolean = true;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 315; @symbol_moduledef = [system_icon_light__search,315,15,40]; ]
+        module system_icon_light__search {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 315; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 316; @position = 18; @symbol_constdef = [filename,316,18,26]; @symbol_type<0> = [String,316,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\system_icon_light__search.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 317; @position = 18; @symbol_constdef = [compress,317,18,26]; @symbol_type<0> = [String,317,30,36]; ]
+            const compress as String = "true";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 318; @position = 18; @symbol_constdef = [dithering,318,18,27]; @symbol_type<0> = [String,318,31,37]; ]
+            const dithering as String = "none";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 319; @position = 18; @symbol_constdef = [automaticPalette,319,18,34]; @symbol_type<0> = [String,319,38,44]; ]
+            const automaticPalette as String = "true";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 320; @position = 18; @symbol_constdef = [packingFormat,320,18,31]; @symbol_type<0> = [String,320,35,41]; ]
+            const packingFormat as String = "png";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 323; @symbol_moduledef = [system_icon_dark__hint_button_left_bottom,323,15,56]; ]
+        module system_icon_dark__hint_button_left_bottom {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 323; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 324; @position = 18; @symbol_constdef = [exclude,324,18,25]; @symbol_type<0> = [Boolean,324,29,36]; ]
+            const exclude as Boolean = true;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 327; @symbol_moduledef = [system_icon_positive__hint_button_left_top,327,15,57]; ]
+        module system_icon_positive__hint_button_left_top {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 327; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 328; @position = 18; @symbol_constdef = [exclude,328,18,25]; @symbol_type<0> = [Boolean,328,29,36]; ]
+            const exclude as Boolean = true;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 331; @symbol_moduledef = [system_loc__hint_button_right_bottom,331,15,51]; ]
+        module system_loc__hint_button_right_bottom {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 331; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 332; @position = 18; @symbol_constdef = [x,332,18,19]; @symbol_type<0> = [Number,332,23,29]; ]
+            const x as Number = 342;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 333; @position = 18; @symbol_constdef = [y,333,18,19]; @symbol_type<0> = [Number,333,23,29]; ]
+            const y as Number = 256;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 336; @symbol_moduledef = [confirmation_icon_dark__hint_reject,336,15,50]; ]
+        module confirmation_icon_dark__hint_reject {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 336; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 337; @position = 18; @symbol_constdef = [filename,337,18,26]; @symbol_type<0> = [String,337,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\confirmation_icon__hint_reject.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 338; @position = 18; @symbol_constdef = [dithering,338,18,27]; @symbol_type<0> = [String,338,31,37]; ]
+            const dithering as String = "none";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 339; @position = 18; @symbol_constdef = [packingFormat,339,18,31]; @symbol_type<0> = [String,339,35,41]; ]
+            const packingFormat as String = "png";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 342; @symbol_moduledef = [confirmation_color_dark__body,342,15,44]; ]
+        module confirmation_color_dark__body {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 342; ]
+            <init> {
+[ "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen" 344 18 ]
+                symbol [ Graphics %tmp.44 344 31 39 ];
+                %tmp.44 = getm $.Toybox.Graphics;
+                symbol [ COLOR_TRANSPARENT %tmp.45 344 40 57 ];
+                %tmp.45 = getv %tmp.44 :COLOR_TRANSPARENT;
+                putv self :background %tmp.45;
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 343; @position = 18; @symbol_constdef = [color,343,18,23]; @symbol_type<0> = [Number,343,27,33]; ]
+            const color as Number = 0xFFFFFF;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 344; @position = 18; @symbol_constdef = [background,344,18,28]; ]
+            const background;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 347; @symbol_moduledef = [confirmation_icon_light__hint_confirm,347,15,52]; ]
+        module confirmation_icon_light__hint_confirm {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 347; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 348; @position = 18; @symbol_constdef = [filename,348,18,26]; @symbol_type<0> = [String,348,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\confirmation_icon__hint_completion.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 349; @position = 18; @symbol_constdef = [dithering,349,18,27]; @symbol_type<0> = [String,349,31,37]; ]
+            const dithering as String = "none";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 350; @position = 18; @symbol_constdef = [packingFormat,350,18,31]; @symbol_type<0> = [String,350,35,41]; ]
+            const packingFormat as String = "png";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 353; @symbol_moduledef = [prompt_color_dark__title,353,15,39]; ]
+        module prompt_color_dark__title {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 353; ]
+            <init> {
+[ "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen" 355 18 ]
+                symbol [ Graphics %tmp.46 355 31 39 ];
+                %tmp.46 = getm $.Toybox.Graphics;
+                symbol [ COLOR_TRANSPARENT %tmp.47 355 40 57 ];
+                %tmp.47 = getv %tmp.46 :COLOR_TRANSPARENT;
+                putv self :background %tmp.47;
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 354; @position = 18; @symbol_constdef = [color,354,18,23]; @symbol_type<0> = [Number,354,27,33]; ]
+            const color as Number = 0xB3B3B3;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 355; @position = 18; @symbol_constdef = [background,355,18,28]; ]
+            const background;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 358; @symbol_moduledef = [system_icon_destructive__cancel,358,15,46]; ]
+        module system_icon_destructive__cancel {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 358; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 359; @position = 18; @symbol_constdef = [filename,359,18,26]; @symbol_type<0> = [String,359,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\system_icon_destructive__cancel.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 360; @position = 18; @symbol_constdef = [dithering,360,18,27]; @symbol_type<0> = [String,360,31,37]; ]
+            const dithering as String = "none";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 361; @position = 18; @symbol_constdef = [packingFormat,361,18,31]; @symbol_type<0> = [String,361,35,41]; ]
+            const packingFormat as String = "png";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 364; @symbol_moduledef = [system_icon_light__hint_button_right_bottom,364,15,58]; ]
+        module system_icon_light__hint_button_right_bottom {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 364; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 365; @position = 18; @symbol_constdef = [filename,365,18,26]; @symbol_type<0> = [String,365,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\system_icon_light__hint_button_right_bottom.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 366; @position = 18; @symbol_constdef = [dithering,366,18,27]; @symbol_type<0> = [String,366,31,37]; ]
+            const dithering as String = "none";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 369; @symbol_moduledef = [prompt_loc__title,369,15,32]; ]
+        module prompt_loc__title {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 369; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 370; @position = 18; @symbol_constdef = [x,370,18,19]; @symbol_type<0> = [Number,370,23,29]; ]
+            const x as Number = 138;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 371; @position = 18; @symbol_constdef = [y,371,18,19]; @symbol_type<0> = [Number,371,23,29]; ]
+            const y as Number = 20;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 374; @symbol_moduledef = [confirmation_font_enhanced_readability__body,374,15,59]; ]
+        module confirmation_font_enhanced_readability__body {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 374; ]
+            <init> {
+[ "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen" 375 18 ]
+                symbol [ Graphics %tmp.48 375 34 42 ];
+                %tmp.48 = getm $.Toybox.Graphics;
+                symbol [ TEXT_JUSTIFY_CENTER %tmp.49 375 43 62 ];
+                %tmp.49 = getv %tmp.48 :TEXT_JUSTIFY_CENTER;
+                symbol [ Graphics %tmp.50 375 63 71 ];
+                %tmp.50 = getm $.Toybox.Graphics;
+                symbol [ TEXT_JUSTIFY_VCENTER %tmp.51 375 72 92 ];
+                %tmp.51 = getv %tmp.50 :TEXT_JUSTIFY_VCENTER;
+                %tmp.52 = bitor %tmp.49 %tmp.51;
+                putv self :justification %tmp.52;
+[ "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen" 376 18 ]
+                symbol [ Graphics %tmp.53 376 25 33 ];
+                %tmp.53 = getm $.Toybox.Graphics;
+                symbol [ FONT_SMALL %tmp.54 376 34 44 ];
+                %tmp.54 = getv %tmp.53 :FONT_SMALL;
+                putv self :font %tmp.54;
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 375; @position = 18; @symbol_constdef = [justification,375,18,31]; ]
+            const justification;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 376; @position = 18; @symbol_constdef = [font,376,18,22]; ]
+            const font;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 379; @symbol_moduledef = [prompt_color_light__title,379,15,40]; ]
+        module prompt_color_light__title {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 379; ]
+            <init> {
+[ "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen" 381 18 ]
+                symbol [ Graphics %tmp.55 381 31 39 ];
+                %tmp.55 = getm $.Toybox.Graphics;
+                symbol [ COLOR_TRANSPARENT %tmp.56 381 40 57 ];
+                %tmp.56 = getv %tmp.55 :COLOR_TRANSPARENT;
+                putv self :background %tmp.56;
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 380; @position = 18; @symbol_constdef = [color,380,18,23]; @symbol_type<0> = [Number,380,27,33]; ]
+            const color as Number = 0xB3B3B3;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 381; @position = 18; @symbol_constdef = [background,381,18,28]; ]
+            const background;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 384; @symbol_moduledef = [system_icon_dark__hint_button_right_top,384,15,54]; ]
+        module system_icon_dark__hint_button_right_top {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 384; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 385; @position = 18; @symbol_constdef = [filename,385,18,26]; @symbol_type<0> = [String,385,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\system_icon_dark__hint_button_right_top.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 386; @position = 18; @symbol_constdef = [dithering,386,18,27]; @symbol_type<0> = [String,386,31,37]; ]
+            const dithering as String = "none";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 389; @symbol_moduledef = [system_icon_dark__hint_button_left_middle,389,15,56]; ]
+        module system_icon_dark__hint_button_left_middle {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 389; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 390; @position = 18; @symbol_constdef = [exclude,390,18,25]; @symbol_type<0> = [Boolean,390,29,36]; ]
+            const exclude as Boolean = true;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 393; @symbol_moduledef = [confirmation_icon_dark__hint_keep,393,15,48]; ]
+        module confirmation_icon_dark__hint_keep {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 393; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 394; @position = 18; @symbol_constdef = [filename,394,18,26]; @symbol_type<0> = [String,394,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\confirmation_icon__hint_keep.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 395; @position = 18; @symbol_constdef = [dithering,395,18,27]; @symbol_type<0> = [String,395,31,37]; ]
+            const dithering as String = "none";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 396; @position = 18; @symbol_constdef = [packingFormat,396,18,31]; @symbol_type<0> = [String,396,35,41]; ]
+            const packingFormat as String = "png";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 399; @symbol_moduledef = [system_icon_light__cancel,399,15,40]; ]
+        module system_icon_light__cancel {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 399; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 400; @position = 18; @symbol_constdef = [filename,400,18,26]; @symbol_type<0> = [String,400,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\system_icon_light__cancel.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 401; @position = 18; @symbol_constdef = [compress,401,18,26]; @symbol_type<0> = [String,401,30,36]; ]
+            const compress as String = "true";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 402; @position = 18; @symbol_constdef = [dithering,402,18,27]; @symbol_type<0> = [String,402,31,37]; ]
+            const dithering as String = "none";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 403; @position = 18; @symbol_constdef = [automaticPalette,403,18,34]; @symbol_type<0> = [String,403,38,44]; ]
+            const automaticPalette as String = "true";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 404; @position = 18; @symbol_constdef = [packingFormat,404,18,31]; @symbol_type<0> = [String,404,35,41]; ]
+            const packingFormat as String = "png";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 407; @symbol_moduledef = [confirmation_icon_light__hint_reject,407,15,51]; ]
+        module confirmation_icon_light__hint_reject {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 407; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 408; @position = 18; @symbol_constdef = [filename,408,18,26]; @symbol_type<0> = [String,408,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\confirmation_icon__hint_reject.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 409; @position = 18; @symbol_constdef = [dithering,409,18,27]; @symbol_type<0> = [String,409,31,37]; ]
+            const dithering as String = "none";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 410; @position = 18; @symbol_constdef = [packingFormat,410,18,31]; @symbol_type<0> = [String,410,35,41]; ]
+            const packingFormat as String = "png";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 413; @symbol_moduledef = [system_icon_light__about,413,15,39]; ]
+        module system_icon_light__about {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 413; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 414; @position = 18; @symbol_constdef = [filename,414,18,26]; @symbol_type<0> = [String,414,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\system_icon_light__about.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 415; @position = 18; @symbol_constdef = [compress,415,18,26]; @symbol_type<0> = [String,415,30,36]; ]
+            const compress as String = "true";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 416; @position = 18; @symbol_constdef = [dithering,416,18,27]; @symbol_type<0> = [String,416,31,37]; ]
+            const dithering as String = "none";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 417; @position = 18; @symbol_constdef = [automaticPalette,417,18,34]; @symbol_type<0> = [String,417,38,44]; ]
+            const automaticPalette as String = "true";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 418; @position = 18; @symbol_constdef = [packingFormat,418,18,31]; @symbol_type<0> = [String,418,35,41]; ]
+            const packingFormat as String = "png";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 421; @symbol_moduledef = [system_size__toast_icon,421,15,38]; ]
+        module system_size__toast_icon {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 421; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 422; @position = 18; @symbol_constdef = [scaleX,422,18,24]; @symbol_type<0> = [Number,422,28,34]; ]
+            const scaleX as Number = 38;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 423; @position = 18; @symbol_constdef = [scaleY,423,18,24]; @symbol_type<0> = [Number,423,28,34]; ]
+            const scaleY as Number = 38;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 424; @position = 18; @symbol_constdef = [scaleRelativeTo,424,18,33]; @symbol_type<0> = [String,424,37,43]; ]
+            const scaleRelativeTo as String = "screen";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 427; @symbol_moduledef = [system_icon_dark__hint_button_right_middle,427,15,57]; ]
+        module system_icon_dark__hint_button_right_middle {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 427; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 428; @position = 18; @symbol_constdef = [exclude,428,18,25]; @symbol_type<0> = [Boolean,428,29,36]; ]
+            const exclude as Boolean = true;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 431; @symbol_moduledef = [confirmation_icon__hint_reject,431,15,45]; ]
+        module confirmation_icon__hint_reject {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 431; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 432; @position = 18; @symbol_constdef = [filename,432,18,26]; @symbol_type<0> = [String,432,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\confirmation_icon__hint_reject.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 433; @position = 18; @symbol_constdef = [dithering,433,18,27]; @symbol_type<0> = [String,433,31,37]; ]
+            const dithering as String = "none";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 434; @position = 18; @symbol_constdef = [packingFormat,434,18,31]; @symbol_type<0> = [String,434,35,41]; ]
+            const packingFormat as String = "png";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 437; @symbol_moduledef = [system_icon_light__hint_action_menu,437,15,50]; ]
+        module system_icon_light__hint_action_menu {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 437; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 438; @position = 18; @symbol_constdef = [filename,438,18,26]; @symbol_type<0> = [String,438,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\system_icon_light__hint_action_menu.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 439; @position = 18; @symbol_constdef = [dithering,439,18,27]; @symbol_type<0> = [String,439,31,37]; ]
+            const dithering as String = "none";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 440; @position = 18; @symbol_constdef = [packingFormat,440,18,31]; @symbol_type<0> = [String,440,35,41]; ]
+            const packingFormat as String = "png";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 443; @symbol_moduledef = [system_icon_light__hint_button_right_middle,443,15,58]; ]
+        module system_icon_light__hint_button_right_middle {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 443; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 444; @position = 18; @symbol_constdef = [exclude,444,18,25]; @symbol_type<0> = [Boolean,444,29,36]; ]
+            const exclude as Boolean = true;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 447; @symbol_moduledef = [system_icon_destructive__hint_button_right_middle,447,15,64]; ]
+        module system_icon_destructive__hint_button_right_middle {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 447; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 448; @position = 18; @symbol_constdef = [exclude,448,18,25]; @symbol_type<0> = [Boolean,448,29,36]; ]
+            const exclude as Boolean = true;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 451; @symbol_moduledef = [confirmation_loc__hint_reject,451,15,44]; ]
+        module confirmation_loc__hint_reject {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 451; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 452; @position = 18; @symbol_constdef = [x,452,18,19]; @symbol_type<0> = [Number,452,23,29]; ]
+            const x as Number = 227;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 453; @position = 18; @symbol_constdef = [horizontalJustification,453,18,41]; @symbol_type<0> = [String,453,45,51]; ]
+            const horizontalJustification as String = "center";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 454; @position = 18; @symbol_constdef = [y,454,18,19]; @symbol_type<0> = [Number,454,23,29]; ]
+            const y as Number = 0;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 457; @symbol_moduledef = [confirmation_icon_dark__hint_delete,457,15,50]; ]
+        module confirmation_icon_dark__hint_delete {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 457; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 458; @position = 18; @symbol_constdef = [filename,458,18,26]; @symbol_type<0> = [String,458,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\confirmation_icon__hint_delete.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 459; @position = 18; @symbol_constdef = [dithering,459,18,27]; @symbol_type<0> = [String,459,31,37]; ]
+            const dithering as String = "none";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 460; @position = 18; @symbol_constdef = [packingFormat,460,18,31]; @symbol_type<0> = [String,460,35,41]; ]
+            const packingFormat as String = "png";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 463; @symbol_moduledef = [activity_color_dark__background,463,15,46]; ]
+        module activity_color_dark__background {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 463; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 464; @position = 18; @symbol_constdef = [color,464,18,23]; @symbol_type<0> = [Number,464,27,33]; ]
+            const color as Number = 0x000000;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 465; @position = 18; @symbol_constdef = [background,465,18,28]; @symbol_type<0> = [Number,465,32,38]; ]
+            const background as Number = 0x000000;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 468; @symbol_moduledef = [system_icon_light__hint_button_left_bottom,468,15,57]; ]
+        module system_icon_light__hint_button_left_bottom {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 468; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 469; @position = 18; @symbol_constdef = [exclude,469,18,25]; @symbol_type<0> = [Boolean,469,29,36]; ]
+            const exclude as Boolean = true;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 472; @symbol_moduledef = [system_icon_positive__hint_button_left_middle,472,15,60]; ]
+        module system_icon_positive__hint_button_left_middle {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 472; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 473; @position = 18; @symbol_constdef = [exclude,473,18,25]; @symbol_type<0> = [Boolean,473,29,36]; ]
+            const exclude as Boolean = true;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 476; @symbol_moduledef = [system_size__menu_icon,476,15,37]; ]
+        module system_size__menu_icon {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 476; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 477; @position = 18; @symbol_constdef = [scaleX,477,18,24]; @symbol_type<0> = [Number,477,28,34]; ]
+            const scaleX as Number = 55;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 478; @position = 18; @symbol_constdef = [scaleY,478,18,24]; @symbol_type<0> = [Number,478,28,34]; ]
+            const scaleY as Number = 55;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 479; @position = 18; @symbol_constdef = [scaleRelativeTo,479,18,33]; @symbol_type<0> = [String,479,37,43]; ]
+            const scaleRelativeTo as String = "screen";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 482; @symbol_moduledef = [system_icon_destructive__warning,482,15,47]; ]
+        module system_icon_destructive__warning {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 482; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 483; @position = 18; @symbol_constdef = [filename,483,18,26]; @symbol_type<0> = [String,483,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\system_icon_destructive__warning.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 484; @position = 18; @symbol_constdef = [dithering,484,18,27]; @symbol_type<0> = [String,484,31,37]; ]
+            const dithering as String = "none";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 485; @position = 18; @symbol_constdef = [packingFormat,485,18,31]; @symbol_type<0> = [String,485,35,41]; ]
+            const packingFormat as String = "png";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 488; @symbol_moduledef = [system_loc__hint_button_right_middle,488,15,51]; ]
+        module system_loc__hint_button_right_middle {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 488; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 489; @position = 18; @symbol_constdef = [exclude,489,18,25]; @symbol_type<0> = [Boolean,489,29,36]; ]
+            const exclude as Boolean = true;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 492; @symbol_moduledef = [system_icon_dark__cancel,492,15,39]; ]
+        module system_icon_dark__cancel {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 492; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 493; @position = 18; @symbol_constdef = [filename,493,18,26]; @symbol_type<0> = [String,493,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\system_icon_dark__cancel.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 494; @position = 18; @symbol_constdef = [compress,494,18,26]; @symbol_type<0> = [String,494,30,36]; ]
+            const compress as String = "true";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 495; @position = 18; @symbol_constdef = [dithering,495,18,27]; @symbol_type<0> = [String,495,31,37]; ]
+            const dithering as String = "none";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 496; @position = 18; @symbol_constdef = [automaticPalette,496,18,34]; @symbol_type<0> = [String,496,38,44]; ]
+            const automaticPalette as String = "true";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 497; @position = 18; @symbol_constdef = [packingFormat,497,18,31]; @symbol_type<0> = [String,497,35,41]; ]
+            const packingFormat as String = "png";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 500; @symbol_moduledef = [prompt_size__body_with_title,500,15,43]; ]
+        module prompt_size__body_with_title {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 500; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 501; @position = 18; @symbol_constdef = [width,501,18,23]; @symbol_type<0> = [Number,501,27,33]; ]
+            const width as Number = 363;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 502; @position = 18; @symbol_constdef = [height,502,18,24]; @symbol_type<0> = [Number,502,28,34]; ]
+            const height as Number = 250;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 505; @symbol_moduledef = [system_loc__hint_button_right_top,505,15,48]; ]
+        module system_loc__hint_button_right_top {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 505; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 506; @position = 18; @symbol_constdef = [x,506,18,19]; @symbol_type<0> = [Number,506,23,29]; ]
+            const x as Number = 360;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 507; @position = 18; @symbol_constdef = [y,507,18,19]; @symbol_type<0> = [Number,507,23,29]; ]
+            const y as Number = 54;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 510; @symbol_moduledef = [system_color_light__text,510,15,39]; ]
+        module system_color_light__text {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 510; ]
+            <init> {
+[ "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen" 512 18 ]
+                symbol [ Graphics %tmp.57 512 31 39 ];
+                %tmp.57 = getm $.Toybox.Graphics;
+                symbol [ COLOR_TRANSPARENT %tmp.58 512 40 57 ];
+                %tmp.58 = getv %tmp.57 :COLOR_TRANSPARENT;
+                putv self :background %tmp.58;
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 511; @position = 18; @symbol_constdef = [color,511,18,23]; @symbol_type<0> = [Number,511,27,33]; ]
+            const color as Number = 0xFFFFFF;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 512; @position = 18; @symbol_constdef = [background,512,18,28]; ]
+            const background;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 515; @symbol_moduledef = [system_icon_light__check,515,15,39]; ]
+        module system_icon_light__check {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 515; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 516; @position = 18; @symbol_constdef = [filename,516,18,26]; @symbol_type<0> = [String,516,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\system_icon_light__check.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 517; @position = 18; @symbol_constdef = [compress,517,18,26]; @symbol_type<0> = [String,517,30,36]; ]
+            const compress as String = "true";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 518; @position = 18; @symbol_constdef = [dithering,518,18,27]; @symbol_type<0> = [String,518,31,37]; ]
+            const dithering as String = "none";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 519; @position = 18; @symbol_constdef = [automaticPalette,519,18,34]; @symbol_type<0> = [String,519,38,44]; ]
+            const automaticPalette as String = "true";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 520; @position = 18; @symbol_constdef = [packingFormat,520,18,31]; @symbol_type<0> = [String,520,35,41]; ]
+            const packingFormat as String = "png";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 523; @symbol_moduledef = [confirmation_input__reject,523,15,41]; ]
+        module confirmation_input__reject {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 523; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 524; @position = 18; @symbol_constdef = [y1,524,18,20]; @symbol_type<0> = [Number,524,24,30]; ]
+            const y1 as Number = 0;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 525; @position = 18; @symbol_constdef = [x1,525,18,20]; @symbol_type<0> = [Number,525,24,30]; ]
+            const x1 as Number = 113;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 526; @position = 18; @symbol_constdef = [y2,526,18,20]; @symbol_type<0> = [Number,526,24,30]; ]
+            const y2 as Number = 88;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 527; @position = 18; @symbol_constdef = [x2,527,18,20]; @symbol_type<0> = [Number,527,24,30]; ]
+            const x2 as Number = 341;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 530; @symbol_moduledef = [system_icon_light__revert,530,15,40]; ]
+        module system_icon_light__revert {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 530; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 531; @position = 18; @symbol_constdef = [filename,531,18,26]; @symbol_type<0> = [String,531,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\system_icon_light__revert.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 532; @position = 18; @symbol_constdef = [compress,532,18,26]; @symbol_type<0> = [String,532,30,36]; ]
+            const compress as String = "true";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 533; @position = 18; @symbol_constdef = [dithering,533,18,27]; @symbol_type<0> = [String,533,31,37]; ]
+            const dithering as String = "none";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 534; @position = 18; @symbol_constdef = [automaticPalette,534,18,34]; @symbol_type<0> = [String,534,38,44]; ]
+            const automaticPalette as String = "true";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 535; @position = 18; @symbol_constdef = [packingFormat,535,18,31]; @symbol_type<0> = [String,535,35,41]; ]
+            const packingFormat as String = "png";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 538; @symbol_moduledef = [system_size__subwindow,538,15,37]; ]
+        module system_size__subwindow {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 538; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 539; @position = 18; @symbol_constdef = [exclude,539,18,25]; @symbol_type<0> = [Boolean,539,29,36]; ]
+            const exclude as Boolean = true;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 542; @symbol_moduledef = [system_icon_positive__hint_button_left_bottom,542,15,60]; ]
+        module system_icon_positive__hint_button_left_bottom {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 542; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 543; @position = 18; @symbol_constdef = [exclude,543,18,25]; @symbol_type<0> = [Boolean,543,29,36]; ]
+            const exclude as Boolean = true;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 546; @symbol_moduledef = [system_icon_dark__check,546,15,38]; ]
+        module system_icon_dark__check {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 546; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 547; @position = 18; @symbol_constdef = [filename,547,18,26]; @symbol_type<0> = [String,547,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\system_icon_dark__check.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 548; @position = 18; @symbol_constdef = [compress,548,18,26]; @symbol_type<0> = [String,548,30,36]; ]
+            const compress as String = "true";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 549; @position = 18; @symbol_constdef = [dithering,549,18,27]; @symbol_type<0> = [String,549,31,37]; ]
+            const dithering as String = "none";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 550; @position = 18; @symbol_constdef = [automaticPalette,550,18,34]; @symbol_type<0> = [String,550,38,44]; ]
+            const automaticPalette as String = "true";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 551; @position = 18; @symbol_constdef = [packingFormat,551,18,31]; @symbol_type<0> = [String,551,35,41]; ]
+            const packingFormat as String = "png";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 554; @symbol_moduledef = [confirmation_loc__hint_keep,554,15,42]; ]
+        module confirmation_loc__hint_keep {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 554; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 555; @position = 18; @symbol_constdef = [x,555,18,19]; @symbol_type<0> = [Number,555,23,29]; ]
+            const x as Number = 342;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 556; @position = 18; @symbol_constdef = [y,556,18,19]; @symbol_type<0> = [Number,556,23,29]; ]
+            const y as Number = 256;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 559; @symbol_moduledef = [confirmation_loc__hint_delete,559,15,44]; ]
+        module confirmation_loc__hint_delete {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 559; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 560; @position = 18; @symbol_constdef = [x,560,18,19]; @symbol_type<0> = [Number,560,23,29]; ]
+            const x as Number = 358;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 561; @position = 18; @symbol_constdef = [y,561,18,19]; @symbol_type<0> = [Number,561,23,29]; ]
+            const y as Number = 54;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 564; @symbol_moduledef = [system_icon_positive__hint_action_menu,564,15,53]; ]
+        module system_icon_positive__hint_action_menu {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 564; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 565; @position = 18; @symbol_constdef = [filename,565,18,26]; @symbol_type<0> = [String,565,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\system_icon_positive__hint_action_menu.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 566; @position = 18; @symbol_constdef = [dithering,566,18,27]; @symbol_type<0> = [String,566,31,37]; ]
+            const dithering as String = "none";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 567; @position = 18; @symbol_constdef = [packingFormat,567,18,31]; @symbol_type<0> = [String,567,35,41]; ]
+            const packingFormat as String = "png";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 570; @symbol_moduledef = [system_icon_positive__hint_button_right_middle,570,15,61]; ]
+        module system_icon_positive__hint_button_right_middle {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 570; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 571; @position = 18; @symbol_constdef = [exclude,571,18,25]; @symbol_type<0> = [Boolean,571,29,36]; ]
+            const exclude as Boolean = true;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 574; @symbol_moduledef = [system_icon_light__hint_button_left_middle,574,15,57]; ]
+        module system_icon_light__hint_button_left_middle {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 574; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 575; @position = 18; @symbol_constdef = [exclude,575,18,25]; @symbol_type<0> = [Boolean,575,29,36]; ]
+            const exclude as Boolean = true;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 578; @symbol_moduledef = [system_icon_dark__hint_button_right_bottom,578,15,57]; ]
+        module system_icon_dark__hint_button_right_bottom {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 578; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 579; @position = 18; @symbol_constdef = [filename,579,18,26]; @symbol_type<0> = [String,579,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\system_icon_dark__hint_button_right_bottom.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 580; @position = 18; @symbol_constdef = [dithering,580,18,27]; @symbol_type<0> = [String,580,31,37]; ]
+            const dithering as String = "none";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 583; @symbol_moduledef = [system_icon_positive__hint_button_right_bottom,583,15,61]; ]
+        module system_icon_positive__hint_button_right_bottom {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 583; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 584; @position = 18; @symbol_constdef = [filename,584,18,26]; @symbol_type<0> = [String,584,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\system_icon_positive__hint_button_right_bottom.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 585; @position = 18; @symbol_constdef = [dithering,585,18,27]; @symbol_type<0> = [String,585,31,37]; ]
+            const dithering as String = "none";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 588; @symbol_moduledef = [system_icon_dark__revert,588,15,39]; ]
+        module system_icon_dark__revert {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 588; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 589; @position = 18; @symbol_constdef = [filename,589,18,26]; @symbol_type<0> = [String,589,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\system_icon_dark__revert.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 590; @position = 18; @symbol_constdef = [compress,590,18,26]; @symbol_type<0> = [String,590,30,36]; ]
+            const compress as String = "true";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 591; @position = 18; @symbol_constdef = [dithering,591,18,27]; @symbol_type<0> = [String,591,31,37]; ]
+            const dithering as String = "none";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 592; @position = 18; @symbol_constdef = [automaticPalette,592,18,34]; @symbol_type<0> = [String,592,38,44]; ]
+            const automaticPalette as String = "true";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 593; @position = 18; @symbol_constdef = [packingFormat,593,18,31]; @symbol_type<0> = [String,593,35,41]; ]
+            const packingFormat as String = "png";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 596; @symbol_moduledef = [confirmation_icon_light__hint_delete,596,15,51]; ]
+        module confirmation_icon_light__hint_delete {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 596; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 597; @position = 18; @symbol_constdef = [filename,597,18,26]; @symbol_type<0> = [String,597,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\confirmation_icon__hint_delete.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 598; @position = 18; @symbol_constdef = [dithering,598,18,27]; @symbol_type<0> = [String,598,31,37]; ]
+            const dithering as String = "none";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 599; @position = 18; @symbol_constdef = [packingFormat,599,18,31]; @symbol_type<0> = [String,599,35,41]; ]
+            const packingFormat as String = "png";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 602; @symbol_moduledef = [system_icon_dark__question,602,15,41]; ]
+        module system_icon_dark__question {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 602; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 603; @position = 18; @symbol_constdef = [filename,603,18,26]; @symbol_type<0> = [String,603,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\system_icon_dark__question.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 604; @position = 18; @symbol_constdef = [compress,604,18,26]; @symbol_type<0> = [String,604,30,36]; ]
+            const compress as String = "true";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 605; @position = 18; @symbol_constdef = [dithering,605,18,27]; @symbol_type<0> = [String,605,31,37]; ]
+            const dithering as String = "none";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 606; @position = 18; @symbol_constdef = [automaticPalette,606,18,34]; @symbol_type<0> = [String,606,38,44]; ]
+            const automaticPalette as String = "true";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 607; @position = 18; @symbol_constdef = [packingFormat,607,18,31]; @symbol_type<0> = [String,607,35,41]; ]
+            const packingFormat as String = "png";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 610; @symbol_moduledef = [system_icon_light__discard,610,15,41]; ]
+        module system_icon_light__discard {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 610; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 611; @position = 18; @symbol_constdef = [filename,611,18,26]; @symbol_type<0> = [String,611,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\system_icon_light__discard.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 612; @position = 18; @symbol_constdef = [compress,612,18,26]; @symbol_type<0> = [String,612,30,36]; ]
+            const compress as String = "true";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 613; @position = 18; @symbol_constdef = [dithering,613,18,27]; @symbol_type<0> = [String,613,31,37]; ]
+            const dithering as String = "none";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 614; @position = 18; @symbol_constdef = [automaticPalette,614,18,34]; @symbol_type<0> = [String,614,38,44]; ]
+            const automaticPalette as String = "true";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 615; @position = 18; @symbol_constdef = [packingFormat,615,18,31]; @symbol_type<0> = [String,615,35,41]; ]
+            const packingFormat as String = "png";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 618; @symbol_moduledef = [device_info,618,15,26]; ]
+        module device_info {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 618; ]
+            <init> {
+[ "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen" 620 18 ]
+                symbol [ Toybox %tmp.60 620 32 38 ];
+                %tmp.60 = getv ? :Toybox;
+                symbol [ System %tmp.61 620 39 45 ];
+                %tmp.61 = getv %tmp.60 :System;
+                symbol [ SCREEN_SHAPE_ROUND %tmp.62 620 46 64 ];
+                %tmp.62 = getv %tmp.61 :SCREEN_SHAPE_ROUND;
+                putv self :screenShape %tmp.62;
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 619; @position = 18; @symbol_constdef = [screenWidth,619,18,29]; @symbol_type<0> = [Number,619,33,39]; ]
+            const screenWidth as Number = 454;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 620; @position = 18; @symbol_constdef = [screenShape,620,18,29]; ]
+            const screenShape;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 621; @position = 18; @symbol_constdef = [hasNightMode,621,18,30]; @symbol_type<0> = [Boolean,621,34,41]; ]
+            const hasNightMode as Boolean = false;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 622; @position = 18; @symbol_constdef = [hasGpu,622,18,24]; @symbol_type<0> = [Boolean,622,28,35]; ]
+            const hasGpu as Boolean = true;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 623; @position = 18; @symbol_constdef = [screenHeight,623,18,30]; @symbol_type<0> = [Number,623,34,40]; ]
+            const screenHeight as Number = 454;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 624; @position = 18; @symbol_constdef = [hasTouchScreen,624,18,32]; @symbol_type<0> = [Boolean,624,36,43]; ]
+            const hasTouchScreen as Boolean = true;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 625; @position = 18; @symbol_constdef = [hasEnhancedReadabilityMode,625,18,44]; @symbol_type<0> = [Boolean,625,48,55]; ]
+            const hasEnhancedReadabilityMode as Boolean = true;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 628; @symbol_moduledef = [confirmation_icon_dark__hint_confirm,628,15,51]; ]
+        module confirmation_icon_dark__hint_confirm {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 628; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 629; @position = 18; @symbol_constdef = [filename,629,18,26]; @symbol_type<0> = [String,629,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\confirmation_icon__hint_completion.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 630; @position = 18; @symbol_constdef = [dithering,630,18,27]; @symbol_type<0> = [String,630,31,37]; ]
+            const dithering as String = "none";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 631; @position = 18; @symbol_constdef = [packingFormat,631,18,31]; @symbol_type<0> = [String,631,35,41]; ]
+            const packingFormat as String = "png";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 634; @symbol_moduledef = [prompt_font__body_no_title,634,15,41]; ]
+        module prompt_font__body_no_title {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 634; ]
+            <init> {
+[ "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen" 635 18 ]
+                symbol [ Graphics %tmp.63 635 34 42 ];
+                %tmp.63 = getm $.Toybox.Graphics;
+                symbol [ TEXT_JUSTIFY_CENTER %tmp.64 635 43 62 ];
+                %tmp.64 = getv %tmp.63 :TEXT_JUSTIFY_CENTER;
+                symbol [ Graphics %tmp.65 635 63 71 ];
+                %tmp.65 = getm $.Toybox.Graphics;
+                symbol [ TEXT_JUSTIFY_VCENTER %tmp.66 635 72 92 ];
+                %tmp.66 = getv %tmp.65 :TEXT_JUSTIFY_VCENTER;
+                %tmp.67 = bitor %tmp.64 %tmp.66;
+                putv self :justification %tmp.67;
+[ "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen" 636 18 ]
+                symbol [ Graphics %tmp.68 636 25 33 ];
+                %tmp.68 = getm $.Toybox.Graphics;
+                symbol [ FONT_TINY %tmp.69 636 34 43 ];
+                %tmp.69 = getv %tmp.68 :FONT_TINY;
+                putv self :font %tmp.69;
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 635; @position = 18; @symbol_constdef = [justification,635,18,31]; ]
+            const justification;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 636; @position = 18; @symbol_constdef = [font,636,18,22]; ]
+            const font;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 639; @symbol_moduledef = [prompt_size__title_icon,639,15,38]; ]
+        module prompt_size__title_icon {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 639; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 640; @position = 18; @symbol_constdef = [scaleX,640,18,24]; @symbol_type<0> = [Float,640,28,33]; ]
+            const scaleX as Float = 0.14;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 641; @position = 18; @symbol_constdef = [scaleRelativeTo,641,18,33]; @symbol_type<0> = [String,641,37,43]; ]
+            const scaleRelativeTo as String = "screen";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 644; @symbol_moduledef = [system_icon_dark__warning,644,15,40]; ]
+        module system_icon_dark__warning {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 644; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 645; @position = 18; @symbol_constdef = [filename,645,18,26]; @symbol_type<0> = [String,645,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\system_icon_dark__warning.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 646; @position = 18; @symbol_constdef = [compress,646,18,26]; @symbol_type<0> = [String,646,30,36]; ]
+            const compress as String = "true";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 647; @position = 18; @symbol_constdef = [dithering,647,18,27]; @symbol_type<0> = [String,647,31,37]; ]
+            const dithering as String = "none";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 648; @position = 18; @symbol_constdef = [automaticPalette,648,18,34]; @symbol_type<0> = [String,648,38,44]; ]
+            const automaticPalette as String = "true";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 649; @position = 18; @symbol_constdef = [packingFormat,649,18,31]; @symbol_type<0> = [String,649,35,41]; ]
+            const packingFormat as String = "png";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 652; @symbol_moduledef = [prompt_loc__title_icon,652,15,37]; ]
+        module prompt_loc__title_icon {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 652; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 653; @position = 18; @symbol_constdef = [x,653,18,19]; @symbol_type<0> = [Number,653,23,29]; ]
+            const x as Number = 227;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 654; @position = 18; @symbol_constdef = [y,654,18,19]; @symbol_type<0> = [Number,654,23,29]; ]
+            const y as Number = 45;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 655; @position = 18; @symbol_constdef = [horizontalJustification,655,18,41]; @symbol_type<0> = [String,655,45,51]; ]
+            const horizontalJustification as String = "center";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 656; @position = 18; @symbol_constdef = [verticalJustification,656,18,39]; @symbol_type<0> = [String,656,43,49]; ]
+            const verticalJustification as String = "center";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 659; @symbol_moduledef = [prompt_font_enhanced_readability__title,659,15,54]; ]
+        module prompt_font_enhanced_readability__title {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 659; ]
+            <init> {
+[ "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen" 660 18 ]
+                symbol [ Graphics %tmp.70 660 34 42 ];
+                %tmp.70 = getm $.Toybox.Graphics;
+                symbol [ TEXT_JUSTIFY_CENTER %tmp.71 660 43 62 ];
+                %tmp.71 = getv %tmp.70 :TEXT_JUSTIFY_CENTER;
+                symbol [ Graphics %tmp.72 660 63 71 ];
+                %tmp.72 = getm $.Toybox.Graphics;
+                symbol [ TEXT_JUSTIFY_VCENTER %tmp.73 660 72 92 ];
+                %tmp.73 = getv %tmp.72 :TEXT_JUSTIFY_VCENTER;
+                %tmp.74 = bitor %tmp.71 %tmp.73;
+                putv self :justification %tmp.74;
+[ "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen" 661 18 ]
+                symbol [ Graphics %tmp.75 661 25 33 ];
+                %tmp.75 = getm $.Toybox.Graphics;
+                symbol [ FONT_XTINY %tmp.76 661 34 44 ];
+                %tmp.76 = getv %tmp.75 :FONT_XTINY;
+                putv self :font %tmp.76;
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 660; @position = 18; @symbol_constdef = [justification,660,18,31]; ]
+            const justification;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 661; @position = 18; @symbol_constdef = [font,661,18,22]; ]
+            const font;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 664; @symbol_moduledef = [prompt_color_dark__body,664,15,38]; ]
+        module prompt_color_dark__body {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 664; ]
+            <init> {
+[ "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen" 666 18 ]
+                symbol [ Graphics %tmp.77 666 31 39 ];
+                %tmp.77 = getm $.Toybox.Graphics;
+                symbol [ COLOR_TRANSPARENT %tmp.78 666 40 57 ];
+                %tmp.78 = getv %tmp.77 :COLOR_TRANSPARENT;
+                putv self :background %tmp.78;
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 665; @position = 18; @symbol_constdef = [color,665,18,23]; @symbol_type<0> = [Number,665,27,33]; ]
+            const color as Number = 0xFFFFFF;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 666; @position = 18; @symbol_constdef = [background,666,18,28]; ]
+            const background;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 669; @symbol_moduledef = [confirmation_icon__hint_delete,669,15,45]; ]
+        module confirmation_icon__hint_delete {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 669; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 670; @position = 18; @symbol_constdef = [filename,670,18,26]; @symbol_type<0> = [String,670,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\confirmation_icon__hint_delete.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 671; @position = 18; @symbol_constdef = [dithering,671,18,27]; @symbol_type<0> = [String,671,31,37]; ]
+            const dithering as String = "none";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 672; @position = 18; @symbol_constdef = [packingFormat,672,18,31]; @symbol_type<0> = [String,672,35,41]; ]
+            const packingFormat as String = "png";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 675; @symbol_moduledef = [system_icon_light__hint_button_right_top,675,15,55]; ]
+        module system_icon_light__hint_button_right_top {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 675; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 676; @position = 18; @symbol_constdef = [filename,676,18,26]; @symbol_type<0> = [String,676,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\system_icon_light__hint_button_right_top.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 677; @position = 18; @symbol_constdef = [dithering,677,18,27]; @symbol_type<0> = [String,677,31,37]; ]
+            const dithering as String = "none";
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 680; @symbol_moduledef = [confirmation_size__body,680,15,38]; ]
+        module confirmation_size__body {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 680; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 681; @position = 18; @symbol_constdef = [width,681,18,23]; @symbol_type<0> = [Number,681,27,33]; ]
+            const width as Number = 269;
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 682; @position = 18; @symbol_constdef = [height,682,18,24]; @symbol_type<0> = [Number,682,28,34]; ]
+            const height as Number = 272;
+        }
+        [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 685; @symbol_moduledef = [system_icon_positive__check,685,15,42]; ]
+        module system_icon_positive__check {
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 685; ]
+            <init> {
+            }
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 686; @position = 18; @symbol_constdef = [filename,686,18,26]; @symbol_type<0> = [String,686,30,36]; ]
+            const filename as String = "C:\\Users\\blure\\AppData\\Roaming\\Garmin\\ConnectIQ\\Devices\\venu3\\system_icon_positive__check.svg";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 687; @position = 18; @symbol_constdef = [dithering,687,18,27]; @symbol_type<0> = [String,687,31,37]; ]
+            const dithering as String = "none";
+            [ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 688; @position = 18; @symbol_constdef = [packingFormat,688,18,31]; @symbol_type<0> = [String,688,35,41]; ]
+            const packingFormat as String = "png";
+        }
+    }
+}
+[ @file = "a:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\gen\006-B4260-00\source\Rez.mcgen"; @line = 1; ]
+<init> {
+}

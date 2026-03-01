@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<debugInfo>
+    <manifest filename="A:\Phil\Phil Docs\Development\commute-buddy\garmin\manifest.xml"/>
+    <pcToLineNum>
+        <entry filename="A:\\Phil\\Phil Docs\\Development\\commute-buddy\\garmin\\source\\CommuteBuddyApp.mc" id="1" lineNum="4" parent="globals/CommuteBuddyApp" pc="268435460" symbol="&lt;init&gt;"/>
+        <entry filename="A:\\Phil\\Phil Docs\\Development\\commute-buddy\\garmin\\source\\CommuteBuddyGlanceView.mc" id="2" lineNum="5" parent="globals/CommuteBuddyGlanceView" pc="268435472" symbol="&lt;init&gt;"/>
+        <entry filename="A:\\Phil\\Phil Docs\\Development\\commute-buddy\\garmin\\source\\CommuteBuddyApp.mc" id="3" lineNum="10" parent="globals/CommuteBuddyApp" pc="268435484" symbol="onStart"/>
+        <entry filename="A:\\Phil\\Phil Docs\\Development\\commute-buddy\\garmin\\source\\CommuteBuddyApp.mc" id="4" lineNum="16" parent="globals/CommuteBuddyApp" pc="268435487" symbol="getInitialView"/>
+        <entry filename="A:\\Phil\\Phil Docs\\Development\\commute-buddy\\garmin\\source\\CommuteBuddyApp.mc" id="4" lineNum="17" parent="globals/CommuteBuddyApp" pc="268435489" symbol="getInitialView"/>
+        <entry filename="A:\\Phil\\Phil Docs\\Development\\commute-buddy\\garmin\\source\\CommuteBuddyApp.mc" id="5" lineNum="6" parent="globals/CommuteBuddyApp" pc="268435515" symbol="initialize"/>
+        <entry filename="A:\\Phil\\Phil Docs\\Development\\commute-buddy\\garmin\\source\\CommuteBuddyApp.mc" id="5" lineNum="7" parent="globals/CommuteBuddyApp" pc="268435517" symbol="initialize"/>
+        <entry filename="A:\\Phil\\Phil Docs\\Development\\commute-buddy\\garmin\\source\\CommuteBuddyApp.mc" id="6" lineNum="20" parent="globals/CommuteBuddyApp" pc="268435530" symbol="getGlanceView"/>
+        <entry filename="A:\\Phil\\Phil Docs\\Development\\commute-buddy\\garmin\\source\\CommuteBuddyApp.mc" id="6" lineNum="21" parent="globals/CommuteBuddyApp" pc="268435532" symbol="getGlanceView"/>
+        <entry filename="A:\\Phil\\Phil Docs\\Development\\commute-buddy\\garmin\\source\\CommuteBuddyApp.mc" id="7" lineNum="13" parent="globals/CommuteBuddyApp" pc="268435558" symbol="onStop"/>
+        <entry filename="A:\\Phil\\Phil Docs\\Development\\commute-buddy\\garmin\\source\\CommuteBuddyGlanceView.mc" id="8" lineNum="7" parent="globals/CommuteBuddyGlanceView" pc="268435561" symbol="initialize"/>
+        <entry filename="A:\\Phil\\Phil Docs\\Development\\commute-buddy\\garmin\\source\\CommuteBuddyGlanceView.mc" id="8" lineNum="8" parent="globals/CommuteBuddyGlanceView" pc="268435563" symbol="initialize"/>
+        <entry filename="A:\\Phil\\Phil Docs\\Development\\commute-buddy\\garmin\\source\\CommuteBuddyGlanceView.mc" id="9" lineNum="11" parent="globals/CommuteBuddyGlanceView" pc="268435576" symbol="onUpdate"/>
+        <entry filename="A:\\Phil\\Phil Docs\\Development\\commute-buddy\\garmin\\source\\CommuteBuddyGlanceView.mc" id="9" lineNum="12" parent="globals/CommuteBuddyGlanceView" pc="268435578" symbol="onUpdate"/>
+        <entry filename="A:\\Phil\\Phil Docs\\Development\\commute-buddy\\garmin\\source\\CommuteBuddyGlanceView.mc" id="9" lineNum="13" parent="globals/CommuteBuddyGlanceView" pc="268435594" symbol="onUpdate"/>
+        <entry filename="A:\\Phil\\Phil Docs\\Development\\commute-buddy\\garmin\\source\\CommuteBuddyGlanceView.mc" id="9" lineNum="14" parent="globals/CommuteBuddyGlanceView" pc="268435602" symbol="onUpdate"/>
+        <entry filename="A:\\Phil\\Phil Docs\\Development\\commute-buddy\\garmin\\source\\CommuteBuddyView.mc" id="10" lineNum="4" parent="globals/CommuteBuddyView" pc="268435642" symbol="&lt;init&gt;"/>
+        <entry filename="a:\\Phil\\Phil Docs\\Development\\commute-buddy\\garmin\\bin\\gen\\006-B4260-00\\source\\Rez.mcgen" id="11" lineNum="7" parent="globals/Rez" pc="268435654" symbol="&lt;init&gt;"/>
+        <entry filename="A:\\Phil\\Phil Docs\\Development\\commute-buddy\\garmin\\source\\CommuteBuddyView.mc" id="13" lineNum="10" parent="globals/CommuteBuddyView" pc="268435674" symbol="onLayout"/>
+        <entry filename="A:\\Phil\\Phil Docs\\Development\\commute-buddy\\garmin\\source\\CommuteBuddyView.mc" id="14" lineNum="6" parent="globals/CommuteBuddyView" pc="268435677" symbol="initialize"/>
+        <entry filename="A:\\Phil\\Phil Docs\\Development\\commute-buddy\\garmin\\source\\CommuteBuddyView.mc" id="14" lineNum="7" parent="globals/CommuteBuddyView" pc="268435679" symbol="initialize"/>
+        <entry filename="A:\\Phil\\Phil Docs\\Development\\commute-buddy\\garmin\\source\\CommuteBuddyView.mc" id="16" lineNum="16" parent="globals/CommuteBuddyView" pc="268435692" symbol="onUpdate"/>
+        <entry filename="A:\\Phil\\Phil Docs\\Development\\commute-buddy\\garmin\\source\\CommuteBuddyView.mc" id="16" lineNum="17" parent="globals/CommuteBuddyView" pc="268435694" symbol="onUpdate"/>
+        <entry filename="A:\\Phil\\Phil Docs\\Development\\commute-buddy\\garmin\\source\\CommuteBuddyView.mc" id="16" lineNum="18" parent="globals/CommuteBuddyView" pc="268435710" symbol="onUpdate"/>
+        <entry filename="A:\\Phil\\Phil Docs\\Development\\commute-buddy\\garmin\\source\\CommuteBuddyView.mc" id="16" lineNum="19" parent="globals/CommuteBuddyView" pc="268435726" symbol="onUpdate"/>
+        <entry filename="A:\\Phil\\Phil Docs\\Development\\commute-buddy\\garmin\\source\\CommuteBuddyView.mc" id="16" lineNum="20" parent="globals/CommuteBuddyView" pc="268435734" symbol="onUpdate"/>
+    </pcToLineNum>
+    <symbolTable>
+        <entry id="8388639" module="true" symbol="Graphics"/>
+        <entry id="8388632" method="true" symbol="&lt;init&gt;"/>
+        <entry field="true" id="8388611" module="true" symbol="Toybox"/>
+        <entry field="true" id="9" symbol="AppName"/>
+        <entry id="4" module="true" symbol="globals/Rez/Strings"/>
+        <entry id="8388648" module="true" symbol="WatchUi"/>
+        <entry id="2" module="true" symbol="globals/Rez"/>
+        <entry id="8389124" method="true" symbol="onUpdate"/>
+        <entry id="8388771" module="true" object="true" symbol="Drawables"/>
+        <entry id="8389122" method="true" symbol="onLayout"/>
+        <entry id="6" object="true" symbol="CommuteBuddyGlanceView"/>
+        <entry id="5" object="true" symbol="CommuteBuddyApp"/>
+        <entry id="3" module="true" symbol="globals/Rez/Drawables"/>
+        <entry id="8388769" module="true" object="true" symbol="Rez"/>
+        <entry id="7" object="true" symbol="CommuteBuddyView"/>
+        <entry id="8388640" module="true" symbol="Lang"/>
+        <entry field="true" id="8" symbol="LauncherIcon"/>
+        <entry id="8388610" symbol="statics"/>
+        <entry id="8389123" method="true" symbol="onShow"/>
+        <entry id="8389350" module="true" symbol="globals"/>
+        <entry id="8388770" module="true" object="true" symbol="Strings"/>
+        <entry id="8388702" method="true" symbol="initialize"/>
+        <entry id="8389279" method="true" symbol="onStart"/>
+        <entry id="8389280" method="true" symbol="getInitialView"/>
+        <entry id="8389281" method="true" symbol="onStop"/>
+        <entry id="8391457" method="true" symbol="getGlanceView"/>
+        <entry id="8389125" method="true" symbol="onHide"/>
+        <entry id="8388635" module="true" symbol="Application"/>
+    </symbolTable>
+    <localVars>
+        <entry arg="true" endPc="268435641" name="dc" stackId="1" startPc="268435576"/>
+        <entry arg="true" endPc="268435773" name="dc" stackId="1" startPc="268435692"/>
+    </localVars>
+    <deviceInfo deviceVersion="5c7ae9cf907f88c116a91dc4ffd75be9b5b7d2e9" partNumber="006-B4260-00"/>
+    <annotations>
+        <annotationEntry annotation="initialized" class="Drawables" module="globals/Rez" symbol="LauncherIcon"/>
+        <annotationEntry annotation="glance" class="CommuteBuddyApp" module="globals" symbol="getGlanceView"/>
+        <annotationEntry annotation="glance" class="CommuteBuddyApp" module="globals" symbol="getInitialView"/>
+        <annotationEntry annotation="glance" class="CommuteBuddyGlanceView" module="globals" symbol="onUpdate"/>
+        <annotationEntry annotation="glance" class="CommuteBuddyGlanceView" module="globals" symbol="initialize"/>
+        <annotationEntry annotation="glance" class="CommuteBuddyApp" module="globals" symbol="onStart"/>
+        <annotationEntry annotation="glance" class="CommuteBuddyApp" module="globals" symbol="initialize"/>
+        <annotationEntry annotation="initialized" class="Strings" module="globals/Rez" symbol="AppName"/>
+        <annotationEntry annotation="glance" class="CommuteBuddyApp" module="globals" symbol="onStop"/>
+    </annotations>
+    <dataEntryOffsetMappings>
+        <dataEntry label="globals" offset="49" parentId="" symbolId="globals" type="module"/>
+        <dataEntry label="globals/CommuteBuddyApp" offset="116" parentId="globals" symbolId="CommuteBuddyApp" type="class"/>
+        <dataEntry label="globals/CommuteBuddyGlanceView" offset="196" parentId="globals" symbolId="CommuteBuddyGlanceView" type="class"/>
+        <dataEntry label="globals/CommuteBuddyView" offset="263" parentId="globals" symbolId="CommuteBuddyView" type="class"/>
+        <dataEntry label="globals/Rez" offset="343" parentId="globals" symbolId="Rez" type="module"/>
+        <dataEntry label="globals/Rez/Drawables" offset="387" parentId="Rez" symbolId="Drawables" type="module"/>
+        <dataEntry label="globals/Rez/Strings" offset="422" parentId="Rez" symbolId="Strings" type="module"/>
+    </dataEntryOffsetMappings>
+    <functions>
+        <functionEntry accessMode="public" endPc="268435471" name="&lt;init&gt;" parent="CommuteBuddyApp" startPc="268435460">
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" endPc="268435483" name="&lt;init&gt;" parent="CommuteBuddyGlanceView" startPc="268435472">
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" endPc="268435486" name="onStart" parent="CommuteBuddyApp" startPc="268435484">
+            <param id="state"/>
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" endPc="268435514" name="getInitialView" parent="CommuteBuddyApp" startPc="268435487">
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" endPc="268435529" name="initialize" parent="CommuteBuddyApp" startPc="268435515">
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" endPc="268435557" name="getGlanceView" parent="CommuteBuddyApp" startPc="268435530">
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" endPc="268435560" name="onStop" parent="CommuteBuddyApp" startPc="268435558">
+            <param id="state"/>
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" endPc="268435575" name="initialize" parent="CommuteBuddyGlanceView" startPc="268435561">
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" endPc="268435641" name="onUpdate" parent="CommuteBuddyGlanceView" startPc="268435576">
+            <param id="dc"/>
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" endPc="268435653" name="&lt;init&gt;" parent="CommuteBuddyView" startPc="268435642">
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" endPc="268435673" name="&lt;init&gt;" parent="Rez" startPc="268435654">
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" name="onShow" parent="CommuteBuddyView">
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" endPc="268435676" name="onLayout" parent="CommuteBuddyView" startPc="268435674">
+            <param id="dc"/>
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" endPc="268435691" name="initialize" parent="CommuteBuddyView" startPc="268435677">
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" name="onHide" parent="CommuteBuddyView">
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" endPc="268435773" name="onUpdate" parent="CommuteBuddyView" startPc="268435692">
+            <param id="dc"/>
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" name="&lt;init&gt;" parent="Drawables">
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" name="&lt;init&gt;" parent="Strings">
+            <documentation/>
+        </functionEntry>
+    </functions>
+</debugInfo>

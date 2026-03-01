@@ -1,0 +1,87 @@
+[ @file = "A:\Phil\Phil Docs\Development\commute-buddy\garmin\source\CommuteBuddyGlanceView.mc"; @line = 1; @symbol_importdef<0> = [Toybox,1,7,13]; @symbol_importdef<1> = [Graphics,1,14,22]; ]
+import Toybox.Graphics;
+[ @file = "A:\Phil\Phil Docs\Development\commute-buddy\garmin\source\CommuteBuddyGlanceView.mc"; @line = 2; @symbol_importdef<0> = [Toybox,2,7,13]; @symbol_importdef<1> = [WatchUi,2,14,21]; ]
+import Toybox.WatchUi;
+[ @file = "A:\Phil\Phil Docs\Development\commute-buddy\garmin\source\CommuteBuddyGlanceView.mc"; @line = 5; glance = true; @symbol_classdef = [CommuteBuddyGlanceView,5,6,28]; @symbol_extends<0> = [WatchUi,5,37,44]; @symbol_extends<1> = [GlanceView,5,45,55]; ]
+class CommuteBuddyGlanceView extends WatchUi.GlanceView {
+    [ @file = "A:\Phil\Phil Docs\Development\commute-buddy\garmin\source\CommuteBuddyGlanceView.mc"; @line = 5; ]
+    <init> {
+    }
+    [ @file = "A:\Phil\Phil Docs\Development\commute-buddy\garmin\source\CommuteBuddyGlanceView.mc"; @line = 5; ]
+    static
+    <init> {
+    }
+    [ @file = "A:\Phil\Phil Docs\Development\commute-buddy\garmin\source\CommuteBuddyGlanceView.mc"; @line = 7; @symbol_functiondef = [initialize,7,13,23]; ]
+    function initialize() as Void {
+A__Phil_Phil_Docs_Development_commute_buddy_garmin_source_CommuteBuddyGlanceView_mc_7_26_9_4_start:
+[ "A:\Phil\Phil Docs\Development\commute-buddy\garmin\source\CommuteBuddyGlanceView.mc" 8 8 ]
+        symbol [ GlanceView %tmp.2 8 8 18 ];
+        %tmp.2 = getv ? :GlanceView;
+        symbol [ initialize %tmp.3 8 19 29 ];
+        %tmp.3 = getv function %tmp.2 :initialize;
+        invoke %tmp.2 %tmp.3();
+A__Phil_Phil_Docs_Development_commute_buddy_garmin_source_CommuteBuddyGlanceView_mc_7_26_9_4_stop:
+    }
+    [ @file = "A:\Phil\Phil Docs\Development\commute-buddy\garmin\source\CommuteBuddyGlanceView.mc"; @line = 11; @symbol_functiondef = [onUpdate,11,13,21]; @symbol_param<0> = [dc,11,22,24]; @symbol_param<0>_type<0> = [Graphics,11,28,36]; @symbol_param<0>_type<1> = [Dc,11,37,39]; ]
+    function onUpdate(dc as Graphics.Dc) as Void {
+A__Phil_Phil_Docs_Development_commute_buddy_garmin_source_CommuteBuddyGlanceView_mc_11_49_21_4_start:
+[ "A:\Phil\Phil Docs\Development\commute-buddy\garmin\source\CommuteBuddyGlanceView.mc" 12 8 ]
+        %tmp.1 = lgetv %dc;
+        symbol [ dc %tmp.1 12 8 10 ];
+        symbol [ setColor %tmp.2 12 11 19 ];
+        %tmp.2 = getv function %tmp.1 :setColor;
+        symbol [ Graphics %tmp.3 12 20 28 ];
+        %tmp.3 = getm $.Toybox.Graphics;
+        symbol [ COLOR_WHITE %tmp.4 12 29 40 ];
+        %tmp.4 = getv %tmp.3 :COLOR_WHITE;
+        symbol [ Graphics %tmp.5 12 42 50 ];
+        %tmp.5 = getm $.Toybox.Graphics;
+        symbol [ COLOR_BLACK %tmp.6 12 51 62 ];
+        %tmp.6 = getv %tmp.5 :COLOR_BLACK;
+        invoke %tmp.1 %tmp.2(%tmp.4, %tmp.6);
+[ "A:\Phil\Phil Docs\Development\commute-buddy\garmin\source\CommuteBuddyGlanceView.mc" 13 8 ]
+        %tmp.7 = lgetv %dc;
+        symbol [ dc %tmp.7 13 8 10 ];
+        symbol [ clear %tmp.8 13 11 16 ];
+        %tmp.8 = getv function %tmp.7 :clear;
+        invoke %tmp.7 %tmp.8();
+[ "A:\Phil\Phil Docs\Development\commute-buddy\garmin\source\CommuteBuddyGlanceView.mc" 14 8 ]
+        %tmp.9 = lgetv %dc;
+        symbol [ dc %tmp.9 14 8 10 ];
+        symbol [ drawText %tmp.10 14 11 19 ];
+        %tmp.10 = getv function %tmp.9 :drawText;
+        %tmp.11 = lgetv %dc;
+        symbol [ dc %tmp.11 15 12 14 ];
+        symbol [ getWidth %tmp.12 15 15 23 ];
+        %tmp.12 = getv function %tmp.11 :getWidth;
+        %tmp.13 = invoke %tmp.11 %tmp.12();
+        %tmp.14 = 2;
+        %tmp.15 = div %tmp.13 %tmp.14;
+        %tmp.16 = lgetv %dc;
+        symbol [ dc %tmp.16 16 12 14 ];
+        symbol [ getHeight %tmp.17 16 15 24 ];
+        %tmp.17 = getv function %tmp.16 :getHeight;
+        %tmp.18 = invoke %tmp.16 %tmp.17();
+        %tmp.19 = 2;
+        %tmp.20 = div %tmp.18 %tmp.19;
+        symbol [ Graphics %tmp.21 17 12 20 ];
+        %tmp.21 = getm $.Toybox.Graphics;
+        symbol [ FONT_GLANCE %tmp.22 17 21 32 ];
+        %tmp.22 = getv %tmp.21 :FONT_GLANCE;
+        %tmp.23 = "Waiting...";
+        symbol [ Graphics %tmp.24 19 12 20 ];
+        %tmp.24 = getm $.Toybox.Graphics;
+        symbol [ TEXT_JUSTIFY_CENTER %tmp.25 19 21 40 ];
+        %tmp.25 = getv %tmp.24 :TEXT_JUSTIFY_CENTER;
+        symbol [ Graphics %tmp.26 19 43 51 ];
+        %tmp.26 = getm $.Toybox.Graphics;
+        symbol [ TEXT_JUSTIFY_VCENTER %tmp.27 19 52 72 ];
+        %tmp.27 = getv %tmp.26 :TEXT_JUSTIFY_VCENTER;
+        %tmp.28 = bitor %tmp.25 %tmp.27;
+        invoke %tmp.9 %tmp.10(%tmp.15, %tmp.20, %tmp.22, %tmp.23, %tmp.28);
+A__Phil_Phil_Docs_Development_commute_buddy_garmin_source_CommuteBuddyGlanceView_mc_11_49_21_4_stop:
+    }
+}
+[ @file = "A:\Phil\Phil Docs\Development\commute-buddy\garmin\source\CommuteBuddyGlanceView.mc"; @line = 1; ]
+<init> {
+}

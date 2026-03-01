@@ -17,7 +17,7 @@ This is the foundational "steel thread" — the thinnest possible vertical slice
 
 2. **Garmin Project Scaffolds and Builds**
    - A Monkey C project exists under `garmin/` with `manifest.xml` and `monkey.jungle`
-   - The project targets the Venu 3S device and declares `Communications` permission
+   - The project targets the Venu 3 device and declares `Communications` permission
    - The project compiles via the Connect IQ SDK compiler and produces a `.prg` file
    - The Glance entry point is implemented (`AppBase.getGlanceView()` returns a `GlanceView`)
 
@@ -59,14 +59,14 @@ This is the foundational "steel thread" — the thinnest possible vertical slice
 
 ### Implementation Plan
 
-#### Increment 1: Garmin Project Scaffold + Glance with Static Text
-- [ ] Create `garmin/` directory with `manifest.xml` (target Venu 3S, declare `Communications` permission, set app UUID)
-- [ ] Create `monkey.jungle` build file referencing the Venu 3S device
-- [ ] Create `garmin/source/CommuteBuddyApp.mc` — `AppBase` subclass with `getInitialView()` and `getGlanceView()` returning the GlanceView
-- [ ] Create `garmin/source/CommuteBuddyGlanceView.mc` — `GlanceView` subclass that renders "Waiting..." centered using `FONT_GLANCE` in `onUpdate(dc)`
-- [ ] Create a minimal main view (`CommuteBuddyView.mc`) so `getInitialView()` doesn't crash
+#### Increment 1: Garmin Project Scaffold + Glance with Static Text ✓
+- [x] Create `garmin/` directory with `manifest.xml` (target Venu 3, declare `Communications` permission, set app UUID)
+- [x] Create `monkey.jungle` build file referencing the Venu 3 device
+- [x] Create `garmin/source/CommuteBuddyApp.mc` — `AppBase` subclass with `getInitialView()` and `getGlanceView()` returning the GlanceView
+- [x] Create `garmin/source/CommuteBuddyGlanceView.mc` — `GlanceView` subclass that renders "Waiting..." centered using `FONT_GLANCE` in `onUpdate(dc)`
+- [x] Create a minimal main view (`CommuteBuddyView.mc`) so `getInitialView()` doesn't crash
 
-**Testing:** Open `garmin/` in VS Code with the Connect IQ extension. Build the project (`Ctrl+Shift+B` or Monkey C: Build). Run in the Connect IQ Simulator targeting Venu 3S. Verify the Glance renders "Waiting..." text.
+**Testing:** Open `garmin/` in VS Code with the Connect IQ extension. Build the project (`Ctrl+Shift+B` or Monkey C: Build). Run in the Connect IQ Simulator targeting Venu 3. Verify the Glance renders "Waiting..." text.
 **Model: Sonnet** | Reason: Monkey C scaffolding requires careful syntax — LLMs frequently hallucinate deprecated methods, so this benefits from a model that reasons over the reference docs.
 
 #### Increment 2: Android Project Scaffold + Code Generator UI
@@ -95,7 +95,7 @@ This is the foundational "steel thread" — the thinnest possible vertical slice
 - [ ] Call `WatchUi.requestUpdate()` after storing the code to refresh the Glance
 - [ ] Update `CommuteBuddyGlanceView.mc` `onUpdate(dc)` to read from `Application.Storage.getValue("code")` — display "Code: XXXX" if a value exists, "Waiting..." if null
 
-**Testing:** Build and run in the Connect IQ Simulator. Initially the Glance should show "Waiting...". For Phase 2 (hardware): install Android APK on phone, sideload `.prg` to Venu 3S via USB, set up ADB port forwarding (`adb forward tcp:7381 tcp:7381`), tap "Send Code" on phone — verify the Glance updates to show the sent code.
+**Testing:** Build and run in the Connect IQ Simulator. Initially the Glance should show "Waiting...". For Phase 2 (hardware): install Android APK on phone, sideload `.prg` to Venu 3 via USB, set up ADB port forwarding (`adb forward tcp:7381 tcp:7381`), tap "Send Code" on phone — verify the Glance updates to show the sent code.
 **Model: Sonnet** | Reason: Wiring BLE receive → Storage → UI refresh requires understanding Monkey C callbacks, Storage API, and Glance lifecycle.
 
 #### Increment 5: Error Handling + Polish

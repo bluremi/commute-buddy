@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<iq:manifest version="3" xmlns:iq="http://www.garmin.com/xml/connectiq">
+    <iq:application
+        entry="CommuteBuddyApp"
+        id="e5f12c3a-7b04-4d8e-9a6f-2c1b3e5d7a9f"
+        launcherIcon="@Drawables.LauncherIcon"
+        minApiLevel="3.1.0"
+        name="@Strings.AppName"
+        type="widget">
+
+        <iq:products>
+            <iq:product id="venu3"/>
+        </iq:products>
+
+        <iq:permissions>
+            <iq:uses-permission id="Communications"/>
+        </iq:permissions>
+
+        <iq:languages>
+            <iq:language>eng</iq:language>
+        </iq:languages>
+
+    </iq:application>
+</iq:manifest>
