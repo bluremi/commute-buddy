@@ -69,12 +69,12 @@ This is the foundational "steel thread" — the thinnest possible vertical slice
 **Testing:** Open `garmin/` in VS Code with the Connect IQ extension. Build the project (`Ctrl+Shift+B` or Monkey C: Build). Run in the Connect IQ Simulator targeting Venu 3. Verify the Glance renders "Waiting..." text.
 **Model: Sonnet** | Reason: Monkey C scaffolding requires careful syntax — LLMs frequently hallucinate deprecated methods, so this benefits from a model that reasons over the reference docs.
 
-#### Increment 2: Android Project Scaffold + Code Generator UI
-- [ ] Create `android/` directory with standard Gradle/Kotlin project structure (`build.gradle.kts` for root and `app/` module)
-- [ ] Configure `app/build.gradle.kts` with `minSdk = 34` (Android 14), Kotlin, and the Connect IQ SDK dependency (`com.garmin.connectiq:ciq-companion-app-sdk:2.2.0@aar`)
-- [ ] Declare permissions in `AndroidManifest.xml`: `BLUETOOTH_SCAN`, `BLUETOOTH_CONNECT`
-- [ ] Create `MainActivity.kt` with a simple layout: a "Send Code" button, a TextView for the generated code, and a TextView for status messages
-- [ ] On button press, generate a random 4-digit code (1000–9999) and display it in the code TextView
+#### Increment 2: Android Project Scaffold + Code Generator UI ✓
+- [x] Create `android/` directory with standard Gradle/Kotlin project structure (`build.gradle.kts` for root and `app/` module)
+- [x] Configure `app/build.gradle.kts` with `minSdk = 34` (Android 14), Kotlin, and the Connect IQ SDK dependency (`com.garmin.connectiq:ciq-companion-app-sdk:2.3.0@aar`)
+- [x] Declare permissions in `AndroidManifest.xml`: `BLUETOOTH_SCAN`, `BLUETOOTH_CONNECT`
+- [x] Create `MainActivity.kt` with a simple layout: a "Send Code" button, a TextView for the generated code, and a TextView for status messages
+- [x] On button press, generate a random 4-digit code (1000–9999) and display it in the code TextView
 
 **Testing:** Open `android/` in Android Studio. Sync Gradle, build the project. Install on a physical device or emulator. Tap "Send Code" — verify a random 4-digit number appears. Tap again — verify a different number appears.
 **Model: Sonnet** | Reason: Standard Android/Kotlin scaffolding but needs correct Gradle config and SDK dependency wiring.
