@@ -2,7 +2,23 @@
 <resources>
     <string name="app_name">Commute Buddy</string>
     <string name="code_placeholder">- - - -</string>
-    <string name="status_idle">Press button to generate a code</string>
-    <string name="status_ready_to_send">Ready to send</string>
     <string name="button_send_code">Send Code</string>
+
+    <!-- SDK lifecycle -->
+    <string name="status_sdk_initializing">Initializing SDK…</string>
+    <string name="status_sdk_ready">SDK ready — searching for device…</string>
+    <string name="status_sdk_error">SDK error: %s</string>
+    <string name="status_sdk_shutdown">SDK shut down</string>
+    <string name="status_sdk_not_ready">SDK not ready — tap again after it initializes</string>
+
+    <!-- Device / app discovery -->
+    <string name="status_no_device">Watch not connected</string>
+    <string name="status_device_found">Device found: %s — checking app…</string>
+    <string name="status_app_ready">Ready (%s)</string>
+    <string name="status_app_not_installed">Commute Buddy not installed on watch</string>
+
+    <!-- Send flow -->
+    <string name="status_sending">Sending…</string>
+    <string name="status_sent">Sent %d ✓</string>
+    <string name="status_send_failed">Send failed: %s</string>
 </resources>

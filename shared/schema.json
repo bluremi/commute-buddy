@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CommuteBuddy BLE Message Schema",
+  "description": "Documents the BLE message payloads exchanged between the Android companion app and the Garmin Connect IQ watch app via the Connect IQ Mobile SDK.",
+  "version": "1.0.0",
+
+  "messages": {
+    "phoneToWatch": {
+      "description": "Message sent from Android app to Garmin watch via ConnectIQ.sendMessage()",
+      "steelThread": {
+        "description": "Steel-thread payload — a single integer representing the 4-digit test code.",
+        "type": "integer",
+        "minimum": 1000,
+        "maximum": 9999,
+        "example": 7342,
+        "notes": [
+          "Sent as a plain Java Integer (not wrapped in a List or Dictionary).",
+          "The Connect IQ SDK serializes this to ~4 bytes on the wire — well under the 1KB BLE payload limit.",
+          "On the watch side, received as a Number in the Communications.registerForPhoneAppMessages() callback."
+        ]
+      }
+    }
+  },
+
+  "constraints": {
+    "maxPayloadBytes": 1024,
+    "notes": [
+      "Garmin Glance memory budget is approximately 32KB total; BLE message payloads must stay under 1KB.",
+      "Never send protobuf or large binary blobs — parse heavy data on Android and send only the result.",
+      "Subsequent features (MTA countdown, commute windows) will extend this schema with a Dictionary payload."
+    ]
+  }
+}
