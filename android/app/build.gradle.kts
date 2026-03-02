@@ -43,4 +43,6 @@ dependencies {
     implementation("com.garmin.connectiq:ciq-companion-app-sdk:2.3.0@aar") {
         isTransitive = true
     }
+    // Gemini Nano on-device AI (ML Kit GenAI Prompt API — uses AICore)
+    implementation("com.google.mlkit:genai-prompt:1.0.0-beta1")
 }

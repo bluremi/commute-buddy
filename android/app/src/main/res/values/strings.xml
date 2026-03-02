@@ -21,4 +21,15 @@
     <string name="status_sending">Sending…</string>
     <string name="status_sent">Sent %d ✓</string>
     <string name="status_send_failed">Send failed: %s</string>
+
+    <!-- AI Summarization POC (FEAT-02) -->
+    <string name="button_test_ai">Test AI</string>
+    <string name="label_tier_short">Tier 1: Short</string>
+    <string name="label_tier_medium">Tier 2: Medium</string>
+    <string name="label_tier_long">Tier 3: Long</string>
+    <string name="label_tier_stress">Tier 4: Stress</string>
+    <string name="ai_model_ready">Model ready</string>
+    <string name="ai_model_unavailable">Gemini Nano not available — requires Pixel 8+ with AICore</string>
+    <string name="ai_processing">Processing…</string>
+    <string name="ai_parse_error">Parse error: %s</string>
 </resources>
