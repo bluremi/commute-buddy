@@ -46,11 +46,11 @@ This is a proof-of-concept isolated from BLE, the watch, and real MTA data. The 
 ### Implementation Plan
 
 #### Increment 1: Gradle dependencies and CommuteStatus data class
-- [ ] Add Gemini Nano on-device AI dependency to `android/app/build.gradle.kts` (`com.google.ai.edge.aicore:aicore` or current ML Kit GenAI equivalent)
-- [ ] Create `CommuteStatus.kt` data class in `com.commutebuddy.app` with fields matching `shared/schema.json`: `status: Int`, `routeString: String`, `reason: String`, `timestamp: Long`
-- [ ] Add JSON deserialization support (Kotlin `org.json` from Android stdlib — no new library needed)
-- [ ] Add new string resources in `strings.xml` for test UI labels (test button text, tier labels, error messages)
-- [ ] Verify Gradle sync succeeds and project builds without errors; run existing FEAT-01 functionality to confirm no regressions
+- [x] Add Gemini Nano on-device AI dependency to `android/app/build.gradle.kts` (`com.google.ai.edge.aicore:aicore` or current ML Kit GenAI equivalent)
+- [x] Create `CommuteStatus.kt` data class in `com.commutebuddy.app` with fields matching `shared/schema.json`: `status: Int`, `routeString: String`, `reason: String`, `timestamp: Long`
+- [x] Add JSON deserialization support (Kotlin `org.json` from Android stdlib — no new library needed)
+- [x] Add new string resources in `strings.xml` for test UI labels (test button text, tier labels, error messages)
+- [x] Verify Gradle sync succeeds and project builds without errors; run existing FEAT-01 functionality to confirm no regressions
 
 **Testing:** Manually verify: Gradle sync completes, project builds, deploy to device/emulator and confirm existing Send Code flow still works.
 **Model: Composer** | Reason: Mechanical dependency additions and simple data class creation from a clear schema.

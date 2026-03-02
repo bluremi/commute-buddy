@@ -22,6 +22,7 @@ These were fetched via web scraping and converted to markdown:
 | `api-toybox-application.md` | https://developer.garmin.com/connect-iq/api-docs/Toybox/Application.html |
 | `api-toybox-lang.md` | https://developer.garmin.com/connect-iq/api-docs/Toybox/Lang.html |
 | `android-sdk-readme.md` | https://github.com/garmin/connectiq-android-sdk (README) |
+| `android-sdk-api-notes.md` | Project-specific — correct API for SDK 2.3.0 (getDeviceStatus, IQDevice.IQDeviceStatus); Comm sample as source of truth |
 
 ### Core topics & guides (manually saved from browser)
 

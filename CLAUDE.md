@@ -63,3 +63,4 @@ PRD.md is the ground truth of what the project is. Keeping it accurate is as imp
 - **BLE payload must stay under 1KB** — Garmin Glance memory limit is ~32KB
 - **Never parse protobuf on the watch** — all heavy lifting happens on Android
 - **Verify Monkey C syntax** against latest Connect IQ SDK docs — LLMs frequently hallucinate deprecated methods
+- **Connect IQ Android SDK:** Use `getDeviceStatus()` not `getStatus()`, and `IQDevice.IQDeviceStatus` not `ConnectIQ.IQDeviceStatus`. See `docs/garmin/android-sdk-api-notes.md`

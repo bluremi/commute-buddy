@@ -85,7 +85,9 @@ commute-buddy/
 ├── shared/
 │   └── schema.json                                 # BLE message format: JSON object (status, route_string, reason, timestamp)
 ├── docs/
-│   └── mta-feed-research.md                        # MTA GTFS-RT feed URLs, JSON structure, alert text examples & length tiers
+│   ├── mta-feed-research.md                        # MTA GTFS-RT feed URLs, JSON structure, alert text examples & length tiers
+│   └── garmin/
+│       └── android-sdk-api-notes.md                 # Connect IQ Android SDK 2.3.0 — correct API (getDeviceStatus, IQDevice.IQDeviceStatus); prevents LLM/doc drift
 ├── PRD.md
 ├── plan.md
 └── CLAUDE.md
@@ -112,7 +114,7 @@ commute-buddy/
 
 **MTA Alert Text Characteristics:** Real MTA GTFS-RT alerts vary dramatically in length and complexity. Each alert has a `header_text` (plain text, `language: "en"`) and an optional `description_text`. Alerts use bracket notation for routes (`[A]`, `[4]`, `[shuttle bus icon]`, `[accessibility icon]`) and structured sections ("What's happening?", "Travel Alternatives:", "ADA Customers:"). Short alerts (real-time delays) are ~100 chars with no description. Medium alerts (single reroute) are ~500-600 chars. Long alerts (weekend planned work with suspensions, shuttle buses, multi-line transfers, ADA notices) are 800-1500+ chars. Weekend construction alerts affecting multiple lines can be significantly longer. The preprocessing pipeline (FEAT-03) must filter by `informed_entity.route_id` and extract the `en` plain-text translation before passing to Gemini Nano.
 
-**Garmin SDK Caution:** Monkey C and Connect IQ SDK update frequently. LLMs often hallucinate syntax or use deprecated methods. Always verify against latest Toybox.Communications and UI docs.
+**Garmin SDK Caution:** Monkey C and Connect IQ SDK update frequently. LLMs often hallucinate syntax or use deprecated methods. Always verify against latest Toybox.Communications and UI docs. **Android SDK:** The official "Mobile SDK for Android" guide may show `getStatus()` — in SDK 2.3.0 use `getDeviceStatus()`. Use `IQDevice.IQDeviceStatus`, not `ConnectIQ.IQDeviceStatus`. See `docs/garmin/android-sdk-api-notes.md` for correct API usage.
 
 ### Testing Strategy
 

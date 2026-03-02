@@ -2,6 +2,8 @@
 
 > Source: https://github.com/garmin/connectiq-android-sdk
 
+**API notes:** The official Garmin docs may show outdated method names. See [android-sdk-api-notes.md](./android-sdk-api-notes.md) for correct usage in SDK 2.3.0 (e.g. `getDeviceStatus` not `getStatus`, `IQDevice.IQDeviceStatus` not `ConnectIQ.IQDeviceStatus`).
+
 ## SDK Download
 
 ### Maven

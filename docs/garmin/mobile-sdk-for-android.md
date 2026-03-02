@@ -4,6 +4,8 @@ The Mobile SDK allows you to create companion applications that run on a user's 
 
 > **Source:** [Garmin Connect IQ — Mobile SDK for Android](https://developer.garmin.com/connect-iq/core-topics/mobile-sdk-for-android/)
 
+> **⚠️ API drift:** This doc may show `getStatus(device)` — in SDK 2.3.0 use `getDeviceStatus(device)`. Use `IQDevice.IQDeviceStatus`, not `ConnectIQ.IQDeviceStatus`. See [android-sdk-api-notes.md](./android-sdk-api-notes.md).
+
 ---
 
 ## Adding the Mobile SDK to a Project

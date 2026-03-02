@@ -97,7 +97,7 @@ class MainActivity : AppCompatActivity() {
 
         val connectedDevice = devices?.firstOrNull { device ->
             try {
-                connectIQ.getStatus(device) == ConnectIQ.IQDeviceStatus.CONNECTED
+                connectIQ.getDeviceStatus(device) == IQDevice.IQDeviceStatus.CONNECTED
             } catch (e: Exception) {
                 Log.e(TAG, "Error getting device status", e)
                 false
@@ -124,12 +124,6 @@ class MainActivity : AppCompatActivity() {
             device,
             object : ConnectIQ.IQApplicationInfoListener {
                 override fun onApplicationInfoReceived(app: IQApp) {
-                    if (app == null || app.status != IQApp.IQApplicationStatus.INSTALLED) {
-                        Log.w(TAG, "App not installed or not supported on ${device.friendlyName}")
-                        targetApp = null
-                        setStatus(R.string.status_app_not_installed)
-                        return
-                    }
                     Log.d(TAG, "App found on ${device.friendlyName}")
                     targetApp = app
                     setStatus(getString(R.string.status_app_ready, device.friendlyName))
