@@ -56,14 +56,14 @@ This is a proof-of-concept isolated from BLE, the watch, and real MTA data. The 
 **Model: Composer** | Reason: Mechanical dependency additions and simple data class creation from a clear schema.
 
 #### Increment 2: Test UI and hardcoded MTA alert test data
-- [ ] Add a visual separator and "AI Summarization POC" section to `activity_main.xml` below the existing Send Code UI: a tier label (`TextView`), a "Test AI" button, and a scrollable results area (`ScrollView` > `TextView`)
-- [ ] Create `MtaTestData.kt` object containing 4 tiers of hardcoded test strings sourced from real MTA GTFS-RT alert text in `docs/mta-feed-research.md`:
+- [x] Add a visual separator and "AI Summarization POC" section to `activity_main.xml` below the existing Send Code UI: a tier label (`TextView`), a "Test AI" button, and a scrollable results area (`ScrollView` > `TextView`)
+- [x] Create `MtaTestData.kt` object containing 4 tiers of hardcoded test strings sourced from real MTA GTFS-RT alert text in `docs/mta-feed-research.md`:
   - Tier 1 (~100 chars): Real-time delay header
   - Tier 2 (~500 chars): Stops-skipped/reroute with transfer instructions
   - Tier 3 (~900 chars): Planned suspension with shuttles, split service, ADA notice
   - Tier 4 (~2000+ chars): Synthetic worst-case combining multiple long alerts
-- [ ] Wire tier cycling in `MainActivity.kt`: each "Test AI" press cycles to the next tier, updates the tier label, and (for now) displays the raw input text in the results area
-- [ ] Ensure all existing FEAT-01 UI elements remain visible and functional above the new section
+- [x] Wire tier cycling in `MainActivity.kt`: each "Test AI" press cycles to the next tier, updates the tier label, and (for now) displays the raw input text in the results area
+- [x] Ensure all existing FEAT-01 UI elements remain visible and functional above the new section
 
 **Testing:** Manually verify: open app, confirm new UI section visible below Send Code. Press "Test AI" button repeatedly — tier label cycles through "Tier 1: Short" → "Tier 2: Medium" → "Tier 3: Long" → "Tier 4: Stress" → back to Tier 1. Results area shows the raw alert text for each tier. Scroll the results area for long text. Confirm Send Code button still works.
 **Model: Composer** | Note: Layout XML and wiring are mechanical. The test data strings in `MtaTestData.kt` should be sourced carefully from the examples in `docs/mta-feed-research.md` — provide the real MTA text inline in the prompt.

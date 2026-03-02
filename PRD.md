@@ -67,13 +67,15 @@ commute-buddy/
 │   ├── build.gradle.kts                            # Root Gradle config
 │   ├── settings.gradle.kts
 │   └── app/
-│       ├── build.gradle.kts                        # minSdk 34, Connect IQ SDK dep
+│       ├── build.gradle.kts                        # minSdk 34, Connect IQ SDK, ML Kit GenAI
 │       └── src/main/
 │           ├── AndroidManifest.xml                 # BLUETOOTH_SCAN, BLUETOOTH_CONNECT permissions
-│           ├── java/com/example/commutebuddy/
-│           │   └── MainActivity.kt                 # SDK init, device discovery, send logic, status UI
+│           ├── kotlin/com/commutebuddy/app/
+│           │   ├── MainActivity.kt                 # SDK init, device discovery, send logic, status UI, AI POC tier cycling
+│           │   ├── CommuteStatus.kt                # BLE schema data class; JSON deserialization for AI output
+│           │   └── MtaTestData.kt                  # Hardcoded MTA alert strings (4 tiers) for FEAT-02 POC
 │           └── res/
-│               ├── layout/activity_main.xml        # Button + code TextView + status TextView
+│               ├── layout/activity_main.xml        # Send Code UI + AI POC section (tier label, Test AI button, scrollable results)
 │               └── values/strings.xml
 ├── garmin/                                         # Open in VS Code
 │   ├── monkey.jungle                               # Build config, references manifest.xml
