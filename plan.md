@@ -97,7 +97,7 @@ This is the foundational "steel thread" — the thinnest possible vertical slice
 
 **Testing (Phase 1 — simulator only):** Build and run in the Connect IQ Simulator targeting Venu 3. Verify the Glance shows "Waiting..." on launch. Full send testing requires hardware (Phase 2).
 
-**Testing (Phase 2 — hardware):** Sideload the `.prg` to the Venu 3S via USB using the Connect IQ VS Code extension. Install the Android APK on the Pixel. Open the Android app — it should show "Ready (device name)" now that the watch app is installed. Tap "Send Code" and verify the Glance updates to show the sent code.
+**Testing (Phase 2 — hardware):** Sideload the `.prg` to the Venu 3 via USB using the Connect IQ VS Code extension. Install the Android APK on the Pixel. Open the Android app — it should show "Ready (device name)" now that the watch app is installed. Tap "Send Code" and verify the Glance updates to show the sent code.
 **Model: Sonnet** | Reason: Wiring BLE receive → Storage → UI refresh requires understanding Monkey C callbacks, Storage API, and Glance lifecycle.
 
 #### Increment 5: Error Handling + Polish

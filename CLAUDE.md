@@ -59,7 +59,7 @@ PRD.md is the ground truth of what the project is. Keeping it accurate is as imp
 
 - **Two IDEs required:** Android Studio for the Kotlin/Android app, VS Code for the Garmin/Monkey C app
 - **Phase 1 testing** (UI/logic): Use Connect IQ Simulator in VS Code — no hardware needed
-- **Phase 2 testing** (BLE): Physical phone + Garmin Venu 3S via USB sideloading
+- **Phase 2 testing** (BLE): Physical phone + Garmin Venu 3 via USB sideloading
 - **BLE payload must stay under 1KB** — Garmin Glance memory limit is ~32KB
 - **Never parse protobuf on the watch** — all heavy lifting happens on Android
 - **Verify Monkey C syntax** against latest Connect IQ SDK docs — LLMs frequently hallucinate deprecated methods
