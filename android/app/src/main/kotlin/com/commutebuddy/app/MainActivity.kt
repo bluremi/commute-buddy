@@ -9,6 +9,7 @@ import androidx.lifecycle.lifecycleScope
 import com.garmin.android.connectiq.ConnectIQ
 import com.garmin.android.connectiq.IQApp
 import com.garmin.android.connectiq.IQDevice
+import com.google.mlkit.genai.common.DownloadStatus
 import com.google.mlkit.genai.common.FeatureStatus
 import com.google.mlkit.genai.prompt.Generation
 import com.google.mlkit.genai.prompt.GenerativeModel
@@ -227,9 +228,13 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
                         testAiButton.isEnabled = true
                         resultsTextView.text = getString(R.string.ai_model_ready)
                     }
-                    FeatureStatus.DOWNLOADABLE, FeatureStatus.DOWNLOADING -> {
-                        Log.w(TAG, "Gemini Nano: not yet downloaded")
-                        resultsTextView.text = getString(R.string.ai_model_downloading)
+                    FeatureStatus.DOWNLOADABLE -> {
+                        Log.d(TAG, "Gemini Nano: downloadable, starting download")
+                        downloadGeminiNano()
+                    }
+                    FeatureStatus.DOWNLOADING -> {
+                        Log.d(TAG, "Gemini Nano: download already in progress")
+                        resultsTextView.text = getString(R.string.ai_model_already_downloading)
                     }
                     else -> {
                         Log.w(TAG, "Gemini Nano: unavailable on this device")
@@ -240,6 +245,37 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
                 Log.e(TAG, "Gemini Nano availability check failed", e)
                 resultsTextView.text = getString(R.string.ai_model_unavailable)
             }
+        }
+    }
+
+    private suspend fun downloadGeminiNano() {
+        resultsTextView.text = getString(R.string.ai_model_downloading)
+        try {
+            generativeModel.download().collect { status ->
+                when (status) {
+                    is DownloadStatus.DownloadStarted -> {
+                        Log.d(TAG, "Gemini Nano download started")
+                        resultsTextView.text = getString(R.string.ai_model_downloading)
+                    }
+                    is DownloadStatus.DownloadProgress -> {
+                        val mb = status.totalBytesDownloaded / (1024L * 1024L)
+                        Log.d(TAG, "Gemini Nano download: ${mb}MB")
+                        resultsTextView.text = getString(R.string.ai_model_downloading_progress, mb)
+                    }
+                    DownloadStatus.DownloadCompleted -> {
+                        Log.d(TAG, "Gemini Nano download complete")
+                        testAiButton.isEnabled = true
+                        resultsTextView.text = getString(R.string.ai_model_ready)
+                    }
+                    is DownloadStatus.DownloadFailed -> {
+                        Log.e(TAG, "Gemini Nano download failed: ${status.e.message}")
+                        resultsTextView.text = getString(R.string.ai_model_download_failed, status.e.message ?: "Unknown error")
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Gemini Nano download error", e)
+            resultsTextView.text = getString(R.string.ai_model_download_failed, e.message ?: "Unknown error")
         }
     }
 

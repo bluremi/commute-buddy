@@ -32,7 +32,10 @@
     <string name="ai_checking_model">Checking model availability…</string>
     <string name="ai_model_ready">Model ready</string>
     <string name="ai_model_unavailable">Gemini Nano not available — requires Pixel 8+ with AICore</string>
-    <string name="ai_model_downloading">Gemini Nano not downloaded — check AICore in Play Store</string>
+    <string name="ai_model_downloading">Downloading Gemini Nano…</string>
+    <string name="ai_model_downloading_progress">Downloading Gemini Nano… %d MB</string>
+    <string name="ai_model_download_failed">Download failed: %s</string>
+    <string name="ai_model_already_downloading">Gemini Nano is downloading in the background — reopen the app once it completes</string>
     <string name="ai_processing">Processing…</string>
     <string name="ai_parse_error">Parse error: %s</string>
 </resources>
