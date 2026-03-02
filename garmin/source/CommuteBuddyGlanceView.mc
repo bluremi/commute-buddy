@@ -13,7 +13,10 @@ class CommuteBuddyGlanceView extends WatchUi.GlanceView {
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
         dc.clear();
         var code = Application.Storage.getValue("code");
-        var text = (code != null) ? "Code: " + code : "Waiting...";
+        var text = "Waiting...";
+        if (code != null && code instanceof Number && code >= 1000 && code <= 9999) {
+            text = "Code: " + code;
+        }
         dc.drawText(
             dc.getWidth() / 2,
             dc.getHeight() / 2,

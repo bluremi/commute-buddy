@@ -17,10 +17,15 @@ class CommuteBuddyApp extends Application.AppBase {
 
     function onPhoneMessage(msg as Communications.PhoneAppMessage) as Void {
         var data = msg.data;
-        if (data instanceof Number) {
-            Application.Storage.setValue("code", data);
-            WatchUi.requestUpdate();
+        if (data == null || !(data instanceof Number)) {
+            return;
         }
+        var code = data as Number;
+        if (code < 1000 || code > 9999) {
+            return;
+        }
+        Application.Storage.setValue("code", code);
+        WatchUi.requestUpdate();
     }
 
     function getInitialView() {

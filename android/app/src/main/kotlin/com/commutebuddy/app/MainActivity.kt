@@ -95,15 +95,24 @@ class MainActivity : AppCompatActivity() {
             null
         }
 
-        if (devices.isNullOrEmpty()) {
-            connectedDevice = null
+        val connectedDevice = devices?.firstOrNull { device ->
+            try {
+                connectIQ.getStatus(device) == ConnectIQ.IQDeviceStatus.CONNECTED
+            } catch (e: Exception) {
+                Log.e(TAG, "Error getting device status", e)
+                false
+            }
+        }
+
+        if (connectedDevice == null) {
+            this.connectedDevice = null
             targetApp = null
             setStatus(R.string.status_no_device)
             return
         }
 
-        val device = devices[0]
-        connectedDevice = device
+        val device = connectedDevice
+        this.connectedDevice = device
         Log.d(TAG, "Found device: ${device.friendlyName}")
         setStatus(getString(R.string.status_device_found, device.friendlyName))
         loadAppInfo(device)
@@ -115,6 +124,12 @@ class MainActivity : AppCompatActivity() {
             device,
             object : ConnectIQ.IQApplicationInfoListener {
                 override fun onApplicationInfoReceived(app: IQApp) {
+                    if (app == null || app.status != IQApp.IQApplicationStatus.INSTALLED) {
+                        Log.w(TAG, "App not installed or not supported on ${device.friendlyName}")
+                        targetApp = null
+                        setStatus(R.string.status_app_not_installed)
+                        return
+                    }
                     Log.d(TAG, "App found on ${device.friendlyName}")
                     targetApp = app
                     setStatus(getString(R.string.status_app_ready, device.friendlyName))
@@ -158,11 +173,16 @@ class MainActivity : AppCompatActivity() {
         setStatus(R.string.status_sending)
         connectIQ.sendMessage(device, app, code, object : ConnectIQ.IQSendMessageListener {
             override fun onMessageStatus(device: IQDevice, app: IQApp, status: ConnectIQ.IQMessageStatus) {
-                Log.d(TAG, "Send status: $status")
-                if (status == ConnectIQ.IQMessageStatus.SUCCESS) {
-                    setStatus(getString(R.string.status_sent, code))
-                } else {
-                    setStatus(getString(R.string.status_send_failed, status.toString()))
+                try {
+                    Log.d(TAG, "Send status: $status")
+                    if (status == ConnectIQ.IQMessageStatus.SUCCESS) {
+                        setStatus(getString(R.string.status_sent, code))
+                    } else {
+                        setStatus(getString(R.string.status_send_failed, status.name))
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error in send callback", e)
+                    setStatus(getString(R.string.status_send_failed, e.message ?: "Unknown error"))
                 }
             }
         })
