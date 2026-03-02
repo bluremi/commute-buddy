@@ -80,21 +80,21 @@ This is a proof-of-concept isolated from BLE, the watch, and real MTA data. The 
 **Model: Composer** | Note: Layout XML and wiring are mechanical. The test data strings in `MtaTestData.kt` should be sourced carefully from the examples in `docs/mta-feed-research.md` — provide the real MTA text inline in the prompt.
 
 #### Increment 3: Swap to Gemini 1.5 Flash cloud SDK and API key configuration
-- [ ] **Remove** the Gemini Nano dependency from `android/app/build.gradle.kts`: delete `implementation("com.google.mlkit:genai-prompt:1.0.0-beta1")`
-- [ ] **Add** the Google Generative AI SDK: `implementation("com.google.ai.client.generativeai:generativeai:0.9.0")`
-- [ ] **Add** `INTERNET` permission to `AndroidManifest.xml` (required for cloud API calls)
-- [ ] **Configure API key injection via BuildConfig:**
+- [x] **Remove** the Gemini Nano dependency from `android/app/build.gradle.kts`: delete `implementation("com.google.mlkit:genai-prompt:1.0.0-beta1")`
+- [x] **Add** the Google Generative AI SDK: `implementation("com.google.ai.client.generativeai:generativeai:0.9.0")`
+- [x] **Add** `INTERNET` permission to `AndroidManifest.xml` (required for cloud API calls)
+- [x] **Configure API key injection via BuildConfig:**
   - Add to `android/app/build.gradle.kts` inside the `defaultConfig` block: `buildConfigField("String", "GEMINI_API_KEY", "\"${project.findProperty("GEMINI_API_KEY") ?: ""}\"")` and `buildFeatures { buildConfig = true }`
   - The key is read from `local.properties` (which is `.gitignore`'d by default)
-- [ ] **Strip all Nano-specific code from `MainActivity.kt`:**
+- [x] **Strip all Nano-specific code from `MainActivity.kt`:**
   - Remove imports: `com.google.mlkit.genai.*`
   - Remove the `generativeModel` field and its ML Kit type
   - Remove `initGeminiNano()` and `downloadGeminiNano()` methods entirely
-- [ ] **Replace with Gemini Flash initialization:**
+- [x] **Replace with Gemini Flash initialization:**
   - Create a `GenerativeModel` instance using `GenerativeModel(modelName = "gemini-1.5-flash", apiKey = BuildConfig.GEMINI_API_KEY)` with the existing `SYSTEM_PROMPT` passed as `systemInstruction`
   - On `onCreate`: if API key is blank, disable Test AI button and show "API key not configured — see local.properties"; otherwise enable button and show "Model ready (Gemini 1.5 Flash)"
-- [ ] **Update string resources** in `strings.xml`: replace Nano-specific messages (model downloading, AICore unavailable, etc.) with cloud-appropriate messages (API key missing, model ready)
-- [ ] **Verify** Gradle sync, build, and deploy — app launches, shows "Model ready" with a valid key, shows "API key not configured" without one; FEAT-01 Send Code still works
+- [x] **Update string resources** in `strings.xml`: replace Nano-specific messages (model downloading, AICore unavailable, etc.) with cloud-appropriate messages (API key missing, model ready)
+- [x] **Verify** Gradle sync, build, and deploy — app launches, shows "Model ready" with a valid key, shows "API key not configured" without one; FEAT-01 Send Code still works
 
 **Human setup (do this before testing):**
 1. Go to [Google AI Studio](https://aistudio.google.com/apikey) and create an API key (free, takes 30 seconds)
