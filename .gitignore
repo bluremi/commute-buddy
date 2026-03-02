@@ -14,6 +14,9 @@ android/local.properties
 *.iml
 .vscode/
 
+# Claude Code
+.claude/
+
 # OS
 .DS_Store
 Thumbs.db

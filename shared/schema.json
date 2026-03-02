@@ -2,13 +2,13 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "CommuteBuddy BLE Message Schema",
   "description": "Documents the BLE message payloads exchanged between the Android companion app and the Garmin Connect IQ watch app via the Connect IQ Mobile SDK.",
-  "version": "1.0.0",
+  "version": "2.0.0",
 
   "messages": {
     "phoneToWatch": {
       "description": "Message sent from Android app to Garmin watch via ConnectIQ.sendMessage()",
       "steelThread": {
-        "description": "Steel-thread payload — a single integer representing the 4-digit test code.",
+        "description": "Steel-thread payload — a single integer representing the 4-digit test code. Used by FEAT-01 only.",
         "type": "integer",
         "minimum": 1000,
         "maximum": 9999,
@@ -17,6 +17,42 @@
           "Sent as a plain Java Integer (not wrapped in a List or Dictionary).",
           "The Connect IQ SDK serializes this to ~4 bytes on the wire — well under the 1KB BLE payload limit.",
           "On the watch side, received as a Number in the Communications.registerForPhoneAppMessages() callback."
+        ]
+      },
+      "commuteStatus": {
+        "description": "Commute status payload — a minimized JSON object produced by on-device Gemini Nano summarization of raw MTA alert text.",
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer",
+            "enum": [0, 1, 2],
+            "description": "0 = Normal (good service), 1 = Deviate (delays/planned work), 2 = Error (major disruption or suspended service)"
+          },
+          "route_string": {
+            "type": "string",
+            "maxLength": 15,
+            "description": "Affected route(s), e.g. 'N/W' or '4/5/6'",
+            "example": "N/W"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 40,
+            "description": "Short human-readable reason for the status",
+            "example": "Signal problems at Queensboro Plaza"
+          },
+          "timestamp": {
+            "type": "integer",
+            "description": "Unix epoch timestamp (seconds) of when this status was generated",
+            "example": 1709312400
+          }
+        },
+        "required": ["status", "route_string", "reason", "timestamp"],
+        "notes": [
+          "Sent as a Dictionary via ConnectIQ.sendMessage() — the Connect IQ SDK handles serialization.",
+          "On the watch side, received as a Dictionary in the Communications.registerForPhoneAppMessages() callback.",
+          "Total serialized size must stay well under the 1KB BLE payload limit.",
+          "The Android app validates and deserializes the Gemini Nano output into a Kotlin data class before sending.",
+          "If AI output fails validation, the phone retries or falls back to status=2 with reason='Parse error'."
         ]
       }
     }
@@ -27,7 +63,8 @@
     "notes": [
       "Garmin Glance memory budget is approximately 32KB total; BLE message payloads must stay under 1KB.",
       "Never send protobuf or large binary blobs — parse heavy data on Android and send only the result.",
-      "Subsequent features (MTA countdown, commute windows) will extend this schema with a Dictionary payload."
+      "Never parse JSON on the watch — the Android app sends a pre-structured Dictionary via the Connect IQ SDK.",
+      "AI summarization (Gemini Nano) runs on-device on Android; no network call for the LLM step."
     ]
   }
 }
