@@ -55,6 +55,18 @@ When all increments in a story are marked complete:
 
 PRD.md is the ground truth of what the project is. Keeping it accurate is as important as writing the code.
 
+## Windows / PowerShell Notes
+
+- **No `gradlew` scripts in the repo.** The `android/gradlew` and `android/gradlew.bat` wrapper scripts are not committed. Do NOT try `.\gradlew` or `.\gradlew.bat` — they don't exist. Use the Gradle binary from the cached wrapper distribution instead:
+  ```powershell
+  $gradle = (Get-ChildItem "$env:USERPROFILE\.gradle\wrapper\dists\gradle-8.13-bin" -Recurse -Filter "gradle.bat" | Select-Object -First 1 -ExpandProperty FullName)
+  Set-Location "a:\Phil\Phil Docs\Development\commute-buddy\android"
+  & $gradle :app:testDebugUnitTest
+  ```
+  If the version folder hash is unknown, use the `Get-ChildItem` discovery step above — it always finds the right binary.
+- **No heredoc in PowerShell.** `$(cat <<'EOF' ... EOF)` is bash syntax and will fail. For multi-line `git commit` messages, use `-m "single line message"` or write to a temp file first.
+- **Path spaces require quoting.** The workspace path contains spaces (`Phil Docs`). Always quote paths: `Set-Location "a:\Phil\Phil Docs\Development\commute-buddy\android"`. The `cd "path" && command` chaining pattern is unreliable in PowerShell — use separate `Set-Location` + `& command` calls.
+
 ## Project-Specific Notes
 
 - **Two IDEs required:** Android Studio for the Kotlin/Android app, VS Code for the Garmin/Monkey C app

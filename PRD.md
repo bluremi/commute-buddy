@@ -106,6 +106,15 @@ commute-buddy/
 - `Shift+F10` (Run) — build and install APK on connected device or emulator
 - Gradle sync required after any `build.gradle.kts` change
 
+**Android (command line — Windows/PowerShell only):**
+> `gradlew`/`gradlew.bat` are **not committed** to this repo. Use the cached Gradle binary directly:
+```powershell
+$gradle = (Get-ChildItem "$env:USERPROFILE\.gradle\wrapper\dists\gradle-8.13-bin" -Recurse -Filter "gradle.bat" | Select-Object -First 1 -ExpandProperty FullName)
+Set-Location "a:\Phil\Phil Docs\Development\commute-buddy\android"
+& $gradle :app:testDebugUnitTest   # run unit tests
+& $gradle :app:assembleDebug       # build APK
+```
+
 ### Technical Notes
 
 **Android Permissions (14+):** FOREGROUND_SERVICE_DATA_SYNC or FOREGROUND_SERVICE_LOCATION, BLUETOOTH_SCAN, BLUETOOTH_CONNECT.

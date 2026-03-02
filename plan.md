@@ -105,8 +105,8 @@ This is a proof-of-concept isolated from BLE, the watch, and real MTA data. The 
 **Model: Sonnet** | Reason: Dependency swap, BuildConfig injection, and stripping/replacing async init code requires careful reasoning about the existing codebase.
 
 #### Increment 4: ApiRateLimiter with unit tests
-- [ ] **Add test dependencies** to `android/app/build.gradle.kts`: `testImplementation("junit:junit:4.13.2")`, `testImplementation("io.mockk:mockk:1.13.13")`
-- [ ] **Create `ApiRateLimiter.kt`** in `com.commutebuddy.app` — a self-contained rate limiter with injectable dependencies (`clock: () -> Long` for time, `SharedPreferences` for persistence) and the following layers:
+- [x] **Add test dependencies** to `android/app/build.gradle.kts`: `testImplementation("junit:junit:4.13.2")`, `testImplementation("io.mockk:mockk:1.13.13")`
+- [x] **Create `ApiRateLimiter.kt`** in `com.commutebuddy.app` — a self-contained rate limiter with injectable dependencies (`clock: () -> Long` for time, `SharedPreferences` for persistence) and the following layers:
 
   **Layer 1 — Hard daily cap (persisted, nuclear backstop):**
   - Uses `SharedPreferences` to store `{ "date": "2026-03-02", "count": 47 }`
@@ -150,7 +150,7 @@ This is a proof-of-concept isolated from BLE, the watch, and real MTA data. The 
   }
   ```
 
-- [ ] **Create `ApiRateLimiterTest.kt`** in `android/app/src/test/kotlin/com/commutebuddy/app/` with unit tests covering:
+- [x] **Create `ApiRateLimiterTest.kt`** in `android/app/src/test/kotlin/com/commutebuddy/app/` with unit tests covering:
 
   **Daily cap tests:**
   - First request of the day → `Allowed`
@@ -178,7 +178,7 @@ This is a proof-of-concept isolated from BLE, the watch, and real MTA data. The 
   - In-flight check fires before cooldown check (so you don't get a misleading "wait 3s" when the real issue is a concurrent call)
   - Daily cap fires even if per-minute and cooldown are both clear
 
-- [ ] **Run tests** via `./gradlew :app:test` and confirm all pass
+- [x] **Run tests** via `./gradlew :app:test` and confirm all pass
 
 **Testing:** Run `./gradlew :app:test` — all tests pass. No manual testing needed for this increment; the unit tests are the deliverable.
 **Model: Sonnet** | Reason: The rate limiter has multiple interacting layers with injectable dependencies and time-sensitive logic. The test suite must exercise each layer in isolation and verify their priority ordering. Requires careful reasoning.
