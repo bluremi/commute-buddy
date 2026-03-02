@@ -23,6 +23,7 @@
     <string name="status_send_failed">Send failed: %s</string>
 
     <!-- AI Summarization POC (FEAT-02) -->
+    <string name="section_ai_poc">AI Summarization POC</string>
     <string name="button_test_ai">Test AI</string>
     <string name="label_tier_short">Tier 1: Short</string>
     <string name="label_tier_medium">Tier 2: Medium</string>

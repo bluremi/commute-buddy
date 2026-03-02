@@ -20,8 +20,12 @@ class MainActivity : AppCompatActivity() {
     private lateinit var codeTextView: TextView
     private lateinit var statusTextView: TextView
     private lateinit var sendButton: Button
+    private lateinit var tierLabel: TextView
+    private lateinit var testAiButton: Button
+    private lateinit var resultsTextView: TextView
 
     private lateinit var connectIQ: ConnectIQ
+    private var currentTierIndex = 0
     private var sdkReady = false
     private var connectedDevice: IQDevice? = null
     private var targetApp: IQApp? = null
@@ -38,6 +42,12 @@ class MainActivity : AppCompatActivity() {
         statusTextView = findViewById(R.id.statusTextView)
         sendButton = findViewById(R.id.sendButton)
         sendButton.setOnClickListener { onSendCodeClicked() }
+
+        tierLabel = findViewById(R.id.tierLabel)
+        testAiButton = findViewById(R.id.testAiButton)
+        resultsTextView = findViewById(R.id.resultsTextView)
+        testAiButton.setOnClickListener { onTestAiClicked() }
+        updateTierDisplay()
 
         initConnectIQ()
     }
@@ -180,6 +190,21 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
+    }
+
+    // -------------------------------------------------------------------------
+    // AI Summarization POC (FEAT-02)
+    // -------------------------------------------------------------------------
+
+    private fun onTestAiClicked() {
+        currentTierIndex = (currentTierIndex + 1) % MtaTestData.tiers.size
+        updateTierDisplay()
+    }
+
+    private fun updateTierDisplay() {
+        val tier = MtaTestData.tiers[currentTierIndex]
+        tierLabel.text = getString(tier.labelResId)
+        resultsTextView.text = MtaTestData.getAlertText(tier)
     }
 
     // -------------------------------------------------------------------------
