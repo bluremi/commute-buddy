@@ -79,12 +79,12 @@ This is the foundational "steel thread" — the thinnest possible vertical slice
 **Testing:** Open `android/` in Android Studio. Sync Gradle, build the project. Install on a physical device or emulator. Tap "Send Code" — verify a random 4-digit number appears. Tap again — verify a different number appears.
 **Model: Sonnet** | Reason: Standard Android/Kotlin scaffolding but needs correct Gradle config and SDK dependency wiring.
 
-#### Increment 3: BLE Schema + Android Connect IQ SDK Integration
-- [ ] Create `shared/schema.json` documenting the steel-thread BLE message format (single integer payload, 1000–9999)
-- [ ] Add Connect IQ SDK initialization in `MainActivity.kt` — `ConnectIQ.getInstance()` with `IQConnectType.WIRELESS`, implement `ConnectIQListener` callbacks
-- [ ] Implement device discovery: `getConnectedDevices()`, then `getApplicationInfo()` using the Garmin app's UUID
-- [ ] Wire "Send Code" button to call `ConnectIQ.sendMessage()` with the generated code as an integer
-- [ ] Update status TextView with connection state and send result (`SUCCESS`, `FAILURE`, device not found, app not installed)
+#### Increment 3: BLE Schema + Android Connect IQ SDK Integration ✓
+- [x] Create `shared/schema.json` documenting the steel-thread BLE message format (single integer payload, 1000–9999)
+- [x] Add Connect IQ SDK initialization in `MainActivity.kt` — `ConnectIQ.getInstance()` with `IQConnectType.WIRELESS`, implement `ConnectIQListener` callbacks
+- [x] Implement device discovery: `getConnectedDevices()`, then `getApplicationInfo()` using the Garmin app's UUID
+- [x] Wire "Send Code" button to call `ConnectIQ.sendMessage()` with the generated code as an integer
+- [x] Update status TextView with connection state and send result (`SUCCESS`, `FAILURE`, device not found, app not installed)
 
 **Testing:** Build and install on a physical Android device with Garmin Connect Mobile installed. Verify: app launches without crash, SDK initializes (status shows "SDK Ready" or similar), device discovery runs (shows "No device found" if watch isn't paired, or device name if it is). Full send test deferred to after Increment 4.
 **Model: Sonnet** | Reason: Async SDK initialization with callbacks and state management requires multi-step reasoning across the Connect IQ Mobile SDK docs.
@@ -95,7 +95,9 @@ This is the foundational "steel thread" — the thinnest possible vertical slice
 - [ ] Call `WatchUi.requestUpdate()` after storing the code to refresh the Glance
 - [ ] Update `CommuteBuddyGlanceView.mc` `onUpdate(dc)` to read from `Application.Storage.getValue("code")` — display "Code: XXXX" if a value exists, "Waiting..." if null
 
-**Testing:** Build and run in the Connect IQ Simulator. Initially the Glance should show "Waiting...". For Phase 2 (hardware): install Android APK on phone, sideload `.prg` to Venu 3 via USB, set up ADB port forwarding (`adb forward tcp:7381 tcp:7381`), tap "Send Code" on phone — verify the Glance updates to show the sent code.
+**Testing (Phase 1 — simulator only):** Build and run in the Connect IQ Simulator targeting Venu 3. Verify the Glance shows "Waiting..." on launch. Full send testing requires hardware (Phase 2).
+
+**Testing (Phase 2 — hardware):** Sideload the `.prg` to the Venu 3S via USB using the Connect IQ VS Code extension. Install the Android APK on the Pixel. Open the Android app — it should show "Ready (device name)" now that the watch app is installed. Tap "Send Code" and verify the Glance updates to show the sent code.
 **Model: Sonnet** | Reason: Wiring BLE receive → Storage → UI refresh requires understanding Monkey C callbacks, Storage API, and Glance lifecycle.
 
 #### Increment 5: Error Handling + Polish
