@@ -89,11 +89,11 @@ This is the foundational "steel thread" — the thinnest possible vertical slice
 **Testing:** Build and install on a physical Android device with Garmin Connect Mobile installed. Verify: app launches without crash, SDK initializes (status shows "SDK Ready" or similar), device discovery runs (shows "No device found" if watch isn't paired, or device name if it is). Full send test deferred to after Increment 4.
 **Model: Sonnet** | Reason: Async SDK initialization with callbacks and state management requires multi-step reasoning across the Connect IQ Mobile SDK docs.
 
-#### Increment 4: Garmin BLE Receive + Storage + Dynamic Glance Display
-- [ ] In `CommuteBuddyApp.mc`, register for phone app messages in `onStart()` using `Communications.registerForPhoneAppMessages()`
-- [ ] In the phone message callback, extract the integer code from `msg.data` and persist it with `Application.Storage.setValue("code", code)`
-- [ ] Call `WatchUi.requestUpdate()` after storing the code to refresh the Glance
-- [ ] Update `CommuteBuddyGlanceView.mc` `onUpdate(dc)` to read from `Application.Storage.getValue("code")` — display "Code: XXXX" if a value exists, "Waiting..." if null
+#### Increment 4: Garmin BLE Receive + Storage + Dynamic Glance Display ✓
+- [x] In `CommuteBuddyApp.mc`, register for phone app messages in `onStart()` using `Communications.registerForPhoneAppMessages()`
+- [x] In the phone message callback, extract the integer code from `msg.data` and persist it with `Application.Storage.setValue("code", code)`
+- [x] Call `WatchUi.requestUpdate()` after storing the code to refresh the Glance
+- [x] Update `CommuteBuddyGlanceView.mc` `onUpdate(dc)` to read from `Application.Storage.getValue("code")` — display "Code: XXXX" if a value exists, "Waiting..." if null
 
 **Testing (Phase 1 — simulator only):** Build and run in the Connect IQ Simulator targeting Venu 3. Verify the Glance shows "Waiting..." on launch. Full send testing requires hardware (Phase 2).
 
