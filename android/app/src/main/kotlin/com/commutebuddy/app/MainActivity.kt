@@ -9,7 +9,7 @@ import androidx.lifecycle.lifecycleScope
 import com.garmin.android.connectiq.ConnectIQ
 import com.garmin.android.connectiq.IQApp
 import com.garmin.android.connectiq.IQDevice
-import com.google.mlkit.genai.prompt.FeatureStatus
+import com.google.mlkit.genai.common.FeatureStatus
 import com.google.mlkit.genai.prompt.Generation
 import com.google.mlkit.genai.prompt.GenerativeModel
 import kotlinx.coroutines.launch
