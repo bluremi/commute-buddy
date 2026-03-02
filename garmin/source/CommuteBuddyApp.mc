@@ -1,4 +1,5 @@
 import Toybox.Application;
+import Toybox.Communications;
 import Toybox.WatchUi;
 
 class CommuteBuddyApp extends Application.AppBase {
@@ -8,9 +9,18 @@ class CommuteBuddyApp extends Application.AppBase {
     }
 
     function onStart(state) {
+        Communications.registerForPhoneAppMessages(method(:onPhoneMessage));
     }
 
     function onStop(state) {
+    }
+
+    function onPhoneMessage(msg) {
+        var data = msg.data;
+        if (data instanceof Number) {
+            Application.Storage.setValue("code", data);
+            WatchUi.requestUpdate();
+        }
     }
 
     function getInitialView() {
