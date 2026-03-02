@@ -100,12 +100,12 @@ This is the foundational "steel thread" — the thinnest possible vertical slice
 **Testing (Phase 2 — hardware):** Sideload the `.prg` to the Venu 3 via USB using the Connect IQ VS Code extension. Install the Android APK on the Pixel. Open the Android app — it should show "Ready (device name)" now that the watch app is installed. Tap "Send Code" and verify the Glance updates to show the sent code.
 **Model: Sonnet** | Reason: Wiring BLE receive → Storage → UI refresh requires understanding Monkey C callbacks, Storage API, and Glance lifecycle.
 
-#### Increment 5: Error Handling + Polish
-- [ ] Android: show "Watch not connected" when `getConnectedDevices()` returns empty or device status is `NOT_CONNECTED`
-- [ ] Android: show "App not installed on watch" when `getApplicationInfo()` returns `NOT_INSTALLED` or `NOT_SUPPORTED`
-- [ ] Android: show send failure reason from `IQMessageStatus` when `sendMessage()` fails (don't crash)
-- [ ] Garmin: add null/type checks in the phone message callback — ignore messages that aren't a valid integer, never crash
-- [ ] Garmin: ensure Glance always renders something — "Waiting..." as fallback if Storage read returns null or unexpected type
+#### Increment 5: Error Handling + Polish ✓
+- [x] Android: show "Watch not connected" when `getConnectedDevices()` returns empty or device status is `NOT_CONNECTED`
+- [x] Android: show "App not installed on watch" when `getApplicationInfo()` returns `NOT_INSTALLED` or `NOT_SUPPORTED`
+- [x] Android: show send failure reason from `IQMessageStatus` when `sendMessage()` fails (don't crash)
+- [x] Garmin: add null/type checks in the phone message callback — ignore messages that aren't a valid integer, never crash
+- [x] Garmin: ensure Glance always renders something — "Waiting..." as fallback if Storage read returns null or unexpected type
 
 **Testing:** Android: test each error path — launch with Bluetooth off (should show connection error, not crash), launch without Garmin Connect Mobile installed (should show init error). Garmin: verify in simulator that Glance never shows a blank screen — always "Waiting..." or a valid code.
 **Model: Composer** | Reason: Adding guard clauses and status string updates to existing code paths — mechanical, pattern-following work.
