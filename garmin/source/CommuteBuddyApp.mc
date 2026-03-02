@@ -15,7 +15,7 @@ class CommuteBuddyApp extends Application.AppBase {
     function onStop(state) {
     }
 
-    function onPhoneMessage(msg) {
+    function onPhoneMessage(msg as Communications.PhoneAppMessage) as Void {
         var data = msg.data;
         if (data instanceof Number) {
             Application.Storage.setValue("code", data);
