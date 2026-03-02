@@ -1,16 +1,19 @@
 package com.commutebuddy.app
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.lifecycleScope
 import com.garmin.android.connectiq.ConnectIQ
 import com.garmin.android.connectiq.IQApp
 import com.garmin.android.connectiq.IQDevice
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.content
+import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 class MainActivity : AppCompatActivity() {
@@ -38,6 +41,7 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
     private lateinit var resultsTextView: TextView
 
     private lateinit var connectIQ: ConnectIQ
+    private lateinit var rateLimiter: ApiRateLimiter
     private var generativeModel: GenerativeModel? = null
     private var currentTierIndex = 0
     private var sdkReady = false
@@ -62,6 +66,10 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
         testAiButton = findViewById(R.id.testAiButton)
         resultsTextView = findViewById(R.id.resultsTextView)
         testAiButton.setOnClickListener { onTestAiClicked() }
+
+        rateLimiter = ApiRateLimiter(
+            getSharedPreferences("rate_limiter", Context.MODE_PRIVATE)
+        )
         initGeminiFlash()
 
         initConnectIQ()
@@ -234,13 +242,66 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
 
     private fun onTestAiClicked() {
         currentTierIndex = (currentTierIndex + 1) % MtaTestData.tiers.size
-        updateTierDisplay()
-    }
-
-    private fun updateTierDisplay() {
         val tier = MtaTestData.tiers[currentTierIndex]
         tierLabel.text = getString(tier.labelResId)
-        resultsTextView.text = MtaTestData.getAlertText(tier)
+        val alertText = MtaTestData.getAlertText(tier)
+
+        val model = generativeModel ?: return  // button is disabled when model is null
+
+        when (val result = rateLimiter.tryAcquire()) {
+            is RateLimitResult.Denied -> {
+                resultsTextView.text = result.reason
+                return
+            }
+            is RateLimitResult.Allowed -> {
+                val warning = result.warningMessage
+                testAiButton.isEnabled = false
+                resultsTextView.text = getString(R.string.ai_processing)
+                rateLimiter.setInFlight(true)
+
+                lifecycleScope.launch {
+                    try {
+                        val response = model.generateContent(alertText)
+                        val rawText = response.text
+                        if (rawText.isNullOrBlank()) {
+                            resultsTextView.text = getString(R.string.ai_error_empty_response)
+                            return@launch
+                        }
+                        try {
+                            val parsed = CommuteStatus.fromJson(rawText)
+                            resultsTextView.text = buildString {
+                                if (warning != null) {
+                                    appendLine("⚠ $warning")
+                                    appendLine()
+                                }
+                                appendLine(getString(R.string.ai_result_status, parsed.status, parsed.statusLabel))
+                                appendLine(getString(R.string.ai_result_route, parsed.routeString))
+                                appendLine(getString(R.string.ai_result_reason, parsed.reason))
+                                append(getString(R.string.ai_result_time, parsed.timestamp))
+                            }
+                        } catch (e: Exception) {
+                            Log.w(TAG, "Failed to parse Gemini response", e)
+                            resultsTextView.text = buildString {
+                                if (warning != null) {
+                                    appendLine("⚠ $warning")
+                                    appendLine()
+                                }
+                                appendLine(getString(R.string.ai_parse_error, e.message))
+                                appendLine()
+                                appendLine(getString(R.string.ai_result_raw_output))
+                                append(rawText)
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Gemini API error", e)
+                        resultsTextView.text = getString(R.string.ai_error_api, e.message ?: "Unknown error")
+                    } finally {
+                        rateLimiter.setInFlight(false)
+                        testAiButton.isEnabled = true
+                    }
+                }
+            }
+        }
     }
 
     // -------------------------------------------------------------------------

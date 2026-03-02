@@ -33,4 +33,11 @@
     <string name="ai_api_key_missing">API key not configured — see local.properties</string>
     <string name="ai_processing">Processing…</string>
     <string name="ai_parse_error">Parse error: %s</string>
+    <string name="ai_result_status">Status: %1$d (%2$s)</string>
+    <string name="ai_result_route">Route: %s</string>
+    <string name="ai_result_reason">Reason: %s</string>
+    <string name="ai_result_time">Time: %d</string>
+    <string name="ai_result_raw_output">Raw output:</string>
+    <string name="ai_error_api">API error: %s</string>
+    <string name="ai_error_empty_response">Empty response from model</string>
 </resources>
