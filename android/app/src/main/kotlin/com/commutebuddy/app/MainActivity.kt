@@ -5,15 +5,11 @@ import android.util.Log
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
 import com.garmin.android.connectiq.ConnectIQ
 import com.garmin.android.connectiq.IQApp
 import com.garmin.android.connectiq.IQDevice
-import com.google.mlkit.genai.common.DownloadStatus
-import com.google.mlkit.genai.common.FeatureStatus
-import com.google.mlkit.genai.prompt.Generation
-import com.google.mlkit.genai.prompt.GenerativeModel
-import kotlinx.coroutines.launch
+import com.google.ai.client.generativeai.GenerativeModel
+import com.google.ai.client.generativeai.type.content
 import kotlin.random.Random
 
 class MainActivity : AppCompatActivity() {
@@ -41,7 +37,7 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
     private lateinit var resultsTextView: TextView
 
     private lateinit var connectIQ: ConnectIQ
-    private lateinit var generativeModel: GenerativeModel
+    private var generativeModel: GenerativeModel? = null
     private var currentTierIndex = 0
     private var sdkReady = false
     private var connectedDevice: IQDevice? = null
@@ -64,7 +60,7 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
         testAiButton = findViewById(R.id.testAiButton)
         resultsTextView = findViewById(R.id.resultsTextView)
         testAiButton.setOnClickListener { onTestAiClicked() }
-        initGeminiNano()
+        initGeminiFlash()
 
         initConnectIQ()
     }
@@ -213,70 +209,25 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
     // AI Summarization POC (FEAT-02)
     // -------------------------------------------------------------------------
 
-    private fun initGeminiNano() {
+    private fun initGeminiFlash() {
         testAiButton.isEnabled = false
         tierLabel.text = getString(MtaTestData.tiers[currentTierIndex].labelResId)
-        resultsTextView.text = getString(R.string.ai_checking_model)
 
-        generativeModel = Generation.getClient()
-
-        lifecycleScope.launch {
-            try {
-                when (generativeModel.checkStatus()) {
-                    FeatureStatus.AVAILABLE -> {
-                        Log.d(TAG, "Gemini Nano: available")
-                        testAiButton.isEnabled = true
-                        resultsTextView.text = getString(R.string.ai_model_ready)
-                    }
-                    FeatureStatus.DOWNLOADABLE -> {
-                        Log.d(TAG, "Gemini Nano: downloadable, starting download")
-                        downloadGeminiNano()
-                    }
-                    FeatureStatus.DOWNLOADING -> {
-                        Log.d(TAG, "Gemini Nano: download already in progress")
-                        resultsTextView.text = getString(R.string.ai_model_already_downloading)
-                    }
-                    else -> {
-                        Log.w(TAG, "Gemini Nano: unavailable on this device")
-                        resultsTextView.text = getString(R.string.ai_model_unavailable)
-                    }
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Gemini Nano availability check failed", e)
-                resultsTextView.text = getString(R.string.ai_model_unavailable)
-            }
+        val apiKey = BuildConfig.GEMINI_API_KEY
+        if (apiKey.isBlank()) {
+            Log.w(TAG, "Gemini Flash: API key not configured")
+            resultsTextView.text = getString(R.string.ai_api_key_missing)
+            return
         }
-    }
 
-    private suspend fun downloadGeminiNano() {
-        resultsTextView.text = getString(R.string.ai_model_downloading)
-        try {
-            generativeModel.download().collect { status ->
-                when (status) {
-                    is DownloadStatus.DownloadStarted -> {
-                        Log.d(TAG, "Gemini Nano download started")
-                        resultsTextView.text = getString(R.string.ai_model_downloading)
-                    }
-                    is DownloadStatus.DownloadProgress -> {
-                        val mb = status.totalBytesDownloaded / (1024L * 1024L)
-                        Log.d(TAG, "Gemini Nano download: ${mb}MB")
-                        resultsTextView.text = getString(R.string.ai_model_downloading_progress, mb)
-                    }
-                    DownloadStatus.DownloadCompleted -> {
-                        Log.d(TAG, "Gemini Nano download complete")
-                        testAiButton.isEnabled = true
-                        resultsTextView.text = getString(R.string.ai_model_ready)
-                    }
-                    is DownloadStatus.DownloadFailed -> {
-                        Log.e(TAG, "Gemini Nano download failed: ${status.e.message}")
-                        resultsTextView.text = getString(R.string.ai_model_download_failed, status.e.message ?: "Unknown error")
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Gemini Nano download error", e)
-            resultsTextView.text = getString(R.string.ai_model_download_failed, e.message ?: "Unknown error")
-        }
+        generativeModel = GenerativeModel(
+            modelName = "gemini-1.5-flash",
+            apiKey = apiKey,
+            systemInstruction = content { text(SYSTEM_PROMPT) }
+        )
+        testAiButton.isEnabled = true
+        Log.d(TAG, "Gemini Flash: model ready")
+        resultsTextView.text = getString(R.string.ai_model_ready)
     }
 
     private fun onTestAiClicked() {

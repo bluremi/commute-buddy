@@ -7,12 +7,24 @@ android {
     namespace = "com.commutebuddy.app"
     compileSdk = 35
 
+    val localProperties = java.util.Properties()
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        localProperties.load(localPropertiesFile.inputStream())
+    }
+    val geminiApiKey = localProperties.getProperty("GEMINI_API_KEY") ?: ""
+
     defaultConfig {
         applicationId = "com.commutebuddy.app"
         minSdk = 34
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
+        buildConfigField("String", "GEMINI_API_KEY", "\"$geminiApiKey\"")
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     buildTypes {
@@ -45,6 +57,6 @@ dependencies {
     implementation("com.garmin.connectiq:ciq-companion-app-sdk:2.3.0@aar") {
         isTransitive = true
     }
-    // Gemini Nano on-device AI (ML Kit GenAI Prompt API — uses AICore)
-    implementation("com.google.mlkit:genai-prompt:1.0.0-beta1")
+    // Gemini 1.5 Flash cloud AI (Google GenAI SDK)
+    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
 }
