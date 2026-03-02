@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Commute Buddy</string>
+    <string name="code_placeholder">- - - -</string>
+    <string name="status_idle">Press button to generate a code</string>
+    <string name="status_ready_to_send">Ready to send</string>
+    <string name="button_send_code">Send Code</string>
+</resources>
