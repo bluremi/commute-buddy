@@ -8,7 +8,7 @@ Living in Astoria, commuting to work requires constantly pulling up the MTA app 
 
 A two-part system: an **Android Companion App** (the "brains") and a **Garmin Connect IQ App/Glance** (the "face").
 
-The Android app runs in the background during a configurable commute window. It fetches the full MTA GTFS-RT protobuf feed over cellular/Wi-Fi, deserializes and filters it down to only the user's configured routes, then passes the filtered alert text to Google's on-device **Gemini Nano** model (via Android AICore / ML Kit GenAI) for summarization into a strict JSON payload. This payload is pushed to the Garmin watch via Bluetooth Low Energy (BLE).
+The Android app runs in the background during a configurable commute window. It fetches the full MTA GTFS-RT protobuf feed over cellular/Wi-Fi, deserializes and filters it down to only the user's configured routes, then passes the filtered alert text to the **Gemini 1.5 Flash** cloud API (via Google AI Studio) for summarization into a strict JSON payload. This payload is pushed to the Garmin watch via Bluetooth Low Energy (BLE).
 
 When the watch Glance is viewed, it instantly displays the cached status — no loading screens, no network requests — completely bypassing underground connectivity issues.
 
@@ -44,7 +44,7 @@ When the watch Glance is viewed, it instantly displays the cached status — no 
 ### Tech Stack
 
 - **Android App:** Kotlin, `minSdk = 34` (Android 14), Garmin Connect IQ Mobile SDK `2.3.0` (`com.garmin.connectiq:ciq-companion-app-sdk`)
-- **AI Summarization:** Google Gemini Nano via Android AICore / ML Kit GenAI — on-device inference, no network required for summarization
+- **AI Summarization:** Google Gemini 1.5 Flash via Google AI Studio cloud API — massive context window, native JSON structured output, free tier (15 RPM / 1,500 RPD)
 - **Garmin Watch App:** Monkey C, Connect IQ SDK `8.4.1`, Toybox.Communications, Toybox.Application.Storage
 - **Target Device:** Garmin Venu 3 (`venu3`)
 - **Communication:** Bluetooth Low Energy via Connect IQ Mobile SDK (`IQConnectType.WIRELESS`); minimized JSON payload, well under 1KB limit
@@ -55,7 +55,7 @@ When the watch Glance is viewed, it instantly displays the cached status — no 
 
 **Monorepo** structure — both apps are tightly coupled through the BLE message schema.
 
-- **Android app** (`android/`): `MainActivity.kt` initializes the Connect IQ SDK on launch, discovers the paired Garmin device, verifies the watch app is installed, and sends a payload via `ConnectIQ.sendMessage()`. Currently triggered by explicit button press; future stories will move this to a Foreground Service with scheduled polling. The data pipeline is: fetch full GTFS-RT protobuf → deserialize with protobuf-java → filter to user's configured routes → extract alert text → pass filtered text to on-device Gemini Nano for summarization into a strict JSON schema (`status`, `route_string`, `reason`, `timestamp`) → validate/deserialize → transmit to watch. Gemini Nano never sees the raw protobuf or the full feed — only pre-filtered, route-specific alert text.
+- **Android app** (`android/`): `MainActivity.kt` initializes the Connect IQ SDK on launch, discovers the paired Garmin device, verifies the watch app is installed, and sends a payload via `ConnectIQ.sendMessage()`. Currently triggered by explicit button press; future stories will move this to a Foreground Service with scheduled polling. The data pipeline is: fetch full GTFS-RT protobuf → deserialize with protobuf-java → filter to user's configured routes → extract alert text → send filtered text to Gemini 1.5 Flash cloud API for summarization into a strict JSON schema (`status`, `route_string`, `reason`, `timestamp`) → validate/deserialize → transmit to watch. All API calls pass through a multi-layer rate limiter (persisted daily cap, per-minute limit, cooldown, single-flight mutex) to prevent runaway costs.
 - **Garmin app** (`garmin/`): `CommuteBuddyApp.mc` registers for phone messages in `onStart()` via `Communications.registerForPhoneAppMessages()`. On message receipt, stores data in `Application.Storage` and calls `WatchUi.requestUpdate()`. `CommuteBuddyGlanceView.mc` reads from Storage on every `onUpdate()` — renders status or "Waiting..." as fallback.
 - Apps do not share source code; they share a BLE message schema documented in `shared/schema.json`.
 
@@ -67,7 +67,7 @@ commute-buddy/
 │   ├── build.gradle.kts                            # Root Gradle config
 │   ├── settings.gradle.kts
 │   └── app/
-│       ├── build.gradle.kts                        # minSdk 34, Connect IQ SDK, ML Kit GenAI
+│       ├── build.gradle.kts                        # minSdk 34, Connect IQ SDK, Google GenAI SDK
 │       └── src/main/
 │           ├── AndroidManifest.xml                 # BLUETOOTH_SCAN, BLUETOOTH_CONNECT permissions
 │           ├── kotlin/com/commutebuddy/app/
@@ -110,11 +110,11 @@ commute-buddy/
 
 **Android Permissions (14+):** FOREGROUND_SERVICE_DATA_SYNC or FOREGROUND_SERVICE_LOCATION, BLUETOOTH_SCAN, BLUETOOTH_CONNECT.
 
-**Gemini Nano (on-device AI):** Summarization runs entirely on-device via Android AICore — no network call for the LLM step. Requires a Pixel 8+ or equivalent device with AICore support. Gemini Nano has a limited context window, so it must never receive the full GTFS-RT feed. The Android preprocessing pipeline (protobuf deserialization → route filtering → text extraction) reduces the input to a small, route-specific alert string before the model sees it. The model receives this filtered text plus a system prompt and returns a strict JSON object. Output must be validated/deserialized before transmission.
+**Gemini 1.5 Flash (cloud API):** Summarization runs via the Google AI Studio cloud API. The free tier provides 15 requests/minute, 1,500 requests/day, and 1M tokens/minute — more than sufficient for personal use. The model has a massive context window, so even the longest MTA alerts fit easily. The Android app includes a multi-layer rate limiter (persisted daily cap in SharedPreferences, per-minute limit, per-request cooldown, single-flight mutex, no automatic retries) to make runaway API costs virtually impossible. API key is stored in `local.properties` (excluded from version control) and injected via `BuildConfig`. The model receives filtered alert text plus a system prompt and returns a strict JSON object. Output must be validated/deserialized before transmission. If this app is ever published, the architecture supports adding a paywall or bring-your-own-key model.
 
 **Garmin Memory Limits:** Never parse MTA protobuf or JSON on the watch. Monkey C apps have ~32KB memory for background/glance. Keep BLE payload under 1KB. All heavy lifting (protobuf parsing, AI summarization) happens on Android.
 
-**MTA Alert Text Characteristics:** Real MTA GTFS-RT alerts vary dramatically in length and complexity. Each alert has a `header_text` (plain text, `language: "en"`) and an optional `description_text`. Alerts use bracket notation for routes (`[A]`, `[4]`, `[shuttle bus icon]`, `[accessibility icon]`) and structured sections ("What's happening?", "Travel Alternatives:", "ADA Customers:"). Short alerts (real-time delays) are ~100 chars with no description. Medium alerts (single reroute) are ~500-600 chars. Long alerts (weekend planned work with suspensions, shuttle buses, multi-line transfers, ADA notices) are 800-1500+ chars. Weekend construction alerts affecting multiple lines can be significantly longer. The preprocessing pipeline (FEAT-03) must filter by `informed_entity.route_id` and extract the `en` plain-text translation before passing to Gemini Nano.
+**MTA Alert Text Characteristics:** Real MTA GTFS-RT alerts vary dramatically in length and complexity. Each alert has a `header_text` (plain text, `language: "en"`) and an optional `description_text`. Alerts use bracket notation for routes (`[A]`, `[4]`, `[shuttle bus icon]`, `[accessibility icon]`) and structured sections ("What's happening?", "Travel Alternatives:", "ADA Customers:"). Short alerts (real-time delays) are ~100 chars with no description. Medium alerts (single reroute) are ~500-600 chars. Long alerts (weekend planned work with suspensions, shuttle buses, multi-line transfers, ADA notices) are 800-1500+ chars. Weekend construction alerts affecting multiple lines can be significantly longer. The preprocessing pipeline (FEAT-03) must filter by `informed_entity.route_id` and extract the `en` plain-text translation before passing to Gemini 1.5 Flash.
 
 **Garmin SDK Caution:** Monkey C and Connect IQ SDK update frequently. LLMs often hallucinate syntax or use deprecated methods. Always verify against latest Toybox.Communications and UI docs. **Android SDK:** The official "Mobile SDK for Android" guide may show `getStatus()` — in SDK 2.3.0 use `getDeviceStatus()`. Use `IQDevice.IQDeviceStatus`, not `ConnectIQ.IQDeviceStatus`. See `docs/garmin/android-sdk-api-notes.md` for correct API usage.
 
@@ -128,8 +128,8 @@ commute-buddy/
 
 ### Features
 - [x] FEAT-01: Steel Thread — Phone generates random 4-digit code, watch displays it (validates build env, BLE, and background execution)
-- [ ] FEAT-02: AI Summarization POC — Validate on-device Gemini Nano can reliably parse MTA alert text into the strict JSON schema
-- [ ] FEAT-03: MTA GTFS-RT data fetching, protobuf parsing, and route filtering on Android (preprocessing pipeline that feeds Gemini Nano; routes/direction hardcoded initially)
+- [ ] FEAT-02: AI Summarization POC — Validate Gemini 1.5 Flash cloud API can reliably parse MTA alert text into the strict JSON schema (with strict cost safeguards)
+- [ ] FEAT-03: MTA GTFS-RT data fetching, protobuf parsing, and route filtering on Android (preprocessing pipeline that feeds Gemini 1.5 Flash; routes/direction hardcoded initially)
 - [ ] FEAT-04: Route status summary generation and BLE push to watch
 - [ ] FEAT-05: Garmin Glance UI displaying train status from BLE messages
 - [ ] FEAT-06: Configurable commute window with scheduled background polling
