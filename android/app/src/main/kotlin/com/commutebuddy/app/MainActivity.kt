@@ -14,6 +14,7 @@ import com.garmin.android.connectiq.IQDevice
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.content
 import kotlinx.coroutines.launch
+import java.io.IOException
 import kotlin.random.Random
 
 class MainActivity : AppCompatActivity() {
@@ -301,15 +302,7 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
                         }
                     } catch (e: Exception) {
                         Log.e(TAG, "Gemini API error", e)
-                        val msg = e.message ?: "Unknown error"
-                        resultsTextView.text = "$prefix\n" + if (
-                            msg.contains("NOT_FOUND", ignoreCase = true) ||
-                            msg.contains("not found", ignoreCase = true)
-                        ) {
-                            getString(R.string.ai_error_model_not_found, BuildConfig.GEMINI_MODEL_NAME)
-                        } else {
-                            getString(R.string.ai_error_api, msg)
-                        }
+                        resultsTextView.text = "$prefix\n${classifyApiError(e)}"
                     } finally {
                         rateLimiter.setInFlight(false)
                         setTierButtonsEnabled(true)
@@ -322,6 +315,26 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
+
+    /**
+     * Walks the exception cause chain to produce a user-readable error message.
+     * The GenAI SDK wraps network failures in a generic SDK exception, so we
+     * need to look past the top-level message to find the real cause.
+     */
+    private fun classifyApiError(e: Exception): String {
+        var cause: Throwable? = e
+        while (cause != null) {
+            if (cause is IOException) return getString(R.string.ai_error_network)
+            cause = cause.cause
+        }
+        val msg = e.message ?: "Unknown error"
+        return when {
+            msg.contains("NOT_FOUND", ignoreCase = true) ||
+            msg.contains("not found", ignoreCase = true) ->
+                getString(R.string.ai_error_model_not_found, BuildConfig.GEMINI_MODEL_NAME)
+            else -> getString(R.string.ai_error_api, msg)
+        }
+    }
 
     private fun setStatus(resId: Int) {
         runOnUiThread { statusTextView.text = getString(resId) }

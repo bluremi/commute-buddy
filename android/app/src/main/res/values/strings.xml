@@ -40,5 +40,6 @@
     <string name="ai_result_time">Time: %d</string>
     <string name="ai_result_raw_output">Raw output:</string>
     <string name="ai_error_api">API error: %s</string>
+    <string name="ai_error_network">Network error — check your connection</string>
     <string name="ai_error_empty_response">Empty response from model</string>
 </resources>
