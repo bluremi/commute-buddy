@@ -230,14 +230,15 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
             return
         }
 
+        val modelName = BuildConfig.GEMINI_MODEL_NAME
         generativeModel = GenerativeModel(
-            modelName = "gemini-2.0-flash",
+            modelName = modelName,
             apiKey = apiKey,
             systemInstruction = content { text(SYSTEM_PROMPT) }
         )
         testAiButton.isEnabled = true
-        Log.d(TAG, "Gemini Flash: model ready")
-        resultsTextView.text = getString(R.string.ai_model_ready)
+        Log.d(TAG, "Gemini Flash: model ready ($modelName)")
+        resultsTextView.text = getString(R.string.ai_model_ready, modelName)
     }
 
     private fun onTestAiClicked() {
@@ -294,7 +295,14 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
                         }
                     } catch (e: Exception) {
                         Log.e(TAG, "Gemini API error", e)
-                        resultsTextView.text = getString(R.string.ai_error_api, e.message ?: "Unknown error")
+                        val msg = e.message ?: "Unknown error"
+                        resultsTextView.text = if (msg.contains("NOT_FOUND", ignoreCase = true) ||
+                            msg.contains("not found", ignoreCase = true)
+                        ) {
+                            getString(R.string.ai_error_model_not_found, BuildConfig.GEMINI_MODEL_NAME)
+                        } else {
+                            getString(R.string.ai_error_api, msg)
+                        }
                     } finally {
                         rateLimiter.setInFlight(false)
                         testAiButton.isEnabled = true
