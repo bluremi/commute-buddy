@@ -15,7 +15,7 @@ android {
         localProperties.load(localPropertiesFile.inputStream())
     }
     val geminiApiKey = localProperties.getProperty("GEMINI_API_KEY") ?: ""
-    val geminiModelName = localProperties.getProperty("GEMINI_MODEL_NAME") ?: "gemini-2.0-flash"
+    val geminiModelName = localProperties.getProperty("GEMINI_MODEL_NAME") ?: "gemini-2.5-flash"
 
     defaultConfig {
         applicationId = "com.commutebuddy.app"
