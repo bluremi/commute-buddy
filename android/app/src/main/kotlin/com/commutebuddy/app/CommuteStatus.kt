@@ -13,10 +13,10 @@ data class CommuteStatus(
     val timestamp: Long
 ) {
     companion object {
-        /** 0 = Normal (good service), 1 = Deviate (delays/planned work), 2 = Error (major disruption) */
+        /** 0 = Normal (good service), 1 = Deviate (delays/planned work), 2 = Disrupted (major disruption/suspended) */
         const val STATUS_NORMAL = 0
         const val STATUS_DEVIATE = 1
-        const val STATUS_ERROR = 2
+        const val STATUS_ERROR = 2  // legacy name; displayed as "Disrupted"
 
         /**
          * Parses a JSON string into a CommuteStatus.
@@ -48,8 +48,8 @@ data class CommuteStatus(
     val statusLabel: String
         get() = when (status) {
             STATUS_NORMAL -> "Normal"
-            STATUS_DEVIATE -> "Deviate"
-            STATUS_ERROR -> "Error"
+            STATUS_DEVIATE -> "Delays"
+            STATUS_ERROR -> "Disrupted"
             else -> "Unknown"
         }
 }
