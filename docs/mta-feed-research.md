@@ -65,5 +65,5 @@ Each alert entity contains:
 
 - **FEAT-03 preprocessing** must filter by `informed_entity.route_id` and extract the `en` plain-text `translation` (not `en-html`)
 - Even after filtering to a single route, individual alerts can be 800-1500+ chars
-- **Gemini Nano's limited context window** means the preprocessing pipeline may need to truncate or split extremely long alerts before passing to the model
-- The **FEAT-02 POC** tests this boundary by including a synthetic stress-test input (~2000+ chars) alongside real alert samples
+- **Gemini 2.5 Flash's massive context window** handles all observed alert lengths without truncation — validated in FEAT-02 across all four tiers including the ~2000 char synthetic stress test
+- No alert truncation or splitting logic is needed in the preprocessing pipeline
