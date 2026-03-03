@@ -148,7 +148,7 @@ Set-Location "a:\Phil\Phil Docs\Development\commute-buddy\android"
 ### Features
 - [x] FEAT-01: Steel Thread — Phone generates random 4-digit code, watch displays it (validates build env, BLE, and background execution)
 - [x] FEAT-02: AI Summarization POC — Validate Gemini 2.5 Flash cloud API can reliably parse MTA alert text into the strict JSON schema (with strict cost safeguards)
-- [ ] FEAT-03: MTA GTFS-RT data fetching, protobuf parsing, and route filtering on Android (preprocessing pipeline that feeds Gemini 1.5 Flash; routes/direction hardcoded initially)
+- [ ] FEAT-03: MTA GTFS-RT data fetching, protobuf parsing, and route filtering on Android (preprocessing pipeline that feeds Gemini 2.5 Flash; routes/direction hardcoded initially)
 - [ ] FEAT-04: Route status summary generation and BLE push to watch
 - [ ] FEAT-05: Garmin Glance UI displaying train status from BLE messages
 - [ ] FEAT-06: Configurable commute window with scheduled background polling
