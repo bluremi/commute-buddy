@@ -231,7 +231,7 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
         }
 
         generativeModel = GenerativeModel(
-            modelName = "gemini-1.5-flash",
+            modelName = "gemini-2.0-flash",
             apiKey = apiKey,
             systemInstruction = content { text(SYSTEM_PROMPT) }
         )
