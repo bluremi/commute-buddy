@@ -36,14 +36,15 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
     private lateinit var codeTextView: TextView
     private lateinit var statusTextView: TextView
     private lateinit var sendButton: Button
-    private lateinit var tierLabel: TextView
-    private lateinit var testAiButton: Button
+    private lateinit var tierButton1: Button
+    private lateinit var tierButton2: Button
+    private lateinit var tierButton3: Button
+    private lateinit var tierButton4: Button
     private lateinit var resultsTextView: TextView
 
     private lateinit var connectIQ: ConnectIQ
     private lateinit var rateLimiter: ApiRateLimiter
     private var generativeModel: GenerativeModel? = null
-    private var currentTierIndex = 0
     private var sdkReady = false
     private var connectedDevice: IQDevice? = null
     private var targetApp: IQApp? = null
@@ -62,10 +63,15 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
         sendButton = findViewById(R.id.sendButton)
         sendButton.setOnClickListener { onSendCodeClicked() }
 
-        tierLabel = findViewById(R.id.tierLabel)
-        testAiButton = findViewById(R.id.testAiButton)
+        tierButton1 = findViewById(R.id.tierButton1)
+        tierButton2 = findViewById(R.id.tierButton2)
+        tierButton3 = findViewById(R.id.tierButton3)
+        tierButton4 = findViewById(R.id.tierButton4)
         resultsTextView = findViewById(R.id.resultsTextView)
-        testAiButton.setOnClickListener { onTestAiClicked() }
+        tierButton1.setOnClickListener { onTierClicked(MtaTestData.Tier.TIER_1, 1) }
+        tierButton2.setOnClickListener { onTierClicked(MtaTestData.Tier.TIER_2, 2) }
+        tierButton3.setOnClickListener { onTierClicked(MtaTestData.Tier.TIER_3, 3) }
+        tierButton4.setOnClickListener { onTierClicked(MtaTestData.Tier.TIER_4, 4) }
 
         rateLimiter = ApiRateLimiter(
             getSharedPreferences("rate_limiter", Context.MODE_PRIVATE)
@@ -219,9 +225,10 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
     // AI Summarization POC (FEAT-02)
     // -------------------------------------------------------------------------
 
+    private val tierButtons get() = listOf(tierButton1, tierButton2, tierButton3, tierButton4)
+
     private fun initGeminiFlash() {
-        testAiButton.isEnabled = false
-        tierLabel.text = getString(MtaTestData.tiers[currentTierIndex].labelResId)
+        setTierButtonsEnabled(false)
 
         val apiKey = BuildConfig.GEMINI_API_KEY
         if (apiKey.isBlank()) {
@@ -236,18 +243,18 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
             apiKey = apiKey,
             systemInstruction = content { text(SYSTEM_PROMPT) }
         )
-        testAiButton.isEnabled = true
+        setTierButtonsEnabled(true)
         Log.d(TAG, "Gemini Flash: model ready ($modelName)")
         resultsTextView.text = getString(R.string.ai_model_ready, modelName)
     }
 
-    private fun onTestAiClicked() {
-        currentTierIndex = (currentTierIndex + 1) % MtaTestData.tiers.size
-        val tier = MtaTestData.tiers[currentTierIndex]
-        tierLabel.text = getString(tier.labelResId)
-        val alertText = MtaTestData.getAlertText(tier)
+    private fun setTierButtonsEnabled(enabled: Boolean) {
+        tierButtons.forEach { it.isEnabled = enabled }
+    }
 
-        val model = generativeModel ?: return  // button is disabled when model is null
+    private fun onTierClicked(tier: MtaTestData.Tier, tierNumber: Int) {
+        val alertText = MtaTestData.getAlertText(tier)
+        val model = generativeModel ?: return
 
         when (val result = rateLimiter.tryAcquire()) {
             is RateLimitResult.Denied -> {
@@ -256,8 +263,9 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
             }
             is RateLimitResult.Allowed -> {
                 val warning = result.warningMessage
-                testAiButton.isEnabled = false
-                resultsTextView.text = getString(R.string.ai_processing)
+                val prefix = getString(R.string.ai_output_prefix, tierNumber)
+                setTierButtonsEnabled(false)
+                resultsTextView.text = "$prefix\n${getString(R.string.ai_processing)}"
                 rateLimiter.setInFlight(true)
 
                 lifecycleScope.launch {
@@ -265,16 +273,17 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
                         val response = model.generateContent(alertText)
                         val rawText = response.text
                         if (rawText.isNullOrBlank()) {
-                            resultsTextView.text = getString(R.string.ai_error_empty_response)
+                            resultsTextView.text = "$prefix\n${getString(R.string.ai_error_empty_response)}"
                             return@launch
                         }
                         try {
                             val parsed = CommuteStatus.fromJson(rawText)
                             resultsTextView.text = buildString {
+                                appendLine(prefix)
                                 if (warning != null) {
                                     appendLine("⚠ $warning")
-                                    appendLine()
                                 }
+                                appendLine()
                                 appendLine(getString(R.string.ai_result_status, parsed.status, parsed.statusLabel))
                                 appendLine(getString(R.string.ai_result_route, parsed.routeString))
                                 appendLine(getString(R.string.ai_result_reason, parsed.reason))
@@ -283,10 +292,7 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
                         } catch (e: Exception) {
                             Log.w(TAG, "Failed to parse Gemini response", e)
                             resultsTextView.text = buildString {
-                                if (warning != null) {
-                                    appendLine("⚠ $warning")
-                                    appendLine()
-                                }
+                                appendLine(prefix)
                                 appendLine(getString(R.string.ai_parse_error, e.message))
                                 appendLine()
                                 appendLine(getString(R.string.ai_result_raw_output))
@@ -296,7 +302,8 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
                     } catch (e: Exception) {
                         Log.e(TAG, "Gemini API error", e)
                         val msg = e.message ?: "Unknown error"
-                        resultsTextView.text = if (msg.contains("NOT_FOUND", ignoreCase = true) ||
+                        resultsTextView.text = "$prefix\n" + if (
+                            msg.contains("NOT_FOUND", ignoreCase = true) ||
                             msg.contains("not found", ignoreCase = true)
                         ) {
                             getString(R.string.ai_error_model_not_found, BuildConfig.GEMINI_MODEL_NAME)
@@ -305,7 +312,7 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
                         }
                     } finally {
                         rateLimiter.setInFlight(false)
-                        testAiButton.isEnabled = true
+                        setTierButtonsEnabled(true)
                     }
                 }
             }

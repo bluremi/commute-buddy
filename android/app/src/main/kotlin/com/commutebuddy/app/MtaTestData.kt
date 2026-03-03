@@ -6,11 +6,8 @@ package com.commutebuddy.app
  */
 object MtaTestData {
 
-    enum class Tier(val labelResId: Int) {
-        TIER_1(R.string.label_tier_short),
-        TIER_2(R.string.label_tier_medium),
-        TIER_3(R.string.label_tier_long),
-        TIER_4(R.string.label_tier_stress)
+    enum class Tier {
+        TIER_1, TIER_2, TIER_3, TIER_4
     }
 
     /** Tier 1 (~100 chars): Real-time delay header, no description body. */

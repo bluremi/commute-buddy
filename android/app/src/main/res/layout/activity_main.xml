@@ -53,23 +53,56 @@
         android:textSize="18sp"
         android:textStyle="bold" />
 
-    <TextView
-        android:id="@+id/tierLabel"
-        android:layout_width="wrap_content"
+    <!-- 2×2 grid of tier buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:text="@string/label_tier_short"
-        android:textSize="14sp" />
+        android:orientation="horizontal"
+        android:layout_marginBottom="6dp">
 
-    <Button
-        android:id="@+id/testAiButton"
-        android:layout_width="wrap_content"
+        <Button
+            android:id="@+id/tierButton1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="4dp"
+            android:text="@string/button_tier_1"
+            android:textSize="12sp" />
+
+        <Button
+            android:id="@+id/tierButton2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:text="@string/button_tier_2"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp"
-        android:paddingHorizontal="24dp"
-        android:paddingVertical="12dp"
-        android:text="@string/button_test_ai"
-        android:textSize="16sp" />
+        android:orientation="horizontal"
+        android:layout_marginBottom="12dp">
+
+        <Button
+            android:id="@+id/tierButton3"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="4dp"
+            android:text="@string/button_tier_3"
+            android:textSize="12sp" />
+
+        <Button
+            android:id="@+id/tierButton4"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:text="@string/button_tier_4"
+            android:textSize="12sp" />
+    </LinearLayout>
 
     <ScrollView
         android:layout_width="match_parent"

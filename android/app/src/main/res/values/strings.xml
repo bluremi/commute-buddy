@@ -24,11 +24,11 @@
 
     <!-- AI Summarization POC (FEAT-02) -->
     <string name="section_ai_poc">AI Summarization POC</string>
-    <string name="button_test_ai">Test AI</string>
-    <string name="label_tier_short">Tier 1: Short</string>
-    <string name="label_tier_medium">Tier 2: Medium</string>
-    <string name="label_tier_long">Tier 3: Long</string>
-    <string name="label_tier_stress">Tier 4: Stress</string>
+    <string name="button_tier_1">Tier 1\nShort (~100 chars)</string>
+    <string name="button_tier_2">Tier 2\nMedium (~500 chars)</string>
+    <string name="button_tier_3">Tier 3\nLong (~900 chars)</string>
+    <string name="button_tier_4">Tier 4\nStress (~2000 chars)</string>
+    <string name="ai_output_prefix">TIER %d OUTPUT:</string>
     <string name="ai_model_ready">Model ready (%s)</string>
     <string name="ai_error_model_not_found">Model "%s" not found or deprecated — update GEMINI_MODEL_NAME in local.properties</string>
     <string name="ai_api_key_missing">API key not configured — see local.properties</string>
