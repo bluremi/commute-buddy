@@ -42,4 +42,15 @@
     <string name="ai_error_api">API error: %s</string>
     <string name="ai_error_network">Network error — check your connection</string>
     <string name="ai_error_empty_response">Empty response from model</string>
+
+    <!-- Live MTA Alerts (FEAT-03) -->
+    <string name="live_section_title">Live MTA Alerts</string>
+    <string name="live_fetch_button">Fetch Live</string>
+    <string name="live_fetching">Fetching MTA alerts…</string>
+    <string name="live_parsing">Parsing alerts…</string>
+    <string name="live_no_alerts">Good Service — no active alerts for %s</string>
+    <string name="live_summarizing">Summarizing with Gemini…</string>
+    <string name="live_output_prefix">LIVE OUTPUT:</string>
+    <string name="live_fetch_error">MTA feed error — check your connection</string>
+    <string name="live_parse_error">Failed to parse MTA feed: %s</string>
 </resources>

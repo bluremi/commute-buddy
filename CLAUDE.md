@@ -69,6 +69,8 @@ PRD.md is the ground truth of what the project is. Keeping it accurate is as imp
 
 ## Project-Specific Notes
 
+- **`org.json` in unit tests:** `org.json.JSONObject` is a stub in the Android JVM unit test environment and throws `RuntimeException("Stub!")` at runtime. Any class that uses `org.json` in production code needs `testImplementation("org.json:json:20250107")` in `build.gradle.kts` to get the real implementation for unit tests. This was discovered during FEAT-03 increment 1.
+
 - **Two IDEs required:** Android Studio for the Kotlin/Android app, VS Code for the Garmin/Monkey C app
 - **Phase 1 testing** (UI/logic): Use Connect IQ Simulator in VS Code — no hardware needed
 - **Phase 2 testing** (BLE): Physical phone + Garmin Venu 3 via USB sideloading
