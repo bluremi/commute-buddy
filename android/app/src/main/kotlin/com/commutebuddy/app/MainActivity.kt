@@ -45,6 +45,7 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
     private lateinit var tierButton2: Button
     private lateinit var tierButton3: Button
     private lateinit var tierButton4: Button
+    private lateinit var fetchLiveButton: Button
     private lateinit var resultsTextView: TextView
 
     private lateinit var connectIQ: ConnectIQ
@@ -79,11 +80,13 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
         tierButton2 = findViewById(R.id.tierButton2)
         tierButton3 = findViewById(R.id.tierButton3)
         tierButton4 = findViewById(R.id.tierButton4)
+        fetchLiveButton = findViewById(R.id.fetchLiveButton)
         resultsTextView = findViewById(R.id.resultsTextView)
         tierButton1.setOnClickListener { onTierClicked(MtaTestData.Tier.TIER_1, 1) }
         tierButton2.setOnClickListener { onTierClicked(MtaTestData.Tier.TIER_2, 2) }
         tierButton3.setOnClickListener { onTierClicked(MtaTestData.Tier.TIER_3, 3) }
         tierButton4.setOnClickListener { onTierClicked(MtaTestData.Tier.TIER_4, 4) }
+        fetchLiveButton.setOnClickListener { onFetchLiveClicked() }
 
         rateLimiter = ApiRateLimiter(
             getSharedPreferences("rate_limiter", Context.MODE_PRIVATE)
@@ -237,10 +240,10 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
     // AI Summarization POC (FEAT-02)
     // -------------------------------------------------------------------------
 
-    private val tierButtons get() = listOf(tierButton1, tierButton2, tierButton3, tierButton4)
+    private val allApiButtons get() = listOf(tierButton1, tierButton2, tierButton3, tierButton4, fetchLiveButton)
 
     private fun initGeminiFlash() {
-        setTierButtonsEnabled(false)
+        setAllApiButtonsEnabled(false)
 
         val apiKey = BuildConfig.GEMINI_API_KEY
         if (apiKey.isBlank()) {
@@ -255,13 +258,13 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
             apiKey = apiKey,
             systemInstruction = content { text(SYSTEM_PROMPT) }
         )
-        setTierButtonsEnabled(true)
+        setAllApiButtonsEnabled(true)
         Log.d(TAG, "Gemini Flash: model ready ($modelName)")
         resultsTextView.text = getString(R.string.ai_model_ready, modelName)
     }
 
-    private fun setTierButtonsEnabled(enabled: Boolean) {
-        tierButtons.forEach { it.isEnabled = enabled }
+    private fun setAllApiButtonsEnabled(enabled: Boolean) {
+        allApiButtons.forEach { it.isEnabled = enabled }
     }
 
     private fun onTierClicked(tier: MtaTestData.Tier, tierNumber: Int) {
@@ -276,7 +279,7 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
             is RateLimitResult.Allowed -> {
                 val warning = result.warningMessage
                 val prefix = getString(R.string.ai_output_prefix, tierNumber)
-                setTierButtonsEnabled(false)
+                setAllApiButtonsEnabled(false)
                 resultsTextView.text = "$prefix\n${getString(R.string.ai_processing)}"
                 rateLimiter.setInFlight(true)
 
@@ -316,9 +319,101 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
                         resultsTextView.text = "$prefix\n${classifyApiError(e)}"
                     } finally {
                         rateLimiter.setInFlight(false)
-                        setTierButtonsEnabled(true)
+                        setAllApiButtonsEnabled(true)
                     }
                 }
+            }
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Live MTA Alerts pipeline (FEAT-03)
+    // -------------------------------------------------------------------------
+
+    private fun onFetchLiveClicked() {
+        val model = generativeModel ?: run {
+            resultsTextView.text = getString(R.string.ai_api_key_missing)
+            return
+        }
+
+        val prefix = getString(R.string.live_output_prefix)
+        setAllApiButtonsEnabled(false)
+        resultsTextView.text = getString(R.string.live_fetching)
+
+        lifecycleScope.launch {
+            try {
+                // Step 1: Fetch
+                val fetchResult = MtaAlertFetcher.fetchAlerts()
+                if (fetchResult.isFailure) {
+                    Log.e(TAG, "MTA fetch failed", fetchResult.exceptionOrNull())
+                    resultsTextView.text = getString(R.string.live_fetch_error)
+                    return@launch
+                }
+                val jsonString = fetchResult.getOrThrow()
+
+                // Step 2: Parse + filter
+                resultsTextView.text = getString(R.string.live_parsing)
+                val alerts = MtaAlertParser.parseAlerts(jsonString)
+                if (alerts.isEmpty() && jsonString.isNotBlank()) {
+                    resultsTextView.text = getString(R.string.live_parse_error, "no entities parsed")
+                    return@launch
+                }
+                val filtered = MtaAlertParser.filterByRoutes(alerts, MONITORED_ROUTES)
+                if (filtered.isEmpty()) {
+                    val routeList = MONITORED_ROUTES.joinToString(", ")
+                    resultsTextView.text = getString(R.string.live_no_alerts, routeList)
+                    return@launch
+                }
+
+                // Step 3: Rate-limit check
+                val promptText = MtaAlertParser.buildPromptText(filtered)
+                when (val rateLimitResult = rateLimiter.tryAcquire()) {
+                    is RateLimitResult.Denied -> {
+                        resultsTextView.text = rateLimitResult.reason
+                        return@launch
+                    }
+                    is RateLimitResult.Allowed -> {
+                        val warning = rateLimitResult.warningMessage
+                        resultsTextView.text = getString(R.string.live_summarizing)
+                        rateLimiter.setInFlight(true)
+                        try {
+                            val response = model.generateContent(promptText)
+                            val rawText = response.text
+                            if (rawText.isNullOrBlank()) {
+                                resultsTextView.text = "$prefix\n${getString(R.string.ai_error_empty_response)}"
+                                return@launch
+                            }
+                            try {
+                                val parsed = CommuteStatus.fromJson(rawText)
+                                resultsTextView.text = buildString {
+                                    appendLine(prefix)
+                                    if (warning != null) appendLine("⚠ $warning")
+                                    appendLine()
+                                    appendLine(getString(R.string.ai_result_status, parsed.status, parsed.statusLabel))
+                                    appendLine(getString(R.string.ai_result_route, parsed.routeString))
+                                    appendLine(getString(R.string.ai_result_reason, parsed.reason))
+                                    append(getString(R.string.ai_result_time, parsed.timestamp))
+                                }
+                            } catch (e: Exception) {
+                                Log.w(TAG, "Failed to parse Gemini response", e)
+                                resultsTextView.text = buildString {
+                                    appendLine(prefix)
+                                    appendLine(getString(R.string.ai_parse_error, e.message))
+                                    appendLine()
+                                    appendLine(getString(R.string.ai_result_raw_output))
+                                    append(rawText)
+                                }
+                            }
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Gemini API error during live fetch", e)
+                            resultsTextView.text = "$prefix\n${classifyApiError(e)}"
+                        } finally {
+                            rateLimiter.setInFlight(false)
+                        }
+                    }
+                }
+            } finally {
+                setAllApiButtonsEnabled(true)
             }
         }
     }
