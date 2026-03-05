@@ -297,6 +297,8 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
                 if (fetchResult.isFailure) {
                     Log.e(TAG, "MTA fetch failed", fetchResult.exceptionOrNull())
                     resultsTextView.text = getString(R.string.live_fetch_error)
+                    val errMsg = (fetchResult.exceptionOrNull()?.message ?: "Fetch failed").take(40)
+                    sendCommuteStatus(CommuteStatus(CommuteStatus.STATUS_ERROR, MONITORED_ROUTES.joinToString(","), errMsg, System.currentTimeMillis() / 1000))
                     return@launch
                 }
                 val jsonString = fetchResult.getOrThrow()
@@ -306,6 +308,7 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
                 val alerts = MtaAlertParser.parseAlerts(jsonString)
                 if (alerts.isEmpty() && jsonString.isNotBlank()) {
                     resultsTextView.text = getString(R.string.live_parse_error, "no entities parsed")
+                    sendCommuteStatus(CommuteStatus(CommuteStatus.STATUS_ERROR, MONITORED_ROUTES.joinToString(","), "Feed parse error", System.currentTimeMillis() / 1000))
                     return@launch
                 }
                 val routeFiltered = MtaAlertParser.filterByRoutes(alerts, MONITORED_ROUTES)
@@ -313,6 +316,7 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
                 if (filtered.isEmpty()) {
                     val routeList = MONITORED_ROUTES.joinToString(", ")
                     resultsTextView.text = getString(R.string.live_no_alerts, routeList)
+                    sendCommuteStatus(CommuteStatus(CommuteStatus.STATUS_NORMAL, MONITORED_ROUTES.joinToString(","), "Good service", System.currentTimeMillis() / 1000))
                     return@launch
                 }
 
@@ -345,6 +349,7 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
                                     appendLine(getString(R.string.ai_result_reason, parsed.reason))
                                     append(getString(R.string.ai_result_time, parsed.timestamp))
                                 }
+                                sendCommuteStatus(parsed)
                             } catch (e: Exception) {
                                 Log.w(TAG, "Failed to parse Gemini response", e)
                                 resultsTextView.text = buildString {
@@ -354,10 +359,14 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
                                     appendLine(getString(R.string.ai_result_raw_output))
                                     append(rawText)
                                 }
+                                val errMsg = (e.message ?: "Parse failed").take(40)
+                                sendCommuteStatus(CommuteStatus(CommuteStatus.STATUS_ERROR, MONITORED_ROUTES.joinToString(","), errMsg, System.currentTimeMillis() / 1000))
                             }
                         } catch (e: Exception) {
                             Log.e(TAG, "Gemini API error during live fetch", e)
                             resultsTextView.text = "$prefix\n${classifyApiError(e)}"
+                            val errMsg = (e.message ?: "API error").take(40)
+                            sendCommuteStatus(CommuteStatus(CommuteStatus.STATUS_ERROR, MONITORED_ROUTES.joinToString(","), errMsg, System.currentTimeMillis() / 1000))
                         } finally {
                             rateLimiter.setInFlight(false)
                         }
@@ -367,6 +376,42 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
                 setAllApiButtonsEnabled(true)
             }
         }
+    }
+
+    // -------------------------------------------------------------------------
+    // BLE send (FEAT-04)
+    // -------------------------------------------------------------------------
+
+    private fun sendCommuteStatus(status: CommuteStatus) {
+        if (!sdkReady) {
+            resultsTextView.append("\n" + getString(R.string.ble_send_skipped, "SDK not ready"))
+            return
+        }
+        val device = connectedDevice ?: run {
+            resultsTextView.append("\n" + getString(R.string.ble_send_skipped, "no device"))
+            return
+        }
+        val app = targetApp ?: run {
+            resultsTextView.append("\n" + getString(R.string.ble_send_skipped, "app not installed"))
+            return
+        }
+        connectIQ.sendMessage(device, app, status.toConnectIQMap(),
+            object : ConnectIQ.IQSendMessageListener {
+                override fun onMessageStatus(
+                    device: IQDevice,
+                    app: IQApp,
+                    msgStatus: ConnectIQ.IQMessageStatus
+                ) {
+                    runOnUiThread {
+                        if (msgStatus == ConnectIQ.IQMessageStatus.SUCCESS) {
+                            resultsTextView.append("\n" + getString(R.string.ble_send_success))
+                        } else {
+                            resultsTextView.append("\n" + getString(R.string.ble_send_failed, msgStatus.name))
+                        }
+                    }
+                }
+            }
+        )
     }
 
     // -------------------------------------------------------------------------

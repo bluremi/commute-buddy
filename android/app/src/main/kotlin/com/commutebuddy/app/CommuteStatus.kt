@@ -59,4 +59,12 @@ data class CommuteStatus(
             STATUS_ERROR -> "Disrupted"
             else -> "Unknown"
         }
+
+    /** Converts to a Connect IQ-compatible Map for BLE transmission. Keys match shared/schema.json. */
+    fun toConnectIQMap(): Map<String, Any> = mapOf(
+        "status" to status,
+        "route_string" to routeString,
+        "reason" to reason,
+        "timestamp" to timestamp
+    )
 }

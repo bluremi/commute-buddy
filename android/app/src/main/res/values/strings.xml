@@ -40,6 +40,11 @@
     <string name="ai_error_network">Network error — check your connection</string>
     <string name="ai_error_empty_response">Empty response from model</string>
 
+    <!-- BLE send results (FEAT-04) -->
+    <string name="ble_send_success">Sent to watch</string>
+    <string name="ble_send_failed">Watch send failed: %s</string>
+    <string name="ble_send_skipped">Watch send skipped: %s</string>
+
     <!-- Live MTA Alerts (FEAT-03) -->
     <string name="live_section_title">Live MTA Alerts</string>
     <string name="live_fetch_button">Fetch Live</string>
