@@ -1,5 +1,6 @@
 import Toybox.Application;
 import Toybox.Communications;
+import Toybox.Lang;
 import Toybox.WatchUi;
 
 class CommuteBuddyApp extends Application.AppBase {

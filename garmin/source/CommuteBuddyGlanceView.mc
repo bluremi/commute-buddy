@@ -1,5 +1,6 @@
 import Toybox.Application;
 import Toybox.Graphics;
+import Toybox.Lang;
 import Toybox.WatchUi;
 
 (:glance)
