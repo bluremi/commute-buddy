@@ -31,13 +31,10 @@ When the watch Glance is viewed, it instantly displays the cached status — no 
 
 ## Key Features
 
-### Steel Thread (FEAT-01) — Validated BLE Pipeline
-- **Android companion app** with a single-screen UI: a "Send Code" button, a code display, and a status line
-- On button press, generates a random 4-digit code (1000–9999) and sends it to the paired Garmin watch via BLE using the Connect IQ Mobile SDK
-- Displays real-time connection status: SDK initializing, watch connected/not connected, app installed/not installed on watch, send success/failure
-- **Garmin Glance** displays "Waiting..." on first launch; updates to "Code: XXXX" when a code is received from the phone
-- Code is persisted in `Application.Storage` so it survives Glance lifecycle restarts
-- Both apps handle error states gracefully — no crashes on disconnection, missing app, or bad messages
+### Steel Thread (FEAT-01) — BLE Pipeline Validated (UI removed in FEAT-04)
+- Validated the full BLE send/receive pipeline end-to-end: Android → Connect IQ SDK → Garmin Glance
+- The "Send Code" button, random code display, and integer message handler on the watch were removed once the real `CommuteStatus` flow replaced them in FEAT-04
+- BLE state management (SDK init, device discovery, `getApplicationInfo`, `sendMessage` callback) remains in `MainActivity.kt` and is used by all subsequent features
 
 ### AI Summarization POC (FEAT-02) — Validated Gemini Summarization
 - **4 labeled test buttons** (2×2 grid) in the Android app, each firing a specific tier of real MTA alert text at the Gemini cloud API: Tier 1 (~100 chars, real-time delay), Tier 2 (~500 chars, reroute), Tier 3 (~900 chars, planned suspension with shuttles), Tier 4 (~2000 chars, multi-line stress test)
@@ -58,6 +55,15 @@ When the watch Glance is viewed, it instantly displays the cached status — no 
 - FEAT-02 tier buttons remain in the UI for debugging and comparison
 - Network errors, parse failures, and empty feeds each produce a clear user-facing message without crashing
 
+### Route Status BLE Push + Watch Glance (FEAT-04) — Full End-to-End Integration
+- After every "Fetch Live" run, the Android app pushes a `CommuteStatus` Dictionary to the watch via BLE — regardless of outcome (good service, delays, or pipeline error)
+- **Three push paths:** Good Service (no active alerts → `status=0, reason="Good service"`, no Gemini call); Gemini success (parsed `CommuteStatus` sent directly); pipeline error (MTA fetch fail, feed parse fail, Gemini API error, or unparseable output → `status=2` with truncated error reason)
+- Phone results display includes a BLE status line appended below the pipeline output: `"Sent to watch"`, `"Watch send failed: <reason>"`, or `"Watch send skipped: <reason>"` (skipped when SDK not ready, no device connected, or watch app not installed)
+- `CommuteStatus.toConnectIQMap()` serializes the data class to a `Map<String, Any>` with keys matching `shared/schema.json`: `"status"` (Int), `"route_string"` (String), `"reason"` (String), `"timestamp"` (Long)
+- **Watch receives Dictionary messages:** `CommuteBuddyApp.onPhoneMessage()` checks `instanceof Dictionary`, extracts and validates all four fields (status must be 0–2, strings must be non-null `String`), stores as `cs_status`, `cs_route`, `cs_reason`, `cs_timestamp` in `Application.Storage`, calls `WatchUi.requestUpdate()` — invalid or missing fields are silently ignored, no crash
+- **Glance shows simple one-line status:** `"Waiting..."` (no data yet), `"Normal"` (status 0), `"Delays — N,W"` (status 1), `"Disrupted — N,W"` (status 2, em dash via `\u2014`)
+- FEAT-01 steel thread removed from both apps as part of this story
+
 ## Technical Architecture
 
 ### Tech Stack
@@ -75,7 +81,7 @@ When the watch Glance is viewed, it instantly displays the cached status — no 
 **Monorepo** structure — both apps are tightly coupled through the BLE message schema.
 
 - **Android app** (`android/`): `MainActivity.kt` initializes the Connect IQ SDK on launch, discovers the paired Garmin device, verifies the watch app is installed, and sends a payload via `ConnectIQ.sendMessage()`. Currently triggered by explicit button press; future stories will move this to a Foreground Service with scheduled polling. The live data pipeline is: `MtaAlertFetcher.fetchAlerts()` (HTTP GET, background coroutine) → `MtaAlertParser.parseAlerts()` (JSON, extracts `en` plain-text translations) → `filterByRoutes()` (keep `MONITORED_ROUTES`) → `filterByActivePeriod()` (exclude advisories outside their scheduled windows) → `buildPromptText()` → Gemini 2.5 Flash summarization → `CommuteStatus.fromJson()` → display. All API calls pass through `ApiRateLimiter` — a multi-layer rate limiter (persisted daily cap, per-minute limit, cooldown, single-flight mutex) that survives app restarts and prevents runaway costs.
-- **Garmin app** (`garmin/`): `CommuteBuddyApp.mc` registers for phone messages in `onStart()` via `Communications.registerForPhoneAppMessages()`. On message receipt, stores data in `Application.Storage` and calls `WatchUi.requestUpdate()`. `CommuteBuddyGlanceView.mc` reads from Storage on every `onUpdate()` — renders status or "Waiting..." as fallback.
+- **Garmin app** (`garmin/`): `CommuteBuddyApp.mc` registers for phone messages in `onStart()` via `Communications.registerForPhoneAppMessages()`. On message receipt, validates the incoming `Dictionary` payload (status 0–2, non-null strings), stores `cs_status`, `cs_route`, `cs_reason`, `cs_timestamp` in `Application.Storage`, and calls `WatchUi.requestUpdate()`. `CommuteBuddyGlanceView.mc` reads `cs_status` and `cs_route` from Storage on every `onUpdate()` — renders `"Normal"`, `"Delays — {route}"`, `"Disrupted — {route}"`, or `"Waiting..."` as fallback.
 - Apps do not share source code; they share a BLE message schema documented in `shared/schema.json`.
 
 ### Key Files
@@ -90,28 +96,34 @@ commute-buddy/
 │       └── src/main/
 │           ├── AndroidManifest.xml                 # BLUETOOTH_SCAN, BLUETOOTH_CONNECT permissions
 │           ├── kotlin/com/commutebuddy/app/
-│           │   ├── MainActivity.kt                 # SDK init, device discovery, send logic, status UI, AI POC (4 tier buttons), Fetch Live pipeline
-    │           │   ├── CommuteStatus.kt                # BLE schema data class (status/route_string/reason/timestamp); JSON deserialization; display labels
-    │           │   ├── ApiRateLimiter.kt               # Multi-layer rate limiter (daily cap, per-minute, cooldown, single-flight); injectable clock for unit tests
-    │           │   ├── MtaTestData.kt                  # Hardcoded real MTA alert strings (4 tiers) for FEAT-02 POC
-    │           │   ├── MtaAlertFetcher.kt              # suspend fetchAlerts(): HTTP GET subway-alerts.json feed; Result<String>; Dispatchers.IO; 10s/15s timeouts
-    │           │   └── MtaAlertParser.kt               # parseAlerts(), filterByRoutes(), filterByActivePeriod(), buildPromptText(); MtaAlert + ActivePeriod data classes; MONITORED_ROUTES constant
-    │           └── res/
-    │               ├── layout/activity_main.xml        # Send Code UI + Live MTA Alerts section (Fetch Live button) + AI POC section (2×2 tier buttons, scrollable results)
-    │               └── values/strings.xml
+│           │   ├── MainActivity.kt                 # SDK init, device discovery, Fetch Live pipeline, sendCommuteStatus(), AI POC (4 tier buttons)
+│           │   ├── CommuteStatus.kt                # BLE schema data class; fromJson() deserialization; toConnectIQMap() for BLE send; statusLabel display
+│           │   ├── ApiRateLimiter.kt               # Multi-layer rate limiter (daily cap, per-minute, cooldown, single-flight); injectable clock for unit tests
+│           │   ├── MtaTestData.kt                  # Hardcoded real MTA alert strings (4 tiers) for FEAT-02 POC
+│           │   ├── MtaAlertFetcher.kt              # suspend fetchAlerts(): HTTP GET subway-alerts.json feed; Result<String>; Dispatchers.IO; 10s/15s timeouts
+│           │   └── MtaAlertParser.kt               # parseAlerts(), filterByRoutes(), filterByActivePeriod(), buildPromptText(); MtaAlert + ActivePeriod data classes; MONITORED_ROUTES constant
+│           ├── res/
+│           │   ├── layout/activity_main.xml        # Live MTA Alerts section (Fetch Live button) + AI POC section (2×2 tier buttons, scrollable results)
+│           │   └── values/strings.xml
+│           └── test/kotlin/com/commutebuddy/app/
+│               ├── CommuteStatusTest.kt            # toConnectIQMap() key names, value matching, value types
+│               ├── MtaAlertParserTest.kt           # parseAlerts, filterByRoutes, filterByActivePeriod, buildPromptText
+│               └── ApiRateLimiterTest.kt
 ├── garmin/                                         # Open in VS Code
 │   ├── monkey.jungle                               # Build config, references manifest.xml
 │   ├── manifest.xml                                # Target: venu3, permission: Communications
 │   └── source/
-│       ├── CommuteBuddyApp.mc                      # AppBase: registers phone messages, Storage write, requestUpdate
-│       ├── CommuteBuddyGlanceView.mc               # GlanceView: reads Storage, renders code or "Waiting..."
+│       ├── CommuteBuddyApp.mc                      # AppBase: validates Dictionary payload, stores cs_status/cs_route/cs_reason/cs_timestamp, requestUpdate
+│       ├── CommuteBuddyGlanceView.mc               # GlanceView: reads cs_status/cs_route, renders "Normal"/"Delays — N,W"/"Disrupted — N,W"/"Waiting..."
 │       └── CommuteBuddyView.mc                     # Minimal full-app view (required by getInitialView)
 ├── shared/
 │   └── schema.json                                 # BLE message format: JSON object (status, route_string, reason, timestamp)
 ├── docs/
 │   ├── mta-feed-research.md                        # MTA GTFS-RT feed URLs, JSON structure, alert text examples & length tiers
 │   └── garmin/
-│       └── android-sdk-api-notes.md                 # Connect IQ Android SDK 2.3.0 — correct API (getDeviceStatus, IQDevice.IQDeviceStatus); prevents LLM/doc drift
+│       ├── android-sdk-api-notes.md                # Connect IQ Android SDK 2.3.0 — correct API (getDeviceStatus, IQDevice.IQDeviceStatus); prevents LLM/doc drift
+│       ├── glances.md                              # Glance lifecycle, memory limits, Live vs Background UI update modes
+│       └── monkeyc-notes.md                       # Monkey C gotchas: Toybox.Lang import requirement in glance context
 ├── PRD.md
 ├── plan.md
 └── CLAUDE.md
@@ -147,7 +159,7 @@ Set-Location "a:\Phil\Phil Docs\Development\commute-buddy\android"
 
 **MTA Alert Text Characteristics:** Real MTA GTFS-RT alerts vary dramatically in length and complexity. Each alert has a `header_text` (plain text, `language: "en"`) and an optional `description_text`. Alerts use bracket notation for routes (`[A]`, `[4]`, `[shuttle bus icon]`, `[accessibility icon]`) and structured sections ("What's happening?", "Travel Alternatives:", "ADA Customers:"). Short alerts (real-time delays) are ~100 chars with no description. Medium alerts (single reroute) are ~500-600 chars. Long alerts (weekend planned work with suspensions, shuttle buses, multi-line transfers, ADA notices) are 800-1500+ chars. Weekend construction alerts affecting multiple lines can be significantly longer. The pipeline filters by `informed_entity.route_id`, enforces `active_period` windows (standing overnight/weekend advisories carry explicit time windows; without filtering these cause false positives during normal service hours), and extracts the `en` plain-text translation before passing to Gemini 2.5 Flash. Unit tests use `org.json:json:20250107` (`testImplementation`) because `org.json.JSONObject` is a stub in the Android JVM unit test environment.
 
-**Garmin SDK Caution:** Monkey C and Connect IQ SDK update frequently. LLMs often hallucinate syntax or use deprecated methods. Always verify against latest Toybox.Communications and UI docs. **Android SDK:** The official "Mobile SDK for Android" guide may show `getStatus()` — in SDK 2.3.0 use `getDeviceStatus()`. Use `IQDevice.IQDeviceStatus`, not `ConnectIQ.IQDeviceStatus`. See `docs/garmin/android-sdk-api-notes.md` for correct API usage.
+**Garmin SDK Caution:** Monkey C and Connect IQ SDK update frequently. LLMs often hallucinate syntax or use deprecated methods. Always verify against latest Toybox.Communications and UI docs. **Android SDK:** The official "Mobile SDK for Android" guide may show `getStatus()` — in SDK 2.3.0 use `getDeviceStatus()`. Use `IQDevice.IQDeviceStatus`, not `ConnectIQ.IQDeviceStatus`. See `docs/garmin/android-sdk-api-notes.md` for correct API usage. **Monkey C `import Toybox.Lang`:** `Dictionary`, `Number`, and `String` are `Lang` types. When the `:glance` annotation causes `CommuteBuddyApp.mc` to be compiled into the glance process, these types are not implicitly in scope — `import Toybox.Lang;` must be added to any `.mc` file that uses them. See `docs/garmin/monkeyc-notes.md`.
 
 ### Testing Strategy
 
@@ -161,7 +173,7 @@ Set-Location "a:\Phil\Phil Docs\Development\commute-buddy\android"
 - [x] FEAT-01: Steel Thread — Phone generates random 4-digit code, watch displays it (validates build env, BLE, and background execution)
 - [x] FEAT-02: AI Summarization POC — Validate Gemini 2.5 Flash cloud API can reliably parse MTA alert text into the strict JSON schema (with strict cost safeguards)
 - [x] FEAT-03: MTA GTFS-RT data fetching, protobuf parsing, and route filtering on Android (preprocessing pipeline that feeds Gemini 2.5 Flash; routes/direction hardcoded initially)
-- [ ] FEAT-04: Route status summary generation and BLE push to watch
+- [x] FEAT-04: Route status summary generation and BLE push to watch
 - [ ] FEAT-05: Garmin Glance UI displaying train status from BLE messages
 - [ ] FEAT-06: Configurable commute window with scheduled background polling
 - [ ] FEAT-07: Dynamic TTL via Google Maps Routes API for auto-shutdown
