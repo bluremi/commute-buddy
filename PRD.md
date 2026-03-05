@@ -8,16 +8,16 @@ Living in Astoria, commuting to work requires constantly pulling up the MTA app 
 
 A two-part system: an **Android Companion App** (the "brains") and a **Garmin Connect IQ App/Glance** (the "face").
 
-The Android app runs in the background during a configurable commute window. It fetches the full MTA GTFS-RT protobuf feed over cellular/Wi-Fi, deserializes and filters it down to only the user's configured routes, then passes the filtered alert text to the **Gemini 2.5 Flash** cloud API (via Google AI Studio) for summarization into a strict JSON payload. This payload is pushed to the Garmin watch via Bluetooth Low Energy (BLE).
+The Android app runs in the background during a configurable commute window. It fetches the full MTA GTFS-RT alert feed over cellular/Wi-Fi, filters to the user's configured routes (primary legs + alternates), and passes the structured alerts to the **Gemini Flash** cloud API (via Google AI Studio) with a **decision prompt** that produces an actionable commute recommendation — not just a status summary, but a clear directive: proceed normally, expect minor delays, reroute (with which alternates are clear), or stay home. This decision payload is pushed to the Garmin watch via Bluetooth Low Energy (BLE).
 
 When the watch Glance is viewed, it instantly displays the cached status — no loading screens, no network requests — completely bypassing underground connectivity issues.
 
 ### User Journeys
 
-**1. Pre-Commute Glance ("Stay Home" Check)**
+**1. Pre-Commute Glance ("What Should I Do?" Check)**
 - User configures a morning commute window (e.g., 8:00–9:30 AM)
-- Android app silently wakes and begins polling MTA API, pushing status to watch
-- While getting ready, user glances at watch and instantly sees if the N/W is delayed — deciding to stay home before putting on their coat
+- Android app silently wakes and begins polling MTA API, running the decision engine, and pushing recommendations to watch
+- While getting ready, user glances at watch and sees "Normal", "Minor delays — N,W", "Reroute — N,W" (with which alternates are clear), or "Stay home" — making an informed decision before putting on their coat
 
 **2. Active Commute**
 - User leaves apartment; Android app is already polling every 15–30 seconds
@@ -64,12 +64,23 @@ When the watch Glance is viewed, it instantly displays the cached status — no 
 - **Glance shows simple one-line status:** `"Waiting..."` (no data yet), `"Normal"` (status 0), `"Delays — N,W"` (status 1), `"Disrupted — N,W"` (status 2, em dash via `\u2014`)
 - FEAT-01 steel thread removed from both apps as part of this story
 
+### Decision Prompt POC (pre-FEAT-05) — Validated Actionable Commute Recommendations
+- **Validated that Gemini Flash can reliably produce actionable commute decisions** — not just "what's happening" but "what should you do": NORMAL, MINOR_DELAYS, REROUTE, or STAY_HOME
+- **10/10 test scenarios passed** on `gemini-flash-latest` (Gemini 3 Flash Preview) with temperature=0, thinking=low — including direction matching, stale alert handling, escalation/de-escalation, and active period filtering
+- **Direction matching from free text works:** MTA feeds do NOT populate `direction_id` in structured data (validated against 202 live alerts). Direction is only in alert header text ("Manhattan-bound", "Downtown", "both directions"). Flash matches this against commute leg directions natively — no fragile regex extraction needed
+- **Commute modeled as directional legs**, not a flat route list. Each leg has lines + direction + station endpoints (e.g., "N,W Manhattan-bound, Astoria → 59th St"). This prevents false positives from opposite-direction disruptions
+- **Reroute hint reports which alternates are clear** (or also affected) — Flash doesn't try to compute routes, just tells you "7 is clear; F and R have delays". The user knows how to take those lines
+- **Four action tiers validated:** NORMAL (all clear), MINOR_DELAYS (delays but service running — standard signal problems, train cleaning), REROUTE (suspended/extensive delays, at least one alternate clear), STAY_HOME (everything impacted, TO_WORK only — TO_HOME always gets REROUTE instead)
+- **Alert freshness rules work:** 105-min-old signal delay correctly downgraded to NORMAL; overnight planned work outside active period correctly ignored
+- **Output schema:** `action`, `summary` (max 80 chars), `reroute_hint` (max 60 chars, REROUTE only), `affected_routes` — all fit within BLE 1KB limit
+- Full prompt, schema, test data, and automated test runner documented in `docs/decision-prompt.md`, `docs/decision-prompt-test.md`, `docs/run-prompt-tests.py`
+
 ## Technical Architecture
 
 ### Tech Stack
 
 - **Android App:** Kotlin, `minSdk = 34` (Android 14), Garmin Connect IQ Mobile SDK `2.3.0` (`com.garmin.connectiq:ciq-companion-app-sdk`)
-- **AI Summarization:** Google Gemini 2.5 Flash via Google AI Studio cloud API — massive context window, native JSON structured output, free tier (10 RPM / 500 RPD); model name configurable via `local.properties` without a code change
+- **AI Decision Engine:** Google Gemini Flash via Google AI Studio cloud API (`gemini-flash-latest`, currently points to Gemini 3 Flash Preview) — massive context window, native JSON structured output, free tier; model name configurable via `local.properties` (`GEMINI_MODEL_NAME`) without a code change. Decision prompt validated with temperature=0, thinking=low (1024 tokens)
 - **Garmin Watch App:** Monkey C, Connect IQ SDK `8.4.1`, Toybox.Communications, Toybox.Application.Storage
 - **Target Device:** Garmin Venu 3 (`venu3`)
 - **Communication:** Bluetooth Low Energy via Connect IQ Mobile SDK (`IQConnectType.WIRELESS`); minimized JSON payload, well under 1KB limit
@@ -80,7 +91,7 @@ When the watch Glance is viewed, it instantly displays the cached status — no 
 
 **Monorepo** structure — both apps are tightly coupled through the BLE message schema.
 
-- **Android app** (`android/`): `MainActivity.kt` initializes the Connect IQ SDK on launch, discovers the paired Garmin device, verifies the watch app is installed, and sends a payload via `ConnectIQ.sendMessage()`. Currently triggered by explicit button press; future stories will move this to a Foreground Service with scheduled polling. The live data pipeline is: `MtaAlertFetcher.fetchAlerts()` (HTTP GET, background coroutine) → `MtaAlertParser.parseAlerts()` (JSON, extracts `en` plain-text translations) → `filterByRoutes()` (keep `MONITORED_ROUTES`) → `filterByActivePeriod()` (exclude advisories outside their scheduled windows) → `buildPromptText()` → Gemini 2.5 Flash summarization → `CommuteStatus.fromJson()` → display. All API calls pass through `ApiRateLimiter` — a multi-layer rate limiter (persisted daily cap, per-minute limit, cooldown, single-flight mutex) that survives app restarts and prevents runaway costs.
+- **Android app** (`android/`): `MainActivity.kt` initializes the Connect IQ SDK on launch, discovers the paired Garmin device, verifies the watch app is installed, and sends a payload via `ConnectIQ.sendMessage()`. Currently triggered by explicit button press; future stories will move this to a Foreground Service with scheduled polling. The live data pipeline is: `MtaAlertFetcher.fetchAlerts()` (HTTP GET, background coroutine) → `MtaAlertParser.parseAlerts()` (JSON, extracts `en` plain-text translations) → `filterByRoutes()` (keep `MONITORED_ROUTES`) → `filterByActivePeriod()` (exclude advisories outside their scheduled windows) → `buildPromptText()` → Gemini Flash summarization → `CommuteStatus.fromJson()` → display. **Next:** The pipeline will be upgraded to use the validated decision prompt (see `docs/decision-prompt.md`): expand MONITORED_ROUTES to include alternate lines, restructure alert input as structured per-alert blocks (routes, type, posted time, active period, header, description), inject the commute profile (directional legs + alternates), and parse the new decision schema (action, summary, reroute_hint, affected_routes). All API calls pass through `ApiRateLimiter` — a multi-layer rate limiter (persisted daily cap, per-minute limit, cooldown, single-flight mutex) that survives app restarts and prevents runaway costs.
 - **Garmin app** (`garmin/`): `CommuteBuddyApp.mc` registers for phone messages in `onStart()` via `Communications.registerForPhoneAppMessages()`. On message receipt, validates the incoming `Dictionary` payload (status 0–2, non-null strings), stores `cs_status`, `cs_route`, `cs_reason`, `cs_timestamp` in `Application.Storage`, and calls `WatchUi.requestUpdate()`. `CommuteBuddyGlanceView.mc` reads `cs_status` and `cs_route` from Storage on every `onUpdate()` — renders `"Normal"`, `"Delays — {route}"`, `"Disrupted — {route}"`, or `"Waiting..."` as fallback.
 - Apps do not share source code; they share a BLE message schema documented in `shared/schema.json`.
 
@@ -120,6 +131,9 @@ commute-buddy/
 │   └── schema.json                                 # BLE message format: JSON object (status, route_string, reason, timestamp)
 ├── docs/
 │   ├── mta-feed-research.md                        # MTA GTFS-RT feed URLs, JSON structure, alert text examples & length tiers
+│   ├── decision-prompt.md                          # Decision prompt canonical reference: system prompt, schema, commute profile, API settings, test results
+│   ├── decision-prompt-test.md                     # Copy-paste test script for AI Studio + actual results from manual and automated testing
+│   ├── run-prompt-tests.py                         # Automated test runner: calls Gemini API for all 10 decision prompt scenarios
 │   └── garmin/
 │       ├── android-sdk-api-notes.md                # Connect IQ Android SDK 2.3.0 — correct API (getDeviceStatus, IQDevice.IQDeviceStatus); prevents LLM/doc drift
 │       ├── glances.md                              # Glance lifecycle, memory limits, Live vs Background UI update modes
@@ -153,11 +167,11 @@ Set-Location "a:\Phil\Phil Docs\Development\commute-buddy\android"
 
 **Android Permissions (14+):** FOREGROUND_SERVICE_DATA_SYNC or FOREGROUND_SERVICE_LOCATION, BLUETOOTH_SCAN, BLUETOOTH_CONNECT.
 
-**Gemini 2.5 Flash (cloud API):** Summarization runs via the Google AI Studio cloud API. The free tier provides 10 requests/minute and 500 requests/day — more than sufficient for personal use. The model has a massive context window; validated to handle all 4 MTA alert tiers (up to ~2000 chars) reliably in FEAT-02. The Android app includes `ApiRateLimiter` — a multi-layer rate limiter (persisted daily cap of 50 in SharedPreferences, per-minute limit of 10, 3s cooldown, single-flight mutex, no automatic retries) to make runaway API costs virtually impossible. API key is stored in `local.properties` (excluded from version control) and injected via `BuildConfig`. Model name is also stored in `local.properties` as `GEMINI_MODEL_NAME` (default: `gemini-2.5-flash`) — changing models requires only editing this property and rebuilding, not a code change. Note: `gemini-2.0-flash` was deprecated and retired on March 3, 2026. The model receives filtered alert text plus a system prompt and returns a strict JSON object. Output is validated/deserialized via `CommuteStatus.fromJson()` before transmission. If this app is ever published, the architecture supports adding a paywall or bring-your-own-key model.
+**Gemini Flash (cloud API):** The decision engine runs via the Google AI Studio cloud API using `gemini-flash-latest` (currently Gemini 3 Flash Preview). The free tier is more than sufficient for personal use. Validated with temperature=0 and thinking=low (1024 tokens) — 10/10 test scenarios pass reliably. The model receives structured alert data plus a decision-oriented system prompt (see `docs/decision-prompt.md`) and returns a strict JSON object with `action`, `summary`, `reroute_hint`, and `affected_routes`. Output is validated/deserialized before transmission. The Android app includes `ApiRateLimiter` — a multi-layer rate limiter (persisted daily cap of 50 in SharedPreferences, per-minute limit of 10, 3s cooldown, single-flight mutex, no automatic retries) to make runaway API costs virtually impossible. API key is stored in `local.properties` (excluded from version control) and injected via `BuildConfig`. Model name is stored in `local.properties` as `GEMINI_MODEL_NAME` (default: `gemini-flash-latest`) — changing models requires only editing this property and rebuilding. Note: `gemini-2.0-flash` was deprecated and retired on March 3, 2026; `gemini-2.5-flash` also works but `gemini-flash-latest` (3 Flash Preview) produces more reliable results on the decision prompt. If this app is ever published, the architecture supports adding a paywall or bring-your-own-key model.
 
 **Garmin Memory Limits:** Never parse MTA protobuf or JSON on the watch. Monkey C apps have ~32KB memory for background/glance. Keep BLE payload under 1KB. All heavy lifting (protobuf parsing, AI summarization) happens on Android.
 
-**MTA Alert Text Characteristics:** Real MTA GTFS-RT alerts vary dramatically in length and complexity. Each alert has a `header_text` (plain text, `language: "en"`) and an optional `description_text`. Alerts use bracket notation for routes (`[A]`, `[4]`, `[shuttle bus icon]`, `[accessibility icon]`) and structured sections ("What's happening?", "Travel Alternatives:", "ADA Customers:"). Short alerts (real-time delays) are ~100 chars with no description. Medium alerts (single reroute) are ~500-600 chars. Long alerts (weekend planned work with suspensions, shuttle buses, multi-line transfers, ADA notices) are 800-1500+ chars. Weekend construction alerts affecting multiple lines can be significantly longer. The pipeline filters by `informed_entity.route_id`, enforces `active_period` windows (standing overnight/weekend advisories carry explicit time windows; without filtering these cause false positives during normal service hours), and extracts the `en` plain-text translation before passing to Gemini 2.5 Flash. Unit tests use `org.json:json:20250107` (`testImplementation`) because `org.json.JSONObject` is a stub in the Android JVM unit test environment.
+**MTA Alert Text Characteristics:** Real MTA GTFS-RT alerts vary dramatically in length and complexity. Each alert has a `header_text` (plain text, `language: "en"`) and an optional `description_text`. Alerts use bracket notation for routes (`[A]`, `[4]`, `[shuttle bus icon]`, `[accessibility icon]`) and structured sections ("What's happening?", "Travel Alternatives:", "ADA Customers:"). Short alerts (real-time delays) are ~100 chars with no description. Medium alerts (single reroute) are ~500-600 chars. Long alerts (weekend planned work with suspensions, shuttle buses, multi-line transfers, ADA notices) are 800-1500+ chars. Weekend construction alerts affecting multiple lines can be significantly longer. **Direction is only in free text** — validated against 202 live alerts (2026-03-05): `direction_id` is NEVER populated in `informed_entity`. Direction appears in header text as "Manhattan-bound", "Queens-bound", "Downtown", "Uptown", "both directions", or terminus names ("Forest Hills-71 Av-bound"). Gemini Flash matches direction language against commute leg directions natively — no structured extraction needed. The pipeline filters by `informed_entity.route_id`, enforces `active_period` windows (standing overnight/weekend advisories carry explicit time windows; without filtering these cause false positives during normal service hours), and extracts the `en` plain-text translation before passing to Gemini Flash. Unit tests use `org.json:json:20250107` (`testImplementation`) because `org.json.JSONObject` is a stub in the Android JVM unit test environment.
 
 **Garmin SDK Caution:** Monkey C and Connect IQ SDK update frequently. LLMs often hallucinate syntax or use deprecated methods. Always verify against latest Toybox.Communications and UI docs. **Android SDK:** The official "Mobile SDK for Android" guide may show `getStatus()` — in SDK 2.3.0 use `getDeviceStatus()`. Use `IQDevice.IQDeviceStatus`, not `ConnectIQ.IQDeviceStatus`. See `docs/garmin/android-sdk-api-notes.md` for correct API usage. **Monkey C `import Toybox.Lang`:** `Dictionary`, `Number`, and `String` are `Lang` types. When the `:glance` annotation causes `CommuteBuddyApp.mc` to be compiled into the glance process, these types are not implicitly in scope — `import Toybox.Lang;` must be added to any `.mc` file that uses them. See `docs/garmin/monkeyc-notes.md`.
 
@@ -171,13 +185,15 @@ Set-Location "a:\Phil\Phil Docs\Development\commute-buddy\android"
 
 ### Features
 - [x] FEAT-01: Steel Thread — Phone generates random 4-digit code, watch displays it (validates build env, BLE, and background execution)
-- [x] FEAT-02: AI Summarization POC — Validate Gemini 2.5 Flash cloud API can reliably parse MTA alert text into the strict JSON schema (with strict cost safeguards)
-- [x] FEAT-03: MTA GTFS-RT data fetching, protobuf parsing, and route filtering on Android (preprocessing pipeline that feeds Gemini 2.5 Flash; routes/direction hardcoded initially)
+- [x] FEAT-02: AI Summarization POC — Validate Gemini Flash cloud API can reliably parse MTA alert text into strict JSON schema (with strict cost safeguards)
+- [x] FEAT-03: MTA GTFS-RT data fetching, parsing, and route filtering on Android (preprocessing pipeline that feeds Gemini Flash; routes hardcoded initially)
 - [x] FEAT-04: Route status summary generation and BLE push to watch
-- [ ] FEAT-05: Garmin Glance UI displaying train status from BLE messages
-- [ ] FEAT-06: Configurable commute window with scheduled background polling
-- [ ] FEAT-07: Dynamic TTL via Google Maps Routes API for auto-shutdown
-- [ ] FEAT-08: Route & direction configuration — UI to select monitored lines, commute direction (to/from work), and alternate routes for rerouting suggestions
+- [x] Decision Prompt POC — Validated actionable commute recommendations (NORMAL/MINOR_DELAYS/REROUTE/STAY_HOME) with direction matching, stale alert handling, and alternate line evaluation. 10/10 tests pass on gemini-flash-latest. See `docs/decision-prompt.md`.
+- [ ] FEAT-05: Decision engine integration — Replace simple Gemini summarization with validated decision prompt. Update CommuteStatus and BLE schema to new fields (action, summary, reroute_hint, affected_routes). Expand MONITORED_ROUTES to include alternate lines (F, R, 7). Restructure buildPromptText() to structured per-alert format. Hardcode commute profile for now.
+- [ ] FEAT-06: Garmin Glance + full-app UI — Color-coded action tiers on glance (green/yellow/red/gray), full detail (summary, reroute_hint, freshness) in app view. Update watch message handling for new schema.
+- [ ] FEAT-07: Commute profile configuration — UI to define commute legs (line + direction + stations) and alternate lines. Replaces hardcoded profile. Includes commute direction toggle (to work / to home).
+- [ ] FEAT-08: Configurable commute window with scheduled background polling
+- [ ] FEAT-09: Dynamic TTL via Google Maps Routes API for auto-shutdown
 
 ### Bugs
 {None yet — add as discovered.}
