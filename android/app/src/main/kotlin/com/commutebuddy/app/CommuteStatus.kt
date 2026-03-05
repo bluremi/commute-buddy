@@ -20,12 +20,19 @@ data class CommuteStatus(
 
         /**
          * Parses a JSON string into a CommuteStatus.
-         * Expects keys: status, route_string, reason, timestamp
+         * Expects keys: status, route_string, reason, timestamp.
+         * Handles Gemini responses wrapped in markdown code fences (e.g. ```json ... ```).
          * @throws IllegalArgumentException if JSON is invalid or required fields are missing
          */
         fun fromJson(json: String): CommuteStatus {
+            val trimmed = json.trim()
+            // Extract JSON object: Gemini sometimes wraps in ```json ... ```; removeSurrounding
+            // fails when start/end delimiters differ. Find first { and last } for robustness.
+            val start = trimmed.indexOf('{')
+            val end = trimmed.lastIndexOf('}')
+            val jsonStr = if (start >= 0 && end > start) trimmed.substring(start, end + 1) else trimmed
             val obj = try {
-                JSONObject(json.trim().removeSurrounding("```json").trim().removeSurrounding("```").trim())
+                JSONObject(jsonStr)
             } catch (e: Exception) {
                 throw IllegalArgumentException("Invalid JSON: ${e.message}", e)
             }
