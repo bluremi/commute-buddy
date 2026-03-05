@@ -321,7 +321,7 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
                 }
 
                 // Step 3: Rate-limit check
-                val promptText = MtaAlertParser.buildPromptText(filtered)
+                val promptText = MtaAlertParser.buildPromptText(filtered, "TO_WORK", System.currentTimeMillis() / 1000)
                 when (val rateLimitResult = rateLimiter.tryAcquire()) {
                     is RateLimitResult.Denied -> {
                         resultsTextView.text = rateLimitResult.reason

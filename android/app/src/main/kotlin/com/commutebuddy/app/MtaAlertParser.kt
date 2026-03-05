@@ -1,5 +1,6 @@
 package com.commutebuddy.app
 
+import java.time.Instant
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -10,10 +11,11 @@ data class MtaAlert(
     val descriptionText: String?,
     val routeIds: Set<String>,
     val alertType: String?,
-    val activePeriods: List<ActivePeriod> = emptyList()
+    val activePeriods: List<ActivePeriod> = emptyList(),
+    val createdAt: Long? = null
 )
 
-val MONITORED_ROUTES = setOf("N", "W", "4", "5", "6")
+val MONITORED_ROUTES = setOf("N", "W", "4", "5", "6", "R", "7")
 
 object MtaAlertParser {
 
@@ -41,9 +43,9 @@ object MtaAlertParser {
 
             val routeIds = extractRouteIds(alert.optJSONArray("informed_entity"))
 
-            val alertType = alert.optJSONObject("transit_realtime.mercury_alert")
-                ?.optString("alert_type")
-                ?.takeIf { it.isNotEmpty() }
+            val mercuryAlert = alert.optJSONObject("transit_realtime.mercury_alert")
+            val alertType = mercuryAlert?.optString("alert_type")?.takeIf { it.isNotEmpty() }
+            val createdAt = mercuryAlert?.optLong("created_at", -1L)?.takeIf { it > 0 }
 
             val activePeriods = parseActivePeriods(alert.optJSONArray("active_period"))
 
@@ -52,7 +54,8 @@ object MtaAlertParser {
                 descriptionText = descriptionText,
                 routeIds = routeIds,
                 alertType = alertType,
-                activePeriods = activePeriods
+                activePeriods = activePeriods,
+                createdAt = createdAt
             )
         } catch (e: Exception) {
             null
@@ -108,13 +111,46 @@ object MtaAlertParser {
         }
     }
 
-    fun buildPromptText(alerts: List<MtaAlert>): String {
-        return alerts.joinToString(separator = "\n\n") { alert ->
-            val typeLabel = alert.alertType ?: "Alert"
-            val sb = StringBuilder("--- Alert ($typeLabel) ---\n")
-            sb.append(alert.headerText)
-            alert.descriptionText?.let { sb.append("\n").append(it) }
-            sb.toString()
+    /**
+     * Builds the structured user prompt text for the Gemini decision engine.
+     *
+     * @param alerts   Active alerts to include (already filtered by route and active period).
+     * @param direction Commute direction string, e.g. "TO_WORK" or "TO_HOME".
+     * @param nowSeconds Current time as Unix epoch seconds (used for the "Current time" header).
+     */
+    fun buildPromptText(alerts: List<MtaAlert>, direction: String, nowSeconds: Long): String {
+        val currentTimeIso = Instant.ofEpochSecond(nowSeconds).toString()
+        val sb = StringBuilder()
+        sb.appendLine("Current time: $currentTimeIso")
+        sb.appendLine("Direction: $direction")
+        sb.appendLine()
+        sb.appendLine("ALERTS:")
+
+        if (alerts.isEmpty()) {
+            sb.append("No active alerts for any monitored lines.")
+            return sb.toString()
+        }
+
+        for (alert in alerts) {
+            sb.appendLine("---")
+            sb.appendLine("Routes: ${alert.routeIds.sorted().joinToString(",")}")
+            sb.appendLine("Type: ${alert.alertType ?: "Unknown"}")
+            sb.appendLine("Posted: ${alert.createdAt?.let { Instant.ofEpochSecond(it).toString() } ?: "unknown"}")
+            sb.appendLine("Active period: ${formatActivePeriod(alert.activePeriods)}")
+            sb.appendLine("Header: ${alert.headerText}")
+            sb.appendLine("Description: ${alert.descriptionText ?: "none"}")
+            sb.appendLine("---")
+        }
+
+        return sb.toString().trimEnd()
+    }
+
+    private fun formatActivePeriod(periods: List<ActivePeriod>): String {
+        if (periods.isEmpty()) return "not specified"
+        return periods.joinToString("; ") { period ->
+            val startStr = if (period.start > 0) Instant.ofEpochSecond(period.start).toString() else "unknown"
+            val endStr = if (period.end > 0) Instant.ofEpochSecond(period.end).toString() else "(open)"
+            "$startStr \u2014 $endStr"
         }
     }
 }

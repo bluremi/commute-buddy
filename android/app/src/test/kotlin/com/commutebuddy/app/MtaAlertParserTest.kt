@@ -2,6 +2,7 @@ package com.commutebuddy.app
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -156,6 +157,79 @@ class MtaAlertParserTest {
         }
     """.trimIndent()
 
+    // Alert with mercury alert_type + created_at timestamp
+    private val ALERT_WITH_CREATED_AT_JSON = """
+        {
+          "entity": [
+            {
+              "id": "lmm:alert:7001",
+              "alert": {
+                "header_text": {
+                  "translation": [
+                    {"text": "N trains delayed at Queens", "language": "en"}
+                  ]
+                },
+                "informed_entity": [
+                  {"route_id": "N"}
+                ],
+                "transit_realtime.mercury_alert": {
+                  "alert_type": "Delays",
+                  "created_at": 1709312400
+                }
+              }
+            }
+          ]
+        }
+    """.trimIndent()
+
+    // R train alert (new alternate route)
+    private val R_TRAIN_ALERT_JSON = """
+        {
+          "entity": [
+            {
+              "id": "lmm:alert:8001",
+              "alert": {
+                "header_text": {
+                  "translation": [
+                    {"text": "R trains are delayed", "language": "en"}
+                  ]
+                },
+                "informed_entity": [
+                  {"route_id": "R"}
+                ],
+                "transit_realtime.mercury_alert": {
+                  "alert_type": "Delays"
+                }
+              }
+            }
+          ]
+        }
+    """.trimIndent()
+
+    // 7 train alert (new alternate route)
+    private val SEVEN_TRAIN_ALERT_JSON = """
+        {
+          "entity": [
+            {
+              "id": "lmm:alert:8002",
+              "alert": {
+                "header_text": {
+                  "translation": [
+                    {"text": "7 trains suspended", "language": "en"}
+                  ]
+                },
+                "informed_entity": [
+                  {"route_id": "7"}
+                ],
+                "transit_realtime.mercury_alert": {
+                  "alert_type": "Suspended"
+                }
+              }
+            }
+          ]
+        }
+    """.trimIndent()
+
     // Feed with empty entity array
     private val EMPTY_ENTITY_JSON = """{"entity": []}"""
 
@@ -267,6 +341,21 @@ class MtaAlertParserTest {
     }
 
     @Test
+    fun `extracts createdAt from mercury extension`() {
+        val alerts = MtaAlertParser.parseAlerts(ALERT_WITH_CREATED_AT_JSON)
+        assertEquals(1, alerts.size)
+        assertNotNull(alerts[0].createdAt)
+        assertEquals(1709312400L, alerts[0].createdAt)
+    }
+
+    @Test
+    fun `alert without createdAt has null createdAt`() {
+        val alerts = MtaAlertParser.parseAlerts(DELAYS_ALERT_JSON)
+        assertEquals(1, alerts.size)
+        assertNull(alerts[0].createdAt)
+    }
+
+    @Test
     fun `empty entity array returns empty list`() {
         val alerts = MtaAlertParser.parseAlerts(EMPTY_ENTITY_JSON)
         assertTrue(alerts.isEmpty())
@@ -292,7 +381,7 @@ class MtaAlertParserTest {
     @Test
     fun `non-matching route is removed`() {
         val alerts = MtaAlertParser.parseAlerts(MULTI_ALERT_JSON) // N and Q
-        val filtered = MtaAlertParser.filterByRoutes(alerts, MONITORED_ROUTES) // N, W, 4, 5, 6
+        val filtered = MtaAlertParser.filterByRoutes(alerts, MONITORED_ROUTES)
         assertEquals(1, filtered.size)
         assertEquals("N trains are delayed", filtered[0].headerText)
     }
@@ -315,52 +404,176 @@ class MtaAlertParserTest {
         assertTrue(filtered.isEmpty())
     }
 
+    @Test
+    fun `R train alert passes expanded MONITORED_ROUTES filter`() {
+        val alerts = MtaAlertParser.parseAlerts(R_TRAIN_ALERT_JSON)
+        val filtered = MtaAlertParser.filterByRoutes(alerts, MONITORED_ROUTES)
+        assertEquals(1, filtered.size)
+        assertEquals("R trains are delayed", filtered[0].headerText)
+    }
+
+    @Test
+    fun `7 train alert passes expanded MONITORED_ROUTES filter`() {
+        val alerts = MtaAlertParser.parseAlerts(SEVEN_TRAIN_ALERT_JSON)
+        val filtered = MtaAlertParser.filterByRoutes(alerts, MONITORED_ROUTES)
+        assertEquals(1, filtered.size)
+        assertEquals("7 trains suspended", filtered[0].headerText)
+    }
+
+    @Test
+    fun `MONITORED_ROUTES contains R and 7`() {
+        assertTrue("R must be in MONITORED_ROUTES", "R" in MONITORED_ROUTES)
+        assertTrue("7 must be in MONITORED_ROUTES", "7" in MONITORED_ROUTES)
+    }
+
+    @Test
+    fun `Q train alert is excluded by MONITORED_ROUTES`() {
+        val alert = MtaAlert("Q train work", null, setOf("Q"), null)
+        val filtered = MtaAlertParser.filterByRoutes(listOf(alert), MONITORED_ROUTES)
+        assertTrue(filtered.isEmpty())
+    }
+
     // -------------------------------------------------------------------------
     // buildPromptText tests
     // -------------------------------------------------------------------------
 
+    private val NOW_SECONDS = 1709312400L  // 2024-03-01T17:00:00Z
+
     @Test
-    fun `single alert without description produces delimiter and header`() {
+    fun `output starts with current time and direction headers`() {
         val alert = MtaAlert("N trains are delayed", null, setOf("N"), "Delays")
-        val text = MtaAlertParser.buildPromptText(listOf(alert))
-        assertTrue(text.contains("--- Alert (Delays) ---"))
-        assertTrue(text.contains("N trains are delayed"))
+        val text = MtaAlertParser.buildPromptText(listOf(alert), "TO_WORK", NOW_SECONDS)
+        assertTrue(text.startsWith("Current time:"))
+        assertTrue(text.contains("Direction: TO_WORK"))
     }
 
     @Test
-    fun `single alert with description contains both header and description`() {
-        val alert = MtaAlert("W train planned work", "Trains skip Whitehall St.", setOf("W"), "Planned Work")
-        val text = MtaAlertParser.buildPromptText(listOf(alert))
-        assertTrue(text.contains("--- Alert (Planned Work) ---"))
-        assertTrue(text.contains("W train planned work"))
-        assertTrue(text.contains("Trains skip Whitehall St."))
+    fun `current time is formatted as ISO 8601`() {
+        val alert = MtaAlert("N trains delayed", null, setOf("N"), "Delays")
+        val text = MtaAlertParser.buildPromptText(listOf(alert), "TO_WORK", NOW_SECONDS)
+        // 1709312400 = 2024-03-01T17:00:00Z
+        assertTrue("ISO timestamp must appear in output", text.contains("2024-03-01T17:00:00Z"))
     }
 
     @Test
-    fun `multiple alerts are separated by blank lines`() {
+    fun `single alert contains all structured field labels`() {
+        val alert = MtaAlert("N trains are delayed", "Signal problems at 34 St.", setOf("N"), "Delays",
+            createdAt = NOW_SECONDS)
+        val text = MtaAlertParser.buildPromptText(listOf(alert), "TO_WORK", NOW_SECONDS)
+        assertTrue(text.contains("Routes:"))
+        assertTrue(text.contains("Type:"))
+        assertTrue(text.contains("Posted:"))
+        assertTrue(text.contains("Active period:"))
+        assertTrue(text.contains("Header:"))
+        assertTrue(text.contains("Description:"))
+    }
+
+    @Test
+    fun `alert block is wrapped with --- delimiters`() {
+        val alert = MtaAlert("N trains delayed", null, setOf("N"), "Delays")
+        val text = MtaAlertParser.buildPromptText(listOf(alert), "TO_WORK", NOW_SECONDS)
+        val delimCount = text.lines().count { it.trim() == "---" }
+        assertEquals("Single alert should have 2 --- delimiters", 2, delimCount)
+    }
+
+    @Test
+    fun `two alerts produce four --- delimiters`() {
         val alert1 = MtaAlert("N trains delayed", null, setOf("N"), "Delays")
         val alert2 = MtaAlert("W train work", "Skips stop.", setOf("W"), "Planned Work")
-        val text = MtaAlertParser.buildPromptText(listOf(alert1, alert2))
-        assertTrue("Alerts must be separated by a double newline", text.contains("\n\n"))
-        val parts = text.split("\n\n")
-        assertEquals(2, parts.size)
-        assertTrue(parts[0].contains("N trains delayed"))
-        assertTrue(parts[1].contains("W train work"))
+        val text = MtaAlertParser.buildPromptText(listOf(alert1, alert2), "TO_HOME", NOW_SECONDS)
+        val delimCount = text.lines().count { it.trim() == "---" }
+        assertEquals("Two alerts should have 4 --- delimiters", 4, delimCount)
     }
 
     @Test
-    fun `null description is omitted with no blank line within the alert block`() {
-        val alert = MtaAlert("Header only", null, setOf("N"), null)
-        val text = MtaAlertParser.buildPromptText(listOf(alert))
-        assertFalse("No internal blank line for null description", text.contains("\n\n"))
-        assertTrue(text.contains("Header only"))
+    fun `routes are comma-separated and sorted`() {
+        val alert = MtaAlert("4 and 5 delayed", null, setOf("5", "4"), "Delays")
+        val text = MtaAlertParser.buildPromptText(listOf(alert), "TO_WORK", NOW_SECONDS)
+        assertTrue(text.contains("Routes: 4,5"))
     }
 
     @Test
-    fun `null alertType falls back to Alert label in delimiter`() {
+    fun `posted shows ISO timestamp when createdAt is present`() {
+        val alert = MtaAlert("N trains delayed", null, setOf("N"), "Delays",
+            createdAt = NOW_SECONDS)
+        val text = MtaAlertParser.buildPromptText(listOf(alert), "TO_WORK", NOW_SECONDS)
+        assertTrue("Posted must contain ISO timestamp", text.contains("Posted: 2024-03-01T17:00:00Z"))
+    }
+
+    @Test
+    fun `posted shows unknown when createdAt is null`() {
+        val alert = MtaAlert("N trains delayed", null, setOf("N"), "Delays", createdAt = null)
+        val text = MtaAlertParser.buildPromptText(listOf(alert), "TO_WORK", NOW_SECONDS)
+        assertTrue(text.contains("Posted: unknown"))
+    }
+
+    @Test
+    fun `active period shows not specified when activePeriods is empty`() {
+        val alert = MtaAlert("N trains delayed", null, setOf("N"), "Delays")
+        val text = MtaAlertParser.buildPromptText(listOf(alert), "TO_WORK", NOW_SECONDS)
+        assertTrue(text.contains("Active period: not specified"))
+    }
+
+    @Test
+    fun `active period shows ISO timestamps when periods are present`() {
+        val alert = MtaAlert(
+            headerText = "N trains delayed",
+            descriptionText = null,
+            routeIds = setOf("N"),
+            alertType = "Delays",
+            activePeriods = listOf(ActivePeriod(start = NOW_SECONDS, end = NOW_SECONDS + 3600))
+        )
+        val text = MtaAlertParser.buildPromptText(listOf(alert), "TO_WORK", NOW_SECONDS)
+        assertTrue("Active period must contain start ISO timestamp", text.contains("2024-03-01T17:00:00Z"))
+        assertTrue("Active period must contain end ISO timestamp", text.contains("2024-03-01T18:00:00Z"))
+    }
+
+    @Test
+    fun `active period shows open for end=0`() {
+        val alert = MtaAlert(
+            headerText = "N trains delayed",
+            descriptionText = null,
+            routeIds = setOf("N"),
+            alertType = "Delays",
+            activePeriods = listOf(ActivePeriod(start = NOW_SECONDS, end = 0L))
+        )
+        val text = MtaAlertParser.buildPromptText(listOf(alert), "TO_WORK", NOW_SECONDS)
+        assertTrue(text.contains("(open)"))
+    }
+
+    @Test
+    fun `description shows none when null`() {
+        val alert = MtaAlert("N trains delayed", null, setOf("N"), "Delays")
+        val text = MtaAlertParser.buildPromptText(listOf(alert), "TO_WORK", NOW_SECONDS)
+        assertTrue(text.contains("Description: none"))
+    }
+
+    @Test
+    fun `description shows actual text when present`() {
+        val alert = MtaAlert("W train work", "Trains skip Whitehall St.", setOf("W"), "Planned Work")
+        val text = MtaAlertParser.buildPromptText(listOf(alert), "TO_WORK", NOW_SECONDS)
+        assertTrue(text.contains("Description: Trains skip Whitehall St."))
+    }
+
+    @Test
+    fun `type shows Unknown when alertType is null`() {
         val alert = MtaAlert("Some header", null, setOf("N"), null)
-        val text = MtaAlertParser.buildPromptText(listOf(alert))
-        assertTrue(text.contains("--- Alert (Alert) ---"))
+        val text = MtaAlertParser.buildPromptText(listOf(alert), "TO_WORK", NOW_SECONDS)
+        assertTrue(text.contains("Type: Unknown"))
+    }
+
+    @Test
+    fun `empty alerts list produces no active alerts message`() {
+        val text = MtaAlertParser.buildPromptText(emptyList(), "TO_WORK", NOW_SECONDS)
+        assertTrue(text.contains("No active alerts for any monitored lines."))
+        assertFalse(text.contains("---"))
+    }
+
+    @Test
+    fun `header text appears after Header label`() {
+        val alert = MtaAlert("N trains are delayed", null, setOf("N"), "Delays")
+        val text = MtaAlertParser.buildPromptText(listOf(alert), "TO_WORK", NOW_SECONDS)
+        assertTrue(text.contains("Header: N trains are delayed"))
     }
 
     // -------------------------------------------------------------------------
