@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Commute Buddy</string>
-    <string name="code_placeholder">- - - -</string>
-    <string name="button_send_code">Send Code</string>
 
     <!-- SDK lifecycle -->
     <string name="status_sdk_initializing">Initializing SDK…</string>
@@ -19,7 +17,6 @@
 
     <!-- Send flow -->
     <string name="status_sending">Sending…</string>
-    <string name="status_sent">Sent %d ✓</string>
     <string name="status_send_failed">Send failed: %s</string>
 
     <!-- AI Summarization POC (FEAT-02) -->

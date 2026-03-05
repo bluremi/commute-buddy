@@ -19,7 +19,6 @@ import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.content
 import kotlinx.coroutines.launch
 import java.io.IOException
-import kotlin.random.Random
 
 class MainActivity : AppCompatActivity() {
 
@@ -38,9 +37,7 @@ Required fields:
 Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","timestamp":1709312400}"""
     }
 
-    private lateinit var codeTextView: TextView
     private lateinit var statusTextView: TextView
-    private lateinit var sendButton: Button
     private lateinit var tierButton1: Button
     private lateinit var tierButton2: Button
     private lateinit var tierButton3: Button
@@ -71,10 +68,7 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
             WindowInsetsCompat.CONSUMED
         }
 
-        codeTextView = findViewById(R.id.codeTextView)
         statusTextView = findViewById(R.id.statusTextView)
-        sendButton = findViewById(R.id.sendButton)
-        sendButton.setOnClickListener { onSendCodeClicked() }
 
         tierButton1 = findViewById(R.id.tierButton1)
         tierButton2 = findViewById(R.id.tierButton2)
@@ -190,50 +184,6 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
                 }
             }
         )
-    }
-
-    // -------------------------------------------------------------------------
-    // Send flow
-    // -------------------------------------------------------------------------
-
-    private fun onSendCodeClicked() {
-        val code = Random.nextInt(1000, 10000)
-        codeTextView.text = code.toString()
-
-        if (!sdkReady) {
-            setStatus(R.string.status_sdk_not_ready)
-            return
-        }
-
-        val device = connectedDevice
-        if (device == null) {
-            discoverDevice()
-            setStatus(R.string.status_no_device)
-            return
-        }
-
-        val app = targetApp
-        if (app == null) {
-            setStatus(R.string.status_app_not_installed)
-            return
-        }
-
-        setStatus(R.string.status_sending)
-        connectIQ.sendMessage(device, app, code, object : ConnectIQ.IQSendMessageListener {
-            override fun onMessageStatus(device: IQDevice, app: IQApp, status: ConnectIQ.IQMessageStatus) {
-                try {
-                    Log.d(TAG, "Send status: $status")
-                    if (status == ConnectIQ.IQMessageStatus.SUCCESS) {
-                        setStatus(getString(R.string.status_sent, code))
-                    } else {
-                        setStatus(getString(R.string.status_send_failed, status.name))
-                    }
-                } catch (e: Exception) {
-                    Log.e(TAG, "Error in send callback", e)
-                    setStatus(getString(R.string.status_send_failed, e.message ?: "Unknown error"))
-                }
-            }
-        })
     }
 
     // -------------------------------------------------------------------------
