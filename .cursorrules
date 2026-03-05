@@ -4,7 +4,7 @@ This file describes how to work in this project. Follow these instructions exact
 
 ## Project Documents
 
-- **`PRD.md`** — The living product document. Starts as a requirements blueprint; grows into full documentation of what was actually built. Contains: problem statement, approach, key features, technical architecture, and the feature/bug backlog.
+- **`prd.md`** — The living product document. Starts as a requirements blueprint; grows into full documentation of what was actually built. Contains: problem statement, approach, key features, technical architecture, and the feature/bug backlog.
 - **`plan.md`** — The active development document. Contains only the story currently being worked on: the expanded user story and its step-by-step implementation plan.
 
 ## Development Workflow
@@ -38,15 +38,15 @@ When all increments in a story are marked complete:
 
 **This step is mandatory. Do not skip it.**
 
-1. **Update Key Features in `PRD.md`** — Revise the Key Features section to accurately describe what the app now does. Add new features; update or remove features that changed.
+1. **Update Key Features in `prd.md`** — Revise the Key Features section to accurately describe what the app now does. Add new features; update or remove features that changed.
 
-2. **Update Technical Architecture in `PRD.md`** — Update Tech Stack, System Design, Key Files, and Commands to reflect what was actually built. Add new libraries, files, patterns, and architectural decisions. Remove anything no longer accurate. This section must always describe the real current state of the codebase — not a plan.
+2. **Update Technical Architecture in `prd.md`** — Update Tech Stack, System Design, Key Files, and Commands to reflect what was actually built. Add new libraries, files, patterns, and architectural decisions. Remove anything no longer accurate. This section must always describe the real current state of the codebase — not a plan.
 
-3. **Mark the backlog item complete** — Check off the item (`[x]`) in the `PRD.md` backlog.
+3. **Mark the backlog item complete** — Check off the item (`[x]`) in the `prd.md` backlog.
 
 4. **Clear `plan.md`** — Remove the completed story so `plan.md` only ever contains active work.
 
-PRD.md is the ground truth of what the project is. Keeping it accurate is as important as writing the code.
+prd.md is the ground truth of what the project is. Keeping it accurate is as important as writing the code.
 
 ## General Principles
 
