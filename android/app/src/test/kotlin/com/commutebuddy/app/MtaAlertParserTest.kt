@@ -362,4 +362,87 @@ class MtaAlertParserTest {
         val text = MtaAlertParser.buildPromptText(listOf(alert))
         assertTrue(text.contains("--- Alert (Alert) ---"))
     }
+
+    // -------------------------------------------------------------------------
+    // filterByActivePeriod tests
+    // -------------------------------------------------------------------------
+
+    private fun makeAlert(activePeriods: List<ActivePeriod> = emptyList()) =
+        MtaAlert("Header", null, setOf("N"), null, activePeriods)
+
+    @Test
+    fun `empty activePeriods means alert is always active`() {
+        val alert = makeAlert(emptyList())
+        val result = MtaAlertParser.filterByActivePeriod(listOf(alert), nowSeconds = 1_000_000L)
+        assertEquals(1, result.size)
+    }
+
+    @Test
+    fun `single period and now falls within it is included`() {
+        val alert = makeAlert(listOf(ActivePeriod(start = 1_000L, end = 2_000L)))
+        val result = MtaAlertParser.filterByActivePeriod(listOf(alert), nowSeconds = 1_500L)
+        assertEquals(1, result.size)
+    }
+
+    @Test
+    fun `single period already ended is excluded`() {
+        val alert = makeAlert(listOf(ActivePeriod(start = 1_000L, end = 2_000L)))
+        val result = MtaAlertParser.filterByActivePeriod(listOf(alert), nowSeconds = 3_000L)
+        assertTrue(result.isEmpty())
+    }
+
+    @Test
+    fun `single period not yet started is excluded`() {
+        val alert = makeAlert(listOf(ActivePeriod(start = 5_000L, end = 10_000L)))
+        val result = MtaAlertParser.filterByActivePeriod(listOf(alert), nowSeconds = 1_000L)
+        assertTrue(result.isEmpty())
+    }
+
+    @Test
+    fun `multiple periods none currently active is excluded`() {
+        val alert = makeAlert(listOf(
+            ActivePeriod(start = 1_000L, end = 2_000L),
+            ActivePeriod(start = 5_000L, end = 6_000L)
+        ))
+        val result = MtaAlertParser.filterByActivePeriod(listOf(alert), nowSeconds = 3_500L)
+        assertTrue(result.isEmpty())
+    }
+
+    @Test
+    fun `multiple periods one currently active is included`() {
+        val alert = makeAlert(listOf(
+            ActivePeriod(start = 1_000L, end = 2_000L),
+            ActivePeriod(start = 5_000L, end = 6_000L)
+        ))
+        val result = MtaAlertParser.filterByActivePeriod(listOf(alert), nowSeconds = 5_500L)
+        assertEquals(1, result.size)
+    }
+
+    @Test
+    fun `open-ended period already started is included`() {
+        val alert = makeAlert(listOf(ActivePeriod(start = 1_000L, end = 0L)))
+        val result = MtaAlertParser.filterByActivePeriod(listOf(alert), nowSeconds = 9_999_999L)
+        assertEquals(1, result.size)
+    }
+
+    @Test
+    fun `open-ended period not yet started is excluded`() {
+        val alert = makeAlert(listOf(ActivePeriod(start = 9_000L, end = 0L)))
+        val result = MtaAlertParser.filterByActivePeriod(listOf(alert), nowSeconds = 1_000L)
+        assertTrue(result.isEmpty())
+    }
+
+    @Test
+    fun `boundary now equals start is included`() {
+        val alert = makeAlert(listOf(ActivePeriod(start = 5_000L, end = 10_000L)))
+        val result = MtaAlertParser.filterByActivePeriod(listOf(alert), nowSeconds = 5_000L)
+        assertEquals(1, result.size)
+    }
+
+    @Test
+    fun `boundary now equals end is included`() {
+        val alert = makeAlert(listOf(ActivePeriod(start = 5_000L, end = 10_000L)))
+        val result = MtaAlertParser.filterByActivePeriod(listOf(alert), nowSeconds = 10_000L)
+        assertEquals(1, result.size)
+    }
 }

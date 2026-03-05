@@ -3,11 +3,14 @@ package com.commutebuddy.app
 import org.json.JSONArray
 import org.json.JSONObject
 
+data class ActivePeriod(val start: Long, val end: Long)
+
 data class MtaAlert(
     val headerText: String,
     val descriptionText: String?,
     val routeIds: Set<String>,
-    val alertType: String?
+    val alertType: String?,
+    val activePeriods: List<ActivePeriod> = emptyList()
 )
 
 val MONITORED_ROUTES = setOf("N", "W", "4", "5", "6")
@@ -42,11 +45,14 @@ object MtaAlertParser {
                 ?.optString("alert_type")
                 ?.takeIf { it.isNotEmpty() }
 
+            val activePeriods = parseActivePeriods(alert.optJSONArray("active_period"))
+
             MtaAlert(
                 headerText = headerText,
                 descriptionText = descriptionText,
                 routeIds = routeIds,
-                alertType = alertType
+                alertType = alertType,
+                activePeriods = activePeriods
             )
         } catch (e: Exception) {
             null
@@ -76,8 +82,30 @@ object MtaAlertParser {
         return routeIds
     }
 
+    private fun parseActivePeriods(periodsArray: JSONArray?): List<ActivePeriod> {
+        if (periodsArray == null) return emptyList()
+        val result = mutableListOf<ActivePeriod>()
+        for (i in 0 until periodsArray.length()) {
+            val period = periodsArray.optJSONObject(i) ?: continue
+            val start = period.optLong("start", 0L)
+            val end = period.optLong("end", 0L)
+            result.add(ActivePeriod(start = start, end = end))
+        }
+        return result
+    }
+
     fun filterByRoutes(alerts: List<MtaAlert>, routes: Set<String>): List<MtaAlert> {
         return alerts.filter { alert -> alert.routeIds.any { it in routes } }
+    }
+
+    fun filterByActivePeriod(alerts: List<MtaAlert>, nowSeconds: Long): List<MtaAlert> {
+        return alerts.filter { alert ->
+            if (alert.activePeriods.isEmpty()) return@filter true
+            alert.activePeriods.any { period ->
+                (period.start == 0L || nowSeconds >= period.start) &&
+                (period.end == 0L || nowSeconds <= period.end)
+            }
+        }
     }
 
     fun buildPromptText(alerts: List<MtaAlert>): String {

@@ -358,7 +358,8 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
                     resultsTextView.text = getString(R.string.live_parse_error, "no entities parsed")
                     return@launch
                 }
-                val filtered = MtaAlertParser.filterByRoutes(alerts, MONITORED_ROUTES)
+                val routeFiltered = MtaAlertParser.filterByRoutes(alerts, MONITORED_ROUTES)
+                val filtered = MtaAlertParser.filterByActivePeriod(routeFiltered, System.currentTimeMillis() / 1000)
                 if (filtered.isEmpty()) {
                     val routeList = MONITORED_ROUTES.joinToString(", ")
                     resultsTextView.text = getString(R.string.live_no_alerts, routeList)
