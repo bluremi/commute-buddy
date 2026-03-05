@@ -48,6 +48,16 @@ When the watch Glance is viewed, it instantly displays the cached status — no 
 - **Graceful error handling:** network errors (detected by walking the SDK exception cause chain for `IOException`), model-not-found (displays actionable fix), quota exceeded, and empty responses all show clear messages without crashing
 - **Model name is configurable** via `local.properties` (`GEMINI_MODEL_NAME`) without a code change — just edit the property and rebuild; defaults to `gemini-2.5-flash`
 
+### Live MTA Alert Pipeline (FEAT-03) — Validated End-to-End Alert Summarization
+- **"Fetch Live" button** in the Android app triggers the full pipeline on demand: fetch → parse → route-filter → active-period-filter → Gemini summarization → display
+- **`MtaAlertFetcher`** makes an authenticated-free HTTP GET to `https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/camsys%2Fsubway-alerts.json` on a background coroutine (`Dispatchers.IO`), with 10s connect / 15s read timeouts, returning `Result<String>`
+- **`MtaAlertParser`** parses the GTFS-RT JSON response: extracts `header_text` and `description_text` using the `language: "en"` plain-text translation (explicitly ignoring `en-html`), collects all `route_id` values from `informed_entity[]` (ignoring stop-only entries), and reads the `alert_type` from the Mercury extension
+- **Route filtering:** only alerts whose `informed_entity[].route_id` intersects the hardcoded set `{N, W, 4, 5, 6}` (defined as `MONITORED_ROUTES`) are forwarded to Gemini; no matching alerts → "Good Service" message, no API call
+- **Active-period filtering:** alerts carrying `active_period[]` windows are only included if the current Unix time falls within at least one window (inclusive boundaries; `end == 0` = open-ended). Alerts with no `active_period` entries are always included (GTFS-RT spec). This eliminates false positives from standing overnight/weekend advisories during normal service hours
+- **Gemini summarization** of filtered, concatenated alert text uses the existing `ApiRateLimiter` and `CommuteStatus` schema — output is displayed with a `LIVE OUTPUT:` prefix in the same format as FEAT-02 tier tests
+- FEAT-02 tier buttons remain in the UI for debugging and comparison
+- Network errors, parse failures, and empty feeds each produce a clear user-facing message without crashing
+
 ## Technical Architecture
 
 ### Tech Stack
@@ -64,7 +74,7 @@ When the watch Glance is viewed, it instantly displays the cached status — no 
 
 **Monorepo** structure — both apps are tightly coupled through the BLE message schema.
 
-- **Android app** (`android/`): `MainActivity.kt` initializes the Connect IQ SDK on launch, discovers the paired Garmin device, verifies the watch app is installed, and sends a payload via `ConnectIQ.sendMessage()`. Currently triggered by explicit button press; future stories will move this to a Foreground Service with scheduled polling. The data pipeline is: fetch full GTFS-RT protobuf → deserialize with protobuf-java → filter to user's configured routes → extract alert text → send filtered text to Gemini 2.5 Flash cloud API for summarization into a strict JSON schema (`status`, `route_string`, `reason`, `timestamp`) → validate/deserialize → transmit to watch. All API calls pass through `ApiRateLimiter` — a multi-layer rate limiter (persisted daily cap, per-minute limit, cooldown, single-flight mutex) that survives app restarts and prevents runaway costs.
+- **Android app** (`android/`): `MainActivity.kt` initializes the Connect IQ SDK on launch, discovers the paired Garmin device, verifies the watch app is installed, and sends a payload via `ConnectIQ.sendMessage()`. Currently triggered by explicit button press; future stories will move this to a Foreground Service with scheduled polling. The live data pipeline is: `MtaAlertFetcher.fetchAlerts()` (HTTP GET, background coroutine) → `MtaAlertParser.parseAlerts()` (JSON, extracts `en` plain-text translations) → `filterByRoutes()` (keep `MONITORED_ROUTES`) → `filterByActivePeriod()` (exclude advisories outside their scheduled windows) → `buildPromptText()` → Gemini 2.5 Flash summarization → `CommuteStatus.fromJson()` → display. All API calls pass through `ApiRateLimiter` — a multi-layer rate limiter (persisted daily cap, per-minute limit, cooldown, single-flight mutex) that survives app restarts and prevents runaway costs.
 - **Garmin app** (`garmin/`): `CommuteBuddyApp.mc` registers for phone messages in `onStart()` via `Communications.registerForPhoneAppMessages()`. On message receipt, stores data in `Application.Storage` and calls `WatchUi.requestUpdate()`. `CommuteBuddyGlanceView.mc` reads from Storage on every `onUpdate()` — renders status or "Waiting..." as fallback.
 - Apps do not share source code; they share a BLE message schema documented in `shared/schema.json`.
 
@@ -80,13 +90,15 @@ commute-buddy/
 │       └── src/main/
 │           ├── AndroidManifest.xml                 # BLUETOOTH_SCAN, BLUETOOTH_CONNECT permissions
 │           ├── kotlin/com/commutebuddy/app/
-│           │   ├── MainActivity.kt                 # SDK init, device discovery, send logic, status UI, AI POC (4 tier buttons, rate limiter wiring)
-│           │   ├── CommuteStatus.kt                # BLE schema data class (status/route_string/reason/timestamp); JSON deserialization; display labels
-│           │   ├── ApiRateLimiter.kt               # Multi-layer rate limiter (daily cap, per-minute, cooldown, single-flight); injectable clock for unit tests
-│           │   └── MtaTestData.kt                  # Hardcoded real MTA alert strings (4 tiers) for FEAT-02 POC
-│           └── res/
-│               ├── layout/activity_main.xml        # Send Code UI + AI POC section (2×2 tier buttons, scrollable results)
-│               └── values/strings.xml
+│           │   ├── MainActivity.kt                 # SDK init, device discovery, send logic, status UI, AI POC (4 tier buttons), Fetch Live pipeline
+    │           │   ├── CommuteStatus.kt                # BLE schema data class (status/route_string/reason/timestamp); JSON deserialization; display labels
+    │           │   ├── ApiRateLimiter.kt               # Multi-layer rate limiter (daily cap, per-minute, cooldown, single-flight); injectable clock for unit tests
+    │           │   ├── MtaTestData.kt                  # Hardcoded real MTA alert strings (4 tiers) for FEAT-02 POC
+    │           │   ├── MtaAlertFetcher.kt              # suspend fetchAlerts(): HTTP GET subway-alerts.json feed; Result<String>; Dispatchers.IO; 10s/15s timeouts
+    │           │   └── MtaAlertParser.kt               # parseAlerts(), filterByRoutes(), filterByActivePeriod(), buildPromptText(); MtaAlert + ActivePeriod data classes; MONITORED_ROUTES constant
+    │           └── res/
+    │               ├── layout/activity_main.xml        # Send Code UI + Live MTA Alerts section (Fetch Live button) + AI POC section (2×2 tier buttons, scrollable results)
+    │               └── values/strings.xml
 ├── garmin/                                         # Open in VS Code
 │   ├── monkey.jungle                               # Build config, references manifest.xml
 │   ├── manifest.xml                                # Target: venu3, permission: Communications
@@ -133,7 +145,7 @@ Set-Location "a:\Phil\Phil Docs\Development\commute-buddy\android"
 
 **Garmin Memory Limits:** Never parse MTA protobuf or JSON on the watch. Monkey C apps have ~32KB memory for background/glance. Keep BLE payload under 1KB. All heavy lifting (protobuf parsing, AI summarization) happens on Android.
 
-**MTA Alert Text Characteristics:** Real MTA GTFS-RT alerts vary dramatically in length and complexity. Each alert has a `header_text` (plain text, `language: "en"`) and an optional `description_text`. Alerts use bracket notation for routes (`[A]`, `[4]`, `[shuttle bus icon]`, `[accessibility icon]`) and structured sections ("What's happening?", "Travel Alternatives:", "ADA Customers:"). Short alerts (real-time delays) are ~100 chars with no description. Medium alerts (single reroute) are ~500-600 chars. Long alerts (weekend planned work with suspensions, shuttle buses, multi-line transfers, ADA notices) are 800-1500+ chars. Weekend construction alerts affecting multiple lines can be significantly longer. The preprocessing pipeline (FEAT-03) must filter by `informed_entity.route_id` and extract the `en` plain-text translation before passing to Gemini 2.5 Flash.
+**MTA Alert Text Characteristics:** Real MTA GTFS-RT alerts vary dramatically in length and complexity. Each alert has a `header_text` (plain text, `language: "en"`) and an optional `description_text`. Alerts use bracket notation for routes (`[A]`, `[4]`, `[shuttle bus icon]`, `[accessibility icon]`) and structured sections ("What's happening?", "Travel Alternatives:", "ADA Customers:"). Short alerts (real-time delays) are ~100 chars with no description. Medium alerts (single reroute) are ~500-600 chars. Long alerts (weekend planned work with suspensions, shuttle buses, multi-line transfers, ADA notices) are 800-1500+ chars. Weekend construction alerts affecting multiple lines can be significantly longer. The pipeline filters by `informed_entity.route_id`, enforces `active_period` windows (standing overnight/weekend advisories carry explicit time windows; without filtering these cause false positives during normal service hours), and extracts the `en` plain-text translation before passing to Gemini 2.5 Flash. Unit tests use `org.json:json:20250107` (`testImplementation`) because `org.json.JSONObject` is a stub in the Android JVM unit test environment.
 
 **Garmin SDK Caution:** Monkey C and Connect IQ SDK update frequently. LLMs often hallucinate syntax or use deprecated methods. Always verify against latest Toybox.Communications and UI docs. **Android SDK:** The official "Mobile SDK for Android" guide may show `getStatus()` — in SDK 2.3.0 use `getDeviceStatus()`. Use `IQDevice.IQDeviceStatus`, not `ConnectIQ.IQDeviceStatus`. See `docs/garmin/android-sdk-api-notes.md` for correct API usage.
 
@@ -148,7 +160,7 @@ Set-Location "a:\Phil\Phil Docs\Development\commute-buddy\android"
 ### Features
 - [x] FEAT-01: Steel Thread — Phone generates random 4-digit code, watch displays it (validates build env, BLE, and background execution)
 - [x] FEAT-02: AI Summarization POC — Validate Gemini 2.5 Flash cloud API can reliably parse MTA alert text into the strict JSON schema (with strict cost safeguards)
-- [ ] FEAT-03: MTA GTFS-RT data fetching, protobuf parsing, and route filtering on Android (preprocessing pipeline that feeds Gemini 2.5 Flash; routes/direction hardcoded initially)
+- [x] FEAT-03: MTA GTFS-RT data fetching, protobuf parsing, and route filtering on Android (preprocessing pipeline that feeds Gemini 2.5 Flash; routes/direction hardcoded initially)
 - [ ] FEAT-04: Route status summary generation and BLE push to watch
 - [ ] FEAT-05: Garmin Glance UI displaying train status from BLE messages
 - [ ] FEAT-06: Configurable commute window with scheduled background polling
