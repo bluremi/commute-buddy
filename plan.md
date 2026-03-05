@@ -69,12 +69,12 @@ The Decision Prompt POC validated that Gemini Flash can reliably classify alerts
 **Testing:** Run unit tests via Gradle: `& $gradle :app:testDebugUnitTest --tests "com.commutebuddy.app.CommuteStatusTest"`. All new tests must pass.
 **Model: Sonnet** | Reason: `fromJson()` validation logic needs care — optional reroute_hint, NORMAL allowing empty affected_routes, and markdown-fence stripping.
 
-#### Increment 2: MtaAlertParser structured prompt + expanded routes
-- [ ] Expand `MONITORED_ROUTES` from `{N, W, 4, 5, 6}` to `{N, W, 4, 5, 6, R, 7}`
-- [ ] Add `createdAt: Long?` field to `MtaAlert` data class (Mercury extension `created_at` timestamp)
-- [ ] Extract `created_at` from `transit_realtime.mercury_alert` in `parseEntity()`
-- [ ] Rewrite `buildPromptText(alerts, direction, nowSeconds)` to emit the structured per-alert format from `docs/decision-prompt.md`: header line with current time (ISO 8601) + direction, then each alert as a `---` delimited block with Routes, Type, Posted (ISO 8601), Active period, Header, Description fields. Handle missing active periods ("not specified"), missing description ("none"), missing createdAt ("unknown")
-- [ ] Update `MtaAlertParserTest.kt`: add tests for R/7 alerts passing route filter, verify structured `buildPromptText()` output format (ISO timestamps, field labels, delimiter structure, "none"/"not specified" fallbacks), update existing `buildPromptText` tests for new signature
+#### Increment 2: MtaAlertParser structured prompt + expanded routes ✅
+- [x] Expand `MONITORED_ROUTES` from `{N, W, 4, 5, 6}` to `{N, W, 4, 5, 6, R, 7}`
+- [x] Add `createdAt: Long?` field to `MtaAlert` data class (Mercury extension `created_at` timestamp)
+- [x] Extract `created_at` from `transit_realtime.mercury_alert` in `parseEntity()`
+- [x] Rewrite `buildPromptText(alerts, direction, nowSeconds)` to emit the structured per-alert format from `docs/decision-prompt.md`: header line with current time (ISO 8601) + direction, then each alert as a `---` delimited block with Routes, Type, Posted (ISO 8601), Active period, Header, Description fields. Handle missing active periods ("not specified"), missing description ("none"), missing createdAt ("unknown")
+- [x] Update `MtaAlertParserTest.kt`: add tests for R/7 alerts passing route filter, verify structured `buildPromptText()` output format (ISO timestamps, field labels, delimiter structure, "none"/"not specified" fallbacks), update existing `buildPromptText` tests for new signature
 
 **Testing:** Run unit tests via Gradle: `& $gradle :app:testDebugUnitTest --tests "com.commutebuddy.app.MtaAlertParserTest"`. All new and updated tests must pass.
 **Model: Sonnet** | Reason: Structured prompt format must exactly match the validated decision-prompt.md template; ISO timestamp formatting and edge cases for missing fields.
