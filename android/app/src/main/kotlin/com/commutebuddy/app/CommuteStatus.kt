@@ -4,30 +4,32 @@ import org.json.JSONObject
 
 /**
  * Commute status payload matching the BLE schema (shared/schema.json).
- * Produced by on-device Gemini Nano summarization of raw MTA alert text.
+ * Produced by Gemini decision engine classification of raw MTA alert text.
  */
 data class CommuteStatus(
-    val status: Int,
-    val routeString: String,
-    val reason: String,
+    val action: String,
+    val summary: String,
+    val affectedRoutes: String,
+    val rerouteHint: String?,
     val timestamp: Long
 ) {
     companion object {
-        /** 0 = Normal (good service), 1 = Deviate (delays/planned work), 2 = Disrupted (major disruption/suspended) */
-        const val STATUS_NORMAL = 0
-        const val STATUS_DEVIATE = 1
-        const val STATUS_ERROR = 2  // legacy name; displayed as "Disrupted"
+        const val ACTION_NORMAL = "NORMAL"
+        const val ACTION_MINOR_DELAYS = "MINOR_DELAYS"
+        const val ACTION_REROUTE = "REROUTE"
+        const val ACTION_STAY_HOME = "STAY_HOME"
+
+        val VALID_ACTIONS = setOf(ACTION_NORMAL, ACTION_MINOR_DELAYS, ACTION_REROUTE, ACTION_STAY_HOME)
 
         /**
          * Parses a JSON string into a CommuteStatus.
-         * Expects keys: status, route_string, reason, timestamp.
+         * Expects keys: action, summary, affected_routes, timestamp; optional: reroute_hint.
          * Handles Gemini responses wrapped in markdown code fences (e.g. ```json ... ```).
-         * @throws IllegalArgumentException if JSON is invalid or required fields are missing
+         * NORMAL action allows empty affected_routes.
+         * @throws IllegalArgumentException if JSON is invalid or required fields are missing/invalid
          */
         fun fromJson(json: String): CommuteStatus {
             val trimmed = json.trim()
-            // Extract JSON object: Gemini sometimes wraps in ```json ... ```; removeSurrounding
-            // fails when start/end delimiters differ. Find first { and last } for robustness.
             val start = trimmed.indexOf('{')
             val end = trimmed.lastIndexOf('}')
             val jsonStr = if (start >= 0 && end > start) trimmed.substring(start, end + 1) else trimmed
@@ -36,35 +38,53 @@ data class CommuteStatus(
             } catch (e: Exception) {
                 throw IllegalArgumentException("Invalid JSON: ${e.message}", e)
             }
+
+            val action = obj.optString("action")
+                .takeIf { it in VALID_ACTIONS }
+                ?: throw IllegalArgumentException(
+                    "Missing or invalid 'action' (must be one of $VALID_ACTIONS)"
+                )
+
+            val summary = obj.optString("summary")
+                .takeIf { it.isNotBlank() }
+                ?: throw IllegalArgumentException("Missing or empty 'summary'")
+
+            val affectedRoutes = obj.optString("affected_routes")
+            if (action != ACTION_NORMAL && affectedRoutes.isBlank()) {
+                throw IllegalArgumentException("'affected_routes' must be non-empty for action '$action'")
+            }
+
+            val rerouteHint = obj.optString("reroute_hint", "").ifBlank { null }
+
+            val timestamp = obj.optLong("timestamp", -1L).takeIf { it >= 0 }
+                ?: throw IllegalArgumentException("Missing or invalid 'timestamp' (must be epoch seconds)")
+
             return CommuteStatus(
-                status = obj.optInt("status", -1).takeIf { it in 0..2 }
-                    ?: throw IllegalArgumentException("Missing or invalid 'status' (must be 0, 1, or 2)"),
-                routeString = obj.optString("route_string")
-                    .takeIf { it.isNotBlank() }
-                    ?: throw IllegalArgumentException("Missing or empty 'route_string'"),
-                reason = obj.optString("reason")
-                    .takeIf { it.isNotBlank() }
-                    ?: throw IllegalArgumentException("Missing or empty 'reason'"),
-                timestamp = obj.optLong("timestamp", -1L).takeIf { it >= 0 }
-                    ?: throw IllegalArgumentException("Missing or invalid 'timestamp' (must be epoch seconds)")
+                action = action,
+                summary = summary,
+                affectedRoutes = affectedRoutes,
+                rerouteHint = rerouteHint,
+                timestamp = timestamp
             )
         }
     }
 
-    /** Human-readable status label */
+    /** Human-readable label for the action tier */
     val statusLabel: String
-        get() = when (status) {
-            STATUS_NORMAL -> "Normal"
-            STATUS_DEVIATE -> "Delays"
-            STATUS_ERROR -> "Disrupted"
+        get() = when (action) {
+            ACTION_NORMAL -> "Normal"
+            ACTION_MINOR_DELAYS -> "Minor Delays"
+            ACTION_REROUTE -> "Reroute"
+            ACTION_STAY_HOME -> "Stay Home"
             else -> "Unknown"
         }
 
     /** Converts to a Connect IQ-compatible Map for BLE transmission. Keys match shared/schema.json. */
-    fun toConnectIQMap(): Map<String, Any> = mapOf(
-        "status" to status,
-        "route_string" to routeString,
-        "reason" to reason,
-        "timestamp" to timestamp
-    )
+    fun toConnectIQMap(): Map<String, Any> = buildMap {
+        put("action", action)
+        put("summary", summary)
+        put("affected_routes", affectedRoutes)
+        if (rerouteHint != null) put("reroute_hint", rerouteHint)
+        put("timestamp", timestamp)
+    }
 }

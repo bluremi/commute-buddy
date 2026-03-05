@@ -249,9 +249,9 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
                                     appendLine("⚠ $warning")
                                 }
                                 appendLine()
-                                appendLine(getString(R.string.ai_result_status, parsed.status, parsed.statusLabel))
-                                appendLine(getString(R.string.ai_result_route, parsed.routeString))
-                                appendLine(getString(R.string.ai_result_reason, parsed.reason))
+                                appendLine(getString(R.string.ai_result_status, parsed.action, parsed.statusLabel))
+                                appendLine(getString(R.string.ai_result_route, parsed.affectedRoutes))
+                                appendLine(getString(R.string.ai_result_reason, parsed.summary))
                                 append(getString(R.string.ai_result_time, parsed.timestamp))
                             }
                         } catch (e: Exception) {
@@ -297,8 +297,8 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
                 if (fetchResult.isFailure) {
                     Log.e(TAG, "MTA fetch failed", fetchResult.exceptionOrNull())
                     resultsTextView.text = getString(R.string.live_fetch_error)
-                    val errMsg = (fetchResult.exceptionOrNull()?.message ?: "Fetch failed").take(40)
-                    sendCommuteStatus(CommuteStatus(CommuteStatus.STATUS_ERROR, MONITORED_ROUTES.joinToString(","), errMsg, System.currentTimeMillis() / 1000))
+                    val errMsg = (fetchResult.exceptionOrNull()?.message ?: "Fetch failed").take(80)
+                    sendCommuteStatus(CommuteStatus(action = CommuteStatus.ACTION_NORMAL, summary = errMsg, affectedRoutes = "", rerouteHint = null, timestamp = System.currentTimeMillis() / 1000))
                     return@launch
                 }
                 val jsonString = fetchResult.getOrThrow()
@@ -308,7 +308,7 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
                 val alerts = MtaAlertParser.parseAlerts(jsonString)
                 if (alerts.isEmpty() && jsonString.isNotBlank()) {
                     resultsTextView.text = getString(R.string.live_parse_error, "no entities parsed")
-                    sendCommuteStatus(CommuteStatus(CommuteStatus.STATUS_ERROR, MONITORED_ROUTES.joinToString(","), "Feed parse error", System.currentTimeMillis() / 1000))
+                    sendCommuteStatus(CommuteStatus(action = CommuteStatus.ACTION_NORMAL, summary = "Feed parse error", affectedRoutes = "", rerouteHint = null, timestamp = System.currentTimeMillis() / 1000))
                     return@launch
                 }
                 val routeFiltered = MtaAlertParser.filterByRoutes(alerts, MONITORED_ROUTES)
@@ -316,7 +316,7 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
                 if (filtered.isEmpty()) {
                     val routeList = MONITORED_ROUTES.joinToString(", ")
                     resultsTextView.text = getString(R.string.live_no_alerts, routeList)
-                    sendCommuteStatus(CommuteStatus(CommuteStatus.STATUS_NORMAL, MONITORED_ROUTES.joinToString(","), "Good service", System.currentTimeMillis() / 1000))
+                    sendCommuteStatus(CommuteStatus(action = CommuteStatus.ACTION_NORMAL, summary = "Good service", affectedRoutes = "", rerouteHint = null, timestamp = System.currentTimeMillis() / 1000))
                     return@launch
                 }
 
@@ -344,9 +344,9 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
                                     appendLine(prefix)
                                     if (warning != null) appendLine("⚠ $warning")
                                     appendLine()
-                                    appendLine(getString(R.string.ai_result_status, parsed.status, parsed.statusLabel))
-                                    appendLine(getString(R.string.ai_result_route, parsed.routeString))
-                                    appendLine(getString(R.string.ai_result_reason, parsed.reason))
+                                    appendLine(getString(R.string.ai_result_status, parsed.action, parsed.statusLabel))
+                                    appendLine(getString(R.string.ai_result_route, parsed.affectedRoutes))
+                                    appendLine(getString(R.string.ai_result_reason, parsed.summary))
                                     append(getString(R.string.ai_result_time, parsed.timestamp))
                                 }
                                 sendCommuteStatus(parsed)
@@ -359,14 +359,14 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
                                     appendLine(getString(R.string.ai_result_raw_output))
                                     append(rawText)
                                 }
-                                val errMsg = (e.message ?: "Parse failed").take(40)
-                                sendCommuteStatus(CommuteStatus(CommuteStatus.STATUS_ERROR, MONITORED_ROUTES.joinToString(","), errMsg, System.currentTimeMillis() / 1000))
+                                val errMsg = (e.message ?: "Parse failed").take(80)
+                                sendCommuteStatus(CommuteStatus(action = CommuteStatus.ACTION_NORMAL, summary = errMsg, affectedRoutes = "", rerouteHint = null, timestamp = System.currentTimeMillis() / 1000))
                             }
                         } catch (e: Exception) {
                             Log.e(TAG, "Gemini API error during live fetch", e)
                             resultsTextView.text = "$prefix\n${classifyApiError(e)}"
-                            val errMsg = (e.message ?: "API error").take(40)
-                            sendCommuteStatus(CommuteStatus(CommuteStatus.STATUS_ERROR, MONITORED_ROUTES.joinToString(","), errMsg, System.currentTimeMillis() / 1000))
+                            val errMsg = (e.message ?: "API error").take(80)
+                            sendCommuteStatus(CommuteStatus(action = CommuteStatus.ACTION_NORMAL, summary = errMsg, affectedRoutes = "", rerouteHint = null, timestamp = System.currentTimeMillis() / 1000))
                         } finally {
                             rateLimiter.setInFlight(false)
                         }
