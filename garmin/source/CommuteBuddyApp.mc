@@ -17,14 +17,37 @@ class CommuteBuddyApp extends Application.AppBase {
 
     function onPhoneMessage(msg as Communications.PhoneAppMessage) as Void {
         var data = msg.data;
-        if (data == null || !(data instanceof Number)) {
+        if (data == null || !(data instanceof Dictionary)) {
             return;
         }
-        var code = data as Number;
-        if (code < 1000 || code > 9999) {
+        var dict = data as Dictionary;
+
+        var status = dict.get("status");
+        var routeStr = dict.get("route_string");
+        var reason = dict.get("reason");
+        var timestamp = dict.get("timestamp");
+
+        // Validate required fields before storing — invalid/missing fields are silently ignored
+        if (!(status instanceof Number)) {
             return;
         }
-        Application.Storage.setValue("code", code);
+        var statusNum = status as Number;
+        if (statusNum < 0 || statusNum > 2) {
+            return;
+        }
+        if (!(routeStr instanceof String)) {
+            return;
+        }
+        if (!(reason instanceof String)) {
+            return;
+        }
+
+        Application.Storage.setValue("cs_status", statusNum);
+        Application.Storage.setValue("cs_route", routeStr as String);
+        Application.Storage.setValue("cs_reason", reason as String);
+        if (timestamp instanceof Number) {
+            Application.Storage.setValue("cs_timestamp", timestamp as Number);
+        }
         WatchUi.requestUpdate();
     }
 
