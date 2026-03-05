@@ -57,14 +57,14 @@ The Decision Prompt POC validated that Gemini Flash can reliably classify alerts
 
 ### Implementation Plan
 
-#### Increment 1: CommuteStatus data class + BLE schema
-- [ ] Rewrite `CommuteStatus.kt`: replace `status: Int` / `routeString` / `reason` with `action: String` / `summary: String` / `affectedRoutes: String` / `rerouteHint: String?` / `timestamp: Long`
-- [ ] Replace constants `STATUS_NORMAL` / `STATUS_DEVIATE` / `STATUS_ERROR` with `ACTION_NORMAL` / `ACTION_MINOR_DELAYS` / `ACTION_REROUTE` / `ACTION_STAY_HOME` string constants and a `VALID_ACTIONS` set
-- [ ] Update `fromJson()`: validate `action` is one of the four valid tiers, `summary` is non-empty, `affectedRoutes` may be empty for NORMAL, parse optional `reroute_hint`
-- [ ] Update `toConnectIQMap()`: emit keys `action`, `summary`, `affected_routes`, `reroute_hint` (only if non-null), `timestamp`
-- [ ] Update `statusLabel` to map action strings to display labels ("Normal", "Minor Delays", "Reroute", "Stay Home")
-- [ ] Update `shared/schema.json` to document the new message format (action string, summary, affected_routes, reroute_hint optional, timestamp)
-- [ ] Rewrite `CommuteStatusTest.kt`: test `fromJson()` for all four action tiers, optional `reroute_hint`, NORMAL with empty `affected_routes`, invalid action rejection, `toConnectIQMap()` keys/values/types
+#### Increment 1: CommuteStatus data class + BLE schema ✅
+- [x] Rewrite `CommuteStatus.kt`: replace `status: Int` / `routeString` / `reason` with `action: String` / `summary: String` / `affectedRoutes: String` / `rerouteHint: String?` / `timestamp: Long`
+- [x] Replace constants `STATUS_NORMAL` / `STATUS_DEVIATE` / `STATUS_ERROR` with `ACTION_NORMAL` / `ACTION_MINOR_DELAYS` / `ACTION_REROUTE` / `ACTION_STAY_HOME` string constants and a `VALID_ACTIONS` set
+- [x] Update `fromJson()`: validate `action` is one of the four valid tiers, `summary` is non-empty, `affectedRoutes` may be empty for NORMAL, parse optional `reroute_hint`
+- [x] Update `toConnectIQMap()`: emit keys `action`, `summary`, `affected_routes`, `reroute_hint` (only if non-null), `timestamp`
+- [x] Update `statusLabel` to map action strings to display labels ("Normal", "Minor Delays", "Reroute", "Stay Home")
+- [x] Update `shared/schema.json` to document the new message format (action string, summary, affected_routes, reroute_hint optional, timestamp)
+- [x] Rewrite `CommuteStatusTest.kt`: test `fromJson()` for all four action tiers, optional `reroute_hint`, NORMAL with empty `affected_routes`, invalid action rejection, `toConnectIQMap()` keys/values/types
 
 **Testing:** Run unit tests via Gradle: `& $gradle :app:testDebugUnitTest --tests "com.commutebuddy.app.CommuteStatusTest"`. All new tests must pass.
 **Model: Sonnet** | Reason: `fromJson()` validation logic needs care — optional reroute_hint, NORMAL allowing empty affected_routes, and markdown-fence stripping.
