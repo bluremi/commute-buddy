@@ -15,9 +15,14 @@ import androidx.lifecycle.lifecycleScope
 import com.garmin.android.connectiq.ConnectIQ
 import com.garmin.android.connectiq.IQApp
 import com.garmin.android.connectiq.IQDevice
-import com.google.ai.client.generativeai.GenerativeModel
-import com.google.ai.client.generativeai.type.content
-import com.google.ai.client.generativeai.type.generationConfig
+import com.google.firebase.Firebase
+import com.google.firebase.ai.GenerativeModel
+import com.google.firebase.ai.ai
+import com.google.firebase.ai.type.GenerativeBackend
+import com.google.firebase.ai.type.ThinkingLevel
+import com.google.firebase.ai.type.content
+import com.google.firebase.ai.type.generationConfig
+import com.google.firebase.ai.type.thinkingConfig
 import kotlinx.coroutines.launch
 import java.io.IOException
 
@@ -252,23 +257,20 @@ Respond with ONLY a JSON object matching this schema. No markdown fencing, no ex
 
     private fun initGeminiFlash() {
         setAllApiButtonsEnabled(false)
-
-        val apiKey = BuildConfig.GEMINI_API_KEY
-        if (apiKey.isBlank()) {
-            Log.w(TAG, "Gemini Flash: API key not configured")
-            resultsTextView.text = getString(R.string.ai_api_key_missing)
-            return
-        }
-
         val modelName = BuildConfig.GEMINI_MODEL_NAME
-        generativeModel = GenerativeModel(
-            modelName = modelName,
-            apiKey = apiKey,
-            generationConfig = generationConfig { temperature = 0f },
-            systemInstruction = content { text(SYSTEM_PROMPT) }
-        )
+        generativeModel = Firebase.ai(backend = GenerativeBackend.googleAI())
+            .generativeModel(
+                modelName = modelName,
+                generationConfig = generationConfig {
+                    temperature = 0f
+                    thinkingConfig = thinkingConfig {
+                        thinkingLevel = ThinkingLevel.LOW
+                    }
+                },
+                systemInstruction = content { text(SYSTEM_PROMPT) }
+            )
         setAllApiButtonsEnabled(true)
-        Log.d(TAG, "Gemini Flash: model ready ($modelName)")
+        Log.d(TAG, "Firebase AI: model ready ($modelName)")
         resultsTextView.text = getString(R.string.ai_model_ready, modelName)
     }
 
@@ -342,7 +344,7 @@ Respond with ONLY a JSON object matching this schema. No markdown fencing, no ex
 
     private fun onFetchLiveClicked() {
         val model = generativeModel ?: run {
-            resultsTextView.text = getString(R.string.ai_api_key_missing)
+            resultsTextView.text = getString(R.string.ai_model_not_ready)
             return
         }
 

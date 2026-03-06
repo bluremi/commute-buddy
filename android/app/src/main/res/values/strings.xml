@@ -29,6 +29,7 @@
     <string name="ai_model_ready">Model ready (%s)</string>
     <string name="ai_error_model_not_found">Model "%s" not found or deprecated — update GEMINI_MODEL_NAME in local.properties</string>
     <string name="ai_api_key_missing">API key not configured — see local.properties</string>
+    <string name="ai_model_not_ready">AI model not initialized — restart the app</string>
     <string name="ai_processing">Processing…</string>
     <string name="ai_parse_error">Parse error: %s</string>
     <string name="ai_result_status">Action: %1$s (%2$s)</string>

@@ -3,6 +3,7 @@ import java.util.Properties
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -14,7 +15,6 @@ android {
     if (localPropertiesFile.exists()) {
         localProperties.load(localPropertiesFile.inputStream())
     }
-    val geminiApiKey = localProperties.getProperty("GEMINI_API_KEY") ?: ""
     val geminiModelName = localProperties.getProperty("GEMINI_MODEL_NAME") ?: "gemini-flash-latest"
 
     defaultConfig {
@@ -23,7 +23,6 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
-        buildConfigField("String", "GEMINI_API_KEY", "\"$geminiApiKey\"")
         buildConfigField("String", "GEMINI_MODEL_NAME", "\"$geminiModelName\"")
     }
 
@@ -64,6 +63,7 @@ dependencies {
     implementation("com.garmin.connectiq:ciq-companion-app-sdk:2.3.0@aar") {
         isTransitive = true
     }
-    // Gemini 1.5 Flash cloud AI (Google GenAI SDK)
-    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
+    // Firebase AI Logic SDK (Gemini API with ThinkingConfig support)
+    implementation(platform("com.google.firebase:firebase-bom:34.10.0"))
+    implementation("com.google.firebase:firebase-ai")
 }
