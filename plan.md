@@ -81,12 +81,12 @@ Currently the commute profile is hardcoded in `MainActivity.kt` as a `SYSTEM_PRO
 **Model: Sonnet** | Reason: Cross-file wiring with state management -- needs to correctly thread profile/direction through the pipeline without breaking existing behavior.
 
 #### Increment 3: Configuration Activity with text-based line input
-- [ ] Create `activity_commute_profile.xml` layout: two sections (TO_WORK, TO_HOME) each with a vertical list of leg cards + "Add Leg" button; below both sections, an alternates field; Save button at bottom; entire form scrollable
-- [ ] Each leg card contains: a lines text field (comma-separated, e.g. "N,W"), a direction `Spinner` (fixed options: Manhattan-bound, Queens-bound, Uptown, Downtown, Bronx-bound, Brooklyn-bound), from/to station text fields, and a remove button
-- [ ] Create `CommuteProfileActivity.kt` -- loads profile from `CommuteProfileRepository` on create, populates the form, dynamically adds/removes leg card views; Save validates (at least one leg per direction, each leg has lines + direction + stations), persists via repository, and finishes the activity
-- [ ] Add "Configure Commute" button to `activity_main.xml` (above the direction toggle); launches `CommuteProfileActivity`; on return (`onResume`), reload profile from repository and re-initialize `GenerativeModel` with updated system prompt
-- [ ] Register `CommuteProfileActivity` in `AndroidManifest.xml`
-- [ ] Add string resources for the configuration screen labels and validation messages
+- [x] Create `activity_commute_profile.xml` layout: two sections (TO_WORK, TO_HOME) each with a vertical list of leg cards + "Add Leg" button; below both sections, an alternates field; Save button at bottom; entire form scrollable
+- [x] Each leg card contains: a lines text field (comma-separated, e.g. "N,W"), a direction `Spinner` (fixed options: Manhattan-bound, Queens-bound, Uptown, Downtown, Bronx-bound, Brooklyn-bound), from/to station text fields, and a remove button
+- [x] Create `CommuteProfileActivity.kt` -- loads profile from `CommuteProfileRepository` on create, populates the form, dynamically adds/removes leg card views; Save validates (at least one leg per direction, each leg has lines + direction + stations), persists via repository, and finishes the activity
+- [x] Add "Configure Commute" button to `activity_main.xml` (above the direction toggle); launches `CommuteProfileActivity`; on return (`onResume`), reload profile from repository and re-initialize `GenerativeModel` with updated system prompt
+- [x] Register `CommuteProfileActivity` in `AndroidManifest.xml`
+- [x] Add string resources for the configuration screen labels and validation messages
 
 **Testing:** Deploy to phone. Tap "Configure Commute", verify default Astoria legs appear. Edit a station name, save, return to main screen, "Fetch Live" -- confirm pipeline uses updated profile. Add a leg, remove a leg, verify validation catches empty fields. Kill and restart app -- verify profile persists.
 **Model: Sonnet** | Reason: New Activity with dynamic view management, form validation, and lifecycle integration -- needs careful handling of view inflation, state, and data flow.
