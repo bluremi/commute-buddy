@@ -98,12 +98,12 @@ Currently, the entire pipeline (MTA fetch -> parse -> filter -> Gemini decision 
 **Model: Sonnet** | Reason: New activity with time pickers and data model with boundary logic needs careful implementation.
 
 #### Increment 4: Foreground Service skeleton with start/stop
-- [ ] Create `PollingForegroundService.kt` extending `Service` -- `onStartCommand()` creates a persistent notification and calls `startForeground()`; `onDestroy()` cleans up
-- [ ] Create notification channel `commute_polling` on app startup (in `MainActivity.onCreate()` or an `Application` subclass)
-- [ ] Declare `<service android:foregroundServiceType="dataSync">` and `FOREGROUND_SERVICE_DATA_SYNC` + `POST_NOTIFICATIONS` permissions in `AndroidManifest.xml`
-- [ ] Wire `PollingSettingsActivity` Save button to start/stop the service based on the enabled toggle (use `startForegroundService()` / `stopService()`)
-- [ ] Also start the service from `MainActivity.onCreate()` if settings show enabled=true
-- [ ] Notification shows static text for now: "Commute Buddy -- Polling active"
+- [x] Create `PollingForegroundService.kt` extending `Service` -- `onStartCommand()` creates a persistent notification and calls `startForeground()`; `onDestroy()` cleans up
+- [x] Create notification channel `commute_polling` on app startup (in `MainActivity.onCreate()` or an `Application` subclass)
+- [x] Declare `<service android:foregroundServiceType="dataSync">` and `FOREGROUND_SERVICE_DATA_SYNC` + `POST_NOTIFICATIONS` permissions in `AndroidManifest.xml`
+- [x] Wire `PollingSettingsActivity` Save button to start/stop the service based on the enabled toggle (use `startForegroundService()` / `stopService()`)
+- [x] Also start the service from `MainActivity.onCreate()` if settings show enabled=true
+- [x] Notification shows static text for now: "Commute Buddy -- Polling active"
 
 **Testing:** Enable polling in settings, verify persistent notification appears and service is running (check via Settings > Apps > Running Services). Disable, verify notification disappears. Kill and reopen app with toggle on -- service should restart.
 **Model: Sonnet** | Reason: Foreground service lifecycle on Android 14+ has specific requirements (notification channels, service types, permissions) that need precise handling.
