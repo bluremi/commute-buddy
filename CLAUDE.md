@@ -55,6 +55,33 @@ When all increments in a story are marked complete:
 
 prd.md is the ground truth of what the project is. Keeping it accurate is as important as writing the code.
 
+## ADB Logcat on Windows
+
+**Do not use PowerShell pipeline filtering** (`| Select-String`, `| findstr`) with `adb logcat` — PowerShell mishandles the raw text stream and either hangs silently or throws `InputObjectNotBound` errors.
+
+**Use logcat's built-in `-e` flag instead** (device-side filtering, most reliable):
+```powershell
+adb -s <DEVICE_ID> logcat -e "PollingService|CommutePipeline|GenerativeModel|ConnectIQ"
+```
+
+**To target a specific device** (when emulator + phone are both connected):
+```powershell
+adb devices                          # list serial numbers
+adb -s 57171FDCQ008DS logcat -e "..." # target phone by serial
+```
+
+**To clear the buffer before a test:**
+```powershell
+adb -s <DEVICE_ID> logcat -c
+```
+
+**Key log tags for this project:**
+- `PollingService` — background polling loop, BLE send results, pre-flight checks
+- `CommutePipeline` — fetch/parse/filter/Gemini pipeline steps
+- `GenerativeModel` — Firebase AI SDK (Gemini calls)
+- `CommuteBuddy` — MainActivity (ConnectIQ SDK, device discovery)
+- `ConnectIQ` — Garmin SDK internals
+
 ## Windows / PowerShell Notes
 
 - **No `gradlew` scripts in the repo.** The `android/gradlew` and `android/gradlew.bat` wrapper scripts are not committed. Do NOT try `.\gradlew` or `.\gradlew.bat` — they don't exist. Use the Gradle binary from the cached wrapper distribution instead:
