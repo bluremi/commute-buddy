@@ -98,12 +98,15 @@ Good behavior:
 
 ## File-Level Guidance
 
-Likely files to touch:
+Current BUG-01 architecture (post-increment 4):
 
-- `garmin/source/CommuteBuddyView.mc` (replace manual-scroll rendering strategy)
-- `garmin/source/CommuteBuddyDelegate.mc` (remove or reduce legacy role)
-- `garmin/source/CommuteBuddyApp.mc` (wire initial view/delegate to new native paging flow)
-- Optional new helper file under `garmin/source/` for pagination/page model
+- `garmin/source/CommuteBuddyApp.mc` — `getInitialView()` returns `[ViewLoop, ViewLoopDelegate]` with `DetailPageFactory`
+- `garmin/source/DetailPageFactory.mc` — `ViewLoopFactory` that builds page model from storage and `DetailPagination`
+- `garmin/source/DetailPageView.mc` — single-page view for header + summary chunk
+- `garmin/source/DetailPageDelegate.mc` — minimal `BehaviorDelegate` for page views
+- `garmin/source/DetailPagination.mc` — deterministic summary chunking helper
+
+Obsolete (removed): `CommuteBuddyView.mc`, `CommuteBuddyDelegate.mc` (manual-scroll pattern)
 
 ## Pagination Test Vectors (DetailPagination.chunkSummary)
 
