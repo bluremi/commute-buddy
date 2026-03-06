@@ -2,6 +2,7 @@ package com.commutebuddy.app
 
 import android.app.TimePickerDialog
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
 import android.widget.Button
@@ -153,6 +154,12 @@ class PollingSettingsActivity : AppCompatActivity() {
             intervalMinutes = intervalSlider.value.toInt()
         )
         repository.save(settings)
+        val serviceIntent = Intent(this, PollingForegroundService::class.java)
+        if (settings.enabled) {
+            startForegroundService(serviceIntent)
+        } else {
+            stopService(serviceIntent)
+        }
         finish()
     }
 }

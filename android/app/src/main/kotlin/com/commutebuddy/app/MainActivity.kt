@@ -1,8 +1,11 @@
 package com.commutebuddy.app
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
@@ -132,6 +135,9 @@ class MainActivity : AppCompatActivity() {
             getSharedPreferences("rate_limiter", Context.MODE_PRIVATE)
         )
         initGeminiFlash()
+
+        createPollingNotificationChannel()
+        startPollingServiceIfEnabled()
 
         initConnectIQ()
     }
@@ -455,6 +461,26 @@ class MainActivity : AppCompatActivity() {
             "Daily limit reached: $count/$cap — polling paused until tomorrow"
         } else {
             "API usage: $count/$cap today"
+        }
+    }
+
+    private fun createPollingNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                PollingForegroundService.NOTIFICATION_CHANNEL_ID,
+                getString(R.string.polling_channel_name),
+                NotificationManager.IMPORTANCE_LOW
+            )
+            getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
+        }
+    }
+
+    private fun startPollingServiceIfEnabled() {
+        val settings = PollingSettingsRepository(
+            getSharedPreferences("polling_prefs", Context.MODE_PRIVATE)
+        ).load()
+        if (settings.enabled) {
+            startForegroundService(Intent(this, PollingForegroundService::class.java))
         }
     }
 

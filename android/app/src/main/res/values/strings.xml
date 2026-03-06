@@ -87,6 +87,11 @@
     <string name="polling_label_interval">Polling Interval (in-window)</string>
     <string name="polling_interval_value">%d minutes</string>
 
+    <!-- Polling Foreground Service (FEAT-08 Increment 4) -->
+    <string name="polling_channel_name">Commute Polling</string>
+    <string name="polling_notification_title">Commute Buddy</string>
+    <string name="polling_notification_text">Polling active</string>
+
     <!-- Live MTA Alerts (FEAT-03) -->
     <string name="live_section_title">Live MTA Alerts</string>
     <string name="live_fetch_button">Fetch Live</string>
