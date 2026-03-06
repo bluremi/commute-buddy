@@ -23,29 +23,35 @@ class CommuteBuddyApp extends Application.AppBase {
         }
         var dict = data as Dictionary;
 
-        var status = dict.get("status");
-        var routeStr = dict.get("route_string");
-        var reason = dict.get("reason");
+        var action = dict.get("action");
+        var summary = dict.get("summary");
+        var affectedRoutes = dict.get("affected_routes");
+        var rerouteHint = dict.get("reroute_hint");
         var timestamp = dict.get("timestamp");
 
-        // Validate required fields before storing — invalid/missing fields are silently ignored
-        if (!(status instanceof Number)) {
+        // Validate required fields — action must be one of NORMAL/MINOR_DELAYS/REROUTE/STAY_HOME
+        if (!(action instanceof String)) {
             return;
         }
-        var statusNum = status as Number;
-        if (statusNum < 0 || statusNum > 2) {
+        var actionStr = action as String;
+        if (!actionStr.equals("NORMAL") && !actionStr.equals("MINOR_DELAYS") && !actionStr.equals("REROUTE") && !actionStr.equals("STAY_HOME")) {
             return;
         }
-        if (!(routeStr instanceof String)) {
+        if (!(summary instanceof String)) {
             return;
         }
-        if (!(reason instanceof String)) {
+        if (!(affectedRoutes instanceof String)) {
             return;
         }
 
-        Application.Storage.setValue("cs_status", statusNum);
-        Application.Storage.setValue("cs_route", routeStr as String);
-        Application.Storage.setValue("cs_reason", reason as String);
+        Application.Storage.setValue("cs_action", actionStr);
+        Application.Storage.setValue("cs_summary", summary as String);
+        Application.Storage.setValue("cs_affected_routes", affectedRoutes as String);
+        if (rerouteHint instanceof String) {
+            Application.Storage.setValue("cs_reroute_hint", rerouteHint as String);
+        } else {
+            Application.Storage.deleteValue("cs_reroute_hint");
+        }
         if (timestamp instanceof Number) {
             Application.Storage.setValue("cs_timestamp", timestamp as Number);
         }

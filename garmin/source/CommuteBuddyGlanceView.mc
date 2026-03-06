@@ -14,20 +14,30 @@ class CommuteBuddyGlanceView extends WatchUi.GlanceView {
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
         dc.clear();
 
-        var status = Application.Storage.getValue("cs_status");
-        var route = Application.Storage.getValue("cs_route");
+        var action = Application.Storage.getValue("cs_action");
+        var affectedRoutes = Application.Storage.getValue("cs_affected_routes");
         var text = "Waiting...";
-        if (status instanceof Number) {
-            var statusNum = status as Number;
-            if (statusNum == 0) {
+        var fgColor = Graphics.COLOR_WHITE;
+
+        if (action instanceof String) {
+            var actionStr = action as String;
+            var routes = (affectedRoutes instanceof String) ? (affectedRoutes as String) : "";
+            if (actionStr.equals("NORMAL")) {
                 text = "Normal";
-            } else if (statusNum == 1) {
-                text = "Delays \u2014 " + route;
-            } else if (statusNum == 2) {
-                text = "Disrupted \u2014 " + route;
+                fgColor = Graphics.COLOR_GREEN;
+            } else if (actionStr.equals("MINOR_DELAYS")) {
+                text = "Delays \u2014 " + routes;
+                fgColor = Graphics.COLOR_YELLOW;
+            } else if (actionStr.equals("REROUTE")) {
+                text = "Reroute \u2014 " + routes;
+                fgColor = Graphics.COLOR_RED;
+            } else if (actionStr.equals("STAY_HOME")) {
+                text = "Stay Home";
+                fgColor = Graphics.COLOR_LT_GRAY;
             }
         }
 
+        dc.setColor(fgColor, Graphics.COLOR_BLACK);
         dc.drawText(
             dc.getWidth() / 2,
             dc.getHeight() / 2,
