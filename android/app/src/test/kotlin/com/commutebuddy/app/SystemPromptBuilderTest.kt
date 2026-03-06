@@ -69,9 +69,16 @@ class SystemPromptBuilderTest {
     }
 
     @Test
-    fun generatedPrompt_alternateLineEvaluation_hasGuardClause() {
+    fun generatedPrompt_decisionProcedure_hasStep4GuardClause() {
         val prompt = SystemPromptBuilder.buildSystemPrompt(defaultProfile)
-        assertTrue(prompt.contains("ONLY evaluate alternate lines if at least one primary leg"))
+        assertTrue(prompt.contains("Only reached when a primary leg is significantly disrupted"))
+    }
+
+    @Test
+    fun generatedPrompt_decisionProcedure_step2StopsAtNormal() {
+        val prompt = SystemPromptBuilder.buildSystemPrompt(defaultProfile)
+        assertTrue(prompt.contains("NO primary leg is significantly impacted"))
+        assertTrue(prompt.contains("action = NORMAL. Output now"))
     }
 
     @Test
@@ -91,13 +98,17 @@ class SystemPromptBuilderTest {
     // -------------------------------------------------------------------------
 
     @Test
-    fun generatedPrompt_containsDecisionFrameworkSection() {
+    fun generatedPrompt_containsDecisionProcedureSection() {
         val prompt = SystemPromptBuilder.buildSystemPrompt(defaultProfile)
-        assertTrue(prompt.contains("DECISION FRAMEWORK:"))
-        assertTrue(prompt.contains("NORMAL:"))
-        assertTrue(prompt.contains("MINOR_DELAYS:"))
-        assertTrue(prompt.contains("REROUTE:"))
-        assertTrue(prompt.contains("STAY_HOME:"))
+        assertTrue(prompt.contains("DECISION PROCEDURE"))
+        assertTrue(prompt.contains("Step 1"))
+        assertTrue(prompt.contains("Step 2"))
+        assertTrue(prompt.contains("Step 3"))
+        assertTrue(prompt.contains("Step 4"))
+        assertTrue(prompt.contains("REROUTE"))
+        assertTrue(prompt.contains("STAY_HOME"))
+        assertTrue(prompt.contains("MINOR_DELAYS"))
+        assertTrue(prompt.contains("NORMAL"))
     }
 
     @Test
