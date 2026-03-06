@@ -60,18 +60,18 @@ class CommuteBuddyView extends WatchUi.View {
 
         // Action header — large font, color-coded
         dc.setColor(actionColor, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(cx, 75, Graphics.FONT_LARGE, actionText, Graphics.TEXT_JUSTIFY_CENTER);
+        dc.drawText(cx, 52, Graphics.FONT_LARGE, actionText, Graphics.TEXT_JUSTIFY_CENTER);
 
-        // Summary — medium font, white, center-justified and wrapped
+        // Summary — small font for wrap room, white, centered
         if (summary instanceof String) {
             var summaryArea = new WatchUi.TextArea({
                 :text => summary as String,
                 :color => Graphics.COLOR_WHITE,
-                :font => Graphics.FONT_MEDIUM,
-                :locX => cx - 160,
-                :locY => 135,
-                :width => 320,
-                :height => 80,
+                :font => Graphics.FONT_SMALL,
+                :locX => cx - 155,
+                :locY => 115,
+                :width => 310,
+                :height => 130,
                 :justification => Graphics.TEXT_JUSTIFY_CENTER
             });
             summaryArea.draw(dc);
@@ -82,26 +82,26 @@ class CommuteBuddyView extends WatchUi.View {
             var routesStr = affectedRoutes as String;
             if (!actionStr.equals("NORMAL") || !routesStr.equals("")) {
                 dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-                dc.drawText(cx, 230, Graphics.FONT_SMALL, "Routes: " + routesStr, Graphics.TEXT_JUSTIFY_CENTER);
+                dc.drawText(cx, 254, Graphics.FONT_SMALL, "Routes: " + routesStr, Graphics.TEXT_JUSTIFY_CENTER);
             }
         }
 
-        // Reroute hint — small font, white; only when REROUTE and hint is stored
+        // Reroute hint — tiny font, white; only when REROUTE and hint is stored
         if (actionStr.equals("REROUTE") && rerouteHint instanceof String) {
             var hintArea = new WatchUi.TextArea({
                 :text => rerouteHint as String,
                 :color => Graphics.COLOR_WHITE,
-                :font => Graphics.FONT_SMALL,
-                :locX => cx - 160,
-                :locY => 265,
-                :width => 320,
-                :height => 50,
+                :font => Graphics.FONT_TINY,
+                :locX => cx - 155,
+                :locY => 282,
+                :width => 310,
+                :height => 42,
                 :justification => Graphics.TEXT_JUSTIFY_CENTER
             });
             hintArea.draw(dc);
         }
 
-        // Freshness — small font, light gray; relative age of the last update
+        // Freshness — tiny font, light gray; relative age of the last update
         if (timestamp instanceof Number) {
             var ageSecs = Time.now().value() - (timestamp as Number).toLong();
             var freshnessText;
@@ -115,7 +115,7 @@ class CommuteBuddyView extends WatchUi.View {
                 freshnessText = "Stale";
             }
             dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(cx, 330, Graphics.FONT_SMALL, freshnessText, Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(cx, 338, Graphics.FONT_TINY, freshnessText, Graphics.TEXT_JUSTIFY_CENTER);
         }
     }
 
