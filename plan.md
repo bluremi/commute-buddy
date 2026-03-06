@@ -86,13 +86,13 @@ Currently, the entire pipeline (MTA fetch -> parse -> filter -> Gemini decision 
 **Model: Composer** | Reason: Mechanical additions -- new method on existing class, new TextView, straightforward wiring.
 
 #### Increment 3: Polling settings data model, repository, and UI
-- [ ] Create `PollingSettings.kt`: `data class CommuteWindow(val startHour: Int, val startMinute: Int, val endHour: Int, val endMinute: Int)` with `fun isActive(hourOfDay: Int, minute: Int): Boolean`; `data class PollingSettings(val enabled: Boolean, val windows: List<CommuteWindow>, val intervalMinutes: Int)` with defaults (enabled=false, windows=[8:00-9:30, 17:30-19:00], interval=5)
-- [ ] Create `PollingSettingsRepository.kt` -- persists/loads `PollingSettings` to SharedPreferences as JSON (same pattern as `CommuteProfileRepository`)
-- [ ] Create `PollingSettingsActivity` with: on/off toggle, two commute window rows (start/end `TimePickerDialog` per window), polling interval `Slider` or `NumberPicker` (2-15 min range), Save button
-- [ ] Add layout `activity_polling_settings.xml`
-- [ ] Add "Polling Settings" button to `activity_main.xml` and wire it in `MainActivity`
-- [ ] Register `PollingSettingsActivity` in `AndroidManifest.xml`
-- [ ] Unit tests for `PollingSettings`: `isActive()` boundary cases (inside window, outside, exactly on boundary, window spanning midnight -- reject or handle), round-trip JSON serialization
+- [x] Create `PollingSettings.kt`: `data class CommuteWindow(val startHour: Int, val startMinute: Int, val endHour: Int, val endMinute: Int)` with `fun isActive(hourOfDay: Int, minute: Int): Boolean`; `data class PollingSettings(val enabled: Boolean, val windows: List<CommuteWindow>, val intervalMinutes: Int)` with defaults (enabled=false, windows=[8:00-9:30, 17:30-19:00], interval=5)
+- [x] Create `PollingSettingsRepository.kt` -- persists/loads `PollingSettings` to SharedPreferences as JSON (same pattern as `CommuteProfileRepository`)
+- [x] Create `PollingSettingsActivity` with: on/off toggle, two commute window rows (start/end `TimePickerDialog` per window), polling interval `Slider` or `NumberPicker` (2-15 min range), Save button
+- [x] Add layout `activity_polling_settings.xml`
+- [x] Add "Polling Settings" button to `activity_main.xml` and wire it in `MainActivity`
+- [x] Register `PollingSettingsActivity` in `AndroidManifest.xml`
+- [x] Unit tests for `PollingSettings`: `isActive()` boundary cases (inside window, outside, exactly on boundary, window spanning midnight -- reject or handle), round-trip JSON serialization
 
 **Testing:** Run unit tests. Open the app, tap "Polling Settings", configure windows and interval, save, reopen -- verify values persist. Toggle on/off and verify it persists.
 **Model: Sonnet** | Reason: New activity with time pickers and data model with boundary logic needs careful implementation.
