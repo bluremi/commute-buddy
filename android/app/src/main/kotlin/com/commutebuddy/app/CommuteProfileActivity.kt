@@ -8,6 +8,11 @@ import android.widget.LinearLayout
 import android.widget.Spinner
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
+import androidx.core.widget.NestedScrollView
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
@@ -36,8 +41,17 @@ class CommuteProfileActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_commute_profile)
 
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
         title = getString(R.string.title_configure_commute)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
+        val rootScrollView = findViewById<NestedScrollView>(R.id.rootScrollView)
+        ViewCompat.setOnApplyWindowInsetsListener(rootScrollView) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.updatePadding(top = insets.top, bottom = insets.bottom)
+            WindowInsetsCompat.CONSUMED
+        }
 
         val prefs = getSharedPreferences(PREFS_COMMUTE, Context.MODE_PRIVATE)
         profileRepository = CommuteProfileRepository(prefs)
