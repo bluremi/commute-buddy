@@ -11,7 +11,7 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import android.bluetooth.BluetoothAdapter
-import android.content.pm.PackageManager
+import android.content.pm.PackageManager.NameNotFoundException
 import com.garmin.android.connectiq.ConnectIQ
 import com.garmin.android.connectiq.IQApp
 import com.garmin.android.connectiq.IQDevice
@@ -211,6 +211,8 @@ class PollingForegroundService : Service() {
      * permissions are absent. Checking upfront avoids the crash.
      */
     private fun isConnectIQEnvironmentReady(): Boolean {
+        // Only check conditions that cause the SDK to show a dialog (which crashes a Service).
+        // Missing BLE permissions result in onInitializeError, not a dialog — safe to skip here.
         val bt = BluetoothAdapter.getDefaultAdapter()
         if (bt == null || !bt.isEnabled) {
             Log.w(TAG, "Pre-flight: Bluetooth disabled — skipping ConnectIQ init")
@@ -218,13 +220,8 @@ class PollingForegroundService : Service() {
         }
         try {
             packageManager.getPackageInfo("com.garmin.android.apps.connectmobile", 0)
-        } catch (e: PackageManager.NameNotFoundException) {
+        } catch (e: NameNotFoundException) {
             Log.w(TAG, "Pre-flight: Garmin Connect not installed — skipping ConnectIQ init")
-            return false
-        }
-        if (checkSelfPermission(android.Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED ||
-            checkSelfPermission(android.Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
-            Log.w(TAG, "Pre-flight: BLE permissions not granted — skipping ConnectIQ init")
             return false
         }
         return true
