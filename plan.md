@@ -76,11 +76,11 @@ Currently, the entire pipeline (MTA fetch -> parse -> filter -> Gemini decision 
 **Model: Sonnet** | Reason: Extracting async pipeline logic with multiple branches and preserving exact behavior requires careful reasoning across the original code.
 
 #### Increment 2: Expose rate limiter daily usage on MainActivity
-- [ ] Add `fun getDailyUsage(): Pair<Int, Int>` to `ApiRateLimiter` -- returns `(todayCount, DAILY_CAP)`, resetting to 0 if the stored date is not today
-- [ ] Add a `TextView` to `activity_main.xml` (below the results area or in a status bar) showing "API usage: N/50 today"
-- [ ] Update the usage display after every pipeline run (manual or future service) and on `onResume()`
-- [ ] When daily cap is reached, display a warning: "Daily limit reached: 50/50 -- polling paused until tomorrow"
-- [ ] Unit test `getDailyUsage()` -- same day returns stored count, new day returns 0
+- [x] Add `fun getDailyUsage(): Pair<Int, Int>` to `ApiRateLimiter` -- returns `(todayCount, DAILY_CAP)`, resetting to 0 if the stored date is not today
+- [x] Add a `TextView` to `activity_main.xml` (below the results area or in a status bar) showing "API usage: N/50 today"
+- [x] Update the usage display after every pipeline run (manual or future service) and on `onResume()`
+- [x] When daily cap is reached, display a warning: "Daily limit reached: 50/50 -- polling paused until tomorrow"
+- [x] Unit test `getDailyUsage()` -- same day returns stored count, new day returns 0
 
 **Testing:** Run unit tests. Open the app, confirm usage counter is visible. Tap "Fetch Live" a few times, verify the counter increments. Verify "Good Service" results don't increment it.
 **Model: Composer** | Reason: Mechanical additions -- new method on existing class, new TextView, straightforward wiring.
