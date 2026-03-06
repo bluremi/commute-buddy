@@ -114,13 +114,27 @@ class DetailPageFactory extends WatchUi.ViewLoopFactory {
         if (freshnessText.length() > 0) {
             headerHeight += Graphics.getFontHeight(Graphics.FONT_TINY) + 14;
         }
-        var bodyHeight = screenH - 52 - headerHeight - 30;
-        if (bodyHeight < 80) {
-            bodyHeight = 200;
+        // Page 1: summary fits below header. Pages 2+: no header, full page for summary.
+        var bodyHeightPage1 = screenH - 52 - headerHeight - 30;
+        var bodyHeightPage2Plus = screenH - 52 - 30;
+        if (bodyHeightPage1 < 80) {
+            bodyHeightPage1 = 200;
+        }
+        if (bodyHeightPage2Plus < 80) {
+            bodyHeightPage2Plus = 200;
         }
 
         var textW = 310;
-        var chunks = DetailPagination.chunkSummary(summaryStr, Graphics.FONT_SMALL, textW, bodyHeight);
+        var chunks = [] as Array<String>;
+        var firstChunks = DetailPagination.chunkSummary(summaryStr, Graphics.FONT_SMALL, textW, bodyHeightPage1);
+        if (firstChunks.size() > 0) {
+            chunks.add(firstChunks[0]);
+            var remainder = DetailPagination.getRemainderAfterChunk(summaryStr, firstChunks[0]);
+            var restChunks = DetailPagination.chunkSummary(remainder, Graphics.FONT_SMALL, textW, bodyHeightPage2Plus);
+            for (var i = 0; i < restChunks.size(); i++) {
+                chunks.add(restChunks[i]);
+            }
+        }
 
         if (chunks.size() == 0) {
             pages.add({

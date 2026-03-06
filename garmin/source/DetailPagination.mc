@@ -53,6 +53,16 @@ module DetailPagination {
         return chunks;
     }
 
+    //! Return the remainder of text after the given chunk. Chunk is a prefix of
+    //! trimStart(text). Used when splitting with different heights for page 1 vs page 2+.
+    function getRemainderAfterChunk(text as String, chunk as String) as String {
+        var trimmed = trimStart(text);
+        if (chunk.length() >= trimmed.length()) {
+            return "";
+        }
+        return trimmed.substring(chunk.length(), null);
+    }
+
     // Find the largest prefix that fits, breaking at word boundaries.
     function findLargestFittingPrefix(
         text as String,

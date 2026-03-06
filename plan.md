@@ -94,9 +94,9 @@ The current detail view uses manual swipe-based pixel offset and redraw logic in
 
 ### Increment 4: Wire app entry to new navigation stack
 **Recommended model:** Composer
-- [ ] Update `CommuteBuddyApp.getInitialView()` to return the new initial page/navigation delegate arrangement.
-- [ ] Remove obsolete manual-scroll delegate plumbing (`CommuteBuddyDelegate` usage) if no longer needed.
-- [ ] Preserve back/exit behavior expectations for widgets (do not trap user in non-dismissible loops).
+- [x] Update `CommuteBuddyApp.getInitialView()` to return the new initial page/navigation delegate arrangement.
+- [x] Remove obsolete manual-scroll delegate plumbing (`CommuteBuddyDelegate` usage) if no longer needed.
+- [x] Preserve back/exit behavior expectations for widgets (do not trap user in non-dismissible loops).
 
 ### Increment 5: Visual parity + regression hardening
 **Recommended model:** Composer
