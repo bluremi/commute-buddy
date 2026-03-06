@@ -86,11 +86,11 @@ The current detail view uses manual swipe-based pixel offset and redraw logic in
 
 ### Increment 3: Replace manual scroll view with native paged architecture
 **Recommended model:** Composer (use Sonnet only if blocked on `ViewLoopFactory` wiring)
-- [ ] Refactor full-screen detail from one manually scrolled view to a page-based design:
+- [x] Refactor full-screen detail from one manually scrolled view to a page-based design:
   - either page-specific `WatchUi.View` instances managed by `ViewLoopFactory`, or equivalent native paging architecture
   - no manual Y-offset scrolling
-- [ ] Use `WatchUi.ViewLoop` + `WatchUi.ViewLoopDelegate` for next/previous page behavior.
-- [ ] Keep message storage reading and mapping behavior intact.
+- [x] Use `WatchUi.ViewLoop` + `WatchUi.ViewLoopDelegate` for next/previous page behavior.
+- [x] Keep message storage reading and mapping behavior intact.
 
 ### Increment 4: Wire app entry to new navigation stack
 **Recommended model:** Composer

@@ -59,8 +59,10 @@ class CommuteBuddyApp extends Application.AppBase {
     }
 
     function getInitialView() {
-        var view = new CommuteBuddyView();
-        return [view, new CommuteBuddyDelegate(view)];
+        var factory = new DetailPageFactory();
+        var viewLoop = new WatchUi.ViewLoop(factory, {:wrap => false});
+        var delegate = new WatchUi.ViewLoopDelegate(viewLoop);
+        return [viewLoop, delegate];
     }
 
     function getGlanceView() {
