@@ -23,9 +23,10 @@ data class CommuteStatus(
 
         /**
          * Parses a JSON string into a CommuteStatus.
-         * Expects keys: action, summary, affected_routes, timestamp; optional: reroute_hint.
+         * Expects keys: action, summary, affected_routes; optional: reroute_hint, timestamp.
          * Handles Gemini responses wrapped in markdown code fences (e.g. ```json ... ```).
          * NORMAL action allows empty affected_routes.
+         * timestamp defaults to System.currentTimeMillis()/1000 when absent (decision prompt omits it).
          * @throws IllegalArgumentException if JSON is invalid or required fields are missing/invalid
          */
         fun fromJson(json: String): CommuteStatus {
@@ -57,7 +58,7 @@ data class CommuteStatus(
             val rerouteHint = obj.optString("reroute_hint", "").ifBlank { null }
 
             val timestamp = obj.optLong("timestamp", -1L).takeIf { it >= 0 }
-                ?: throw IllegalArgumentException("Missing or invalid 'timestamp' (must be epoch seconds)")
+                ?: (System.currentTimeMillis() / 1000)
 
             return CommuteStatus(
                 action = action,

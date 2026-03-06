@@ -181,9 +181,13 @@ class CommuteStatusTest {
         CommuteStatus.fromJson("""{"action":"MINOR_DELAYS","summary":"Delays","affected_routes":"","timestamp":1709312400}""")
     }
 
-    @Test(expected = IllegalArgumentException::class)
-    fun `fromJson rejects missing timestamp`() {
-        CommuteStatus.fromJson("""{"action":"NORMAL","summary":"Good service","affected_routes":""}""")
+    @Test
+    fun `fromJson defaults timestamp to current time when absent`() {
+        val before = System.currentTimeMillis() / 1000
+        val status = CommuteStatus.fromJson("""{"action":"NORMAL","summary":"Good service","affected_routes":""}""")
+        val after = System.currentTimeMillis() / 1000
+        assertTrue("timestamp should be >= before", status.timestamp >= before)
+        assertTrue("timestamp should be <= after", status.timestamp <= after)
     }
 
     @Test(expected = IllegalArgumentException::class)
