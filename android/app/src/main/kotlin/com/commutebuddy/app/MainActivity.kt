@@ -316,7 +316,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     // -------------------------------------------------------------------------
-    // Live MTA Alerts pipeline (FEAT-03)
+    // Live MTA Alerts pipeline (FEAT-03, refactored FEAT-08)
     // -------------------------------------------------------------------------
 
     private fun onFetchLiveClicked() {
@@ -325,96 +325,53 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        val prefix = getString(R.string.live_output_prefix)
         setAllApiButtonsEnabled(false)
         resultsTextView.text = getString(R.string.live_fetching)
 
         lifecycleScope.launch {
             try {
-                // Step 1: Fetch
-                val fetchResult = MtaAlertFetcher.fetchAlerts()
-                if (fetchResult.isFailure) {
-                    Log.e(TAG, "MTA fetch failed", fetchResult.exceptionOrNull())
-                    resultsTextView.text = getString(R.string.live_fetch_error)
-                    val errMsg = (fetchResult.exceptionOrNull()?.message ?: "Fetch failed").take(80)
-                    sendCommuteStatus(CommuteStatus(action = CommuteStatus.ACTION_NORMAL, summary = errMsg, affectedRoutes = "", rerouteHint = null, timestamp = System.currentTimeMillis() / 1000))
-                    return@launch
-                }
-                val jsonString = fetchResult.getOrThrow()
-
-                // Step 2: Parse + filter
-                resultsTextView.text = getString(R.string.live_parsing)
-                val alerts = MtaAlertParser.parseAlerts(jsonString)
-                if (alerts.isEmpty() && jsonString.isNotBlank()) {
-                    resultsTextView.text = getString(R.string.live_parse_error, "no entities parsed")
-                    sendCommuteStatus(CommuteStatus(action = CommuteStatus.ACTION_NORMAL, summary = "Feed parse error", affectedRoutes = "", rerouteHint = null, timestamp = System.currentTimeMillis() / 1000))
-                    return@launch
-                }
-                val monitoredRoutes = profile.monitoredRoutes()
-                val routeFiltered = MtaAlertParser.filterByRoutes(alerts, monitoredRoutes)
-                val filtered = MtaAlertParser.filterByActivePeriod(routeFiltered, System.currentTimeMillis() / 1000)
-                if (filtered.isEmpty()) {
-                    val routeList = monitoredRoutes.sorted().joinToString(", ")
-                    resultsTextView.text = getString(R.string.live_no_alerts, routeList)
-                    sendCommuteStatus(CommuteStatus(action = CommuteStatus.ACTION_NORMAL, summary = "Good service", affectedRoutes = "", rerouteHint = null, timestamp = System.currentTimeMillis() / 1000))
-                    return@launch
-                }
-
-                // Step 3: Rate-limit check
-                val promptText = MtaAlertParser.buildPromptText(filtered, currentDirection, System.currentTimeMillis() / 1000)
-                when (val rateLimitResult = rateLimiter.tryAcquire()) {
-                    is RateLimitResult.Denied -> {
-                        resultsTextView.text = rateLimitResult.reason
-                        return@launch
-                    }
-                    is RateLimitResult.Allowed -> {
-                        val warning = rateLimitResult.warningMessage
-                        resultsTextView.text = getString(R.string.live_summarizing)
-                        rateLimiter.setInFlight(true)
-                        try {
-                            val response = model.generateContent(promptText)
-                            val rawText = response.text
-                            if (rawText.isNullOrBlank()) {
-                                resultsTextView.text = "$prefix\n${getString(R.string.ai_error_empty_response)}"
-                                return@launch
-                            }
-                            try {
-                                val parsed = CommuteStatus.fromJson(rawText)
-                                resultsTextView.text = buildString {
-                                    appendLine(prefix)
-                                    if (warning != null) appendLine("⚠ $warning")
-                                    appendLine()
-                                    appendLine(getString(R.string.ai_result_status, parsed.action, parsed.statusLabel))
-                                    appendLine(getString(R.string.ai_result_route, parsed.affectedRoutes))
-                                    appendLine(getString(R.string.ai_result_reason, parsed.summary))
-                                    parsed.rerouteHint?.let { appendLine(getString(R.string.ai_result_reroute_hint, it)) }
-                                    append(getString(R.string.ai_result_time, parsed.timestamp))
-                                }
-                                sendCommuteStatus(parsed)
-                            } catch (e: Exception) {
-                                Log.w(TAG, "Failed to parse Gemini response", e)
-                                resultsTextView.text = buildString {
-                                    appendLine(prefix)
-                                    appendLine(getString(R.string.ai_parse_error, e.message))
-                                    appendLine()
-                                    appendLine(getString(R.string.ai_result_raw_output))
-                                    append(rawText)
-                                }
-                                val errMsg = (e.message ?: "Parse failed").take(80)
-                                sendCommuteStatus(CommuteStatus(action = CommuteStatus.ACTION_NORMAL, summary = errMsg, affectedRoutes = "", rerouteHint = null, timestamp = System.currentTimeMillis() / 1000))
-                            }
-                        } catch (e: Exception) {
-                            Log.e(TAG, "Gemini API error during live fetch", e)
-                            resultsTextView.text = "$prefix\n${classifyApiError(e)}"
-                            val errMsg = (e.message ?: "API error").take(80)
-                            sendCommuteStatus(CommuteStatus(action = CommuteStatus.ACTION_NORMAL, summary = errMsg, affectedRoutes = "", rerouteHint = null, timestamp = System.currentTimeMillis() / 1000))
-                        } finally {
-                            rateLimiter.setInFlight(false)
-                        }
-                    }
-                }
+                val result = CommutePipeline.run(
+                    direction = currentDirection,
+                    profile = profile,
+                    generateContent = { promptText -> model.generateContent(promptText).text },
+                    rateLimiter = rateLimiter
+                )
+                handlePipelineResult(result)
             } finally {
                 setAllApiButtonsEnabled(true)
+            }
+        }
+    }
+
+    private fun handlePipelineResult(result: PipelineResult) {
+        val prefix = getString(R.string.live_output_prefix)
+        when (result) {
+            is PipelineResult.GoodService -> {
+                val routeList = profile.monitoredRoutes().sorted().joinToString(", ")
+                resultsTextView.text = getString(R.string.live_no_alerts, routeList)
+                sendCommuteStatus(result.status)
+            }
+            is PipelineResult.Decision -> {
+                val parsed = result.status
+                resultsTextView.text = buildString {
+                    appendLine(prefix)
+                    if (result.warning != null) appendLine("⚠ ${result.warning}")
+                    appendLine()
+                    appendLine(getString(R.string.ai_result_status, parsed.action, parsed.statusLabel))
+                    appendLine(getString(R.string.ai_result_route, parsed.affectedRoutes))
+                    appendLine(getString(R.string.ai_result_reason, parsed.summary))
+                    parsed.rerouteHint?.let { appendLine(getString(R.string.ai_result_reroute_hint, it)) }
+                    append(getString(R.string.ai_result_time, parsed.timestamp))
+                }
+                sendCommuteStatus(parsed)
+            }
+            is PipelineResult.RateLimited -> {
+                resultsTextView.text = result.reason
+            }
+            is PipelineResult.Error -> {
+                val displayMsg = result.exception?.let { classifyApiError(it) } ?: result.message
+                resultsTextView.text = "$prefix\n$displayMsg"
+                sendCommuteStatus(result.status)
             }
         }
     }
