@@ -1,13 +1,18 @@
 package com.commutebuddy.app
 
+import android.Manifest
 import android.app.TimePickerDialog
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.view.MenuItem
 import android.widget.Button
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -22,6 +27,14 @@ class PollingSettingsActivity : AppCompatActivity() {
 
     companion object {
         private const val PREFS_POLLING = "polling_prefs"
+    }
+
+    private val requestNotificationPermission = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { _ ->
+        // Start the service regardless — on denial the service runs but notification is hidden
+        startPollingService()
+        finish()
     }
 
     private lateinit var repository: PollingSettingsRepository
@@ -144,6 +157,10 @@ class PollingSettingsActivity : AppCompatActivity() {
         intervalValueText.text = getString(R.string.polling_interval_value, minutes)
     }
 
+    private fun startPollingService() {
+        startForegroundService(Intent(this, PollingForegroundService::class.java))
+    }
+
     private fun onSaveClicked() {
         val settings = PollingSettings(
             enabled = enabledSwitch.isChecked,
@@ -154,11 +171,18 @@ class PollingSettingsActivity : AppCompatActivity() {
             intervalMinutes = intervalSlider.value.toInt()
         )
         repository.save(settings)
-        val serviceIntent = Intent(this, PollingForegroundService::class.java)
         if (settings.enabled) {
-            startForegroundService(serviceIntent)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED
+            ) {
+                requestNotificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                return  // finish() called in permission result callback
+            } else {
+                startPollingService()
+            }
         } else {
-            stopService(serviceIntent)
+            stopService(Intent(this, PollingForegroundService::class.java))
         }
         finish()
     }
