@@ -10,9 +10,6 @@ import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import com.garmin.android.connectiq.ConnectIQ
-import com.garmin.android.connectiq.IQApp
-import com.garmin.android.connectiq.IQDevice
 import com.google.firebase.Firebase
 import com.google.firebase.ai.GenerativeModel
 import com.google.firebase.ai.ai
@@ -28,7 +25,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -40,7 +36,6 @@ class PollingForegroundService : Service() {
         private const val TAG = "PollingService"
         const val NOTIFICATION_CHANNEL_ID = "commute_polling"
         private const val NOTIFICATION_ID = 1
-        private const val GARMIN_APP_UUID = "e5f12c3a-7b04-4d8e-9a6f-2c1b3e5d7a9f"
         private const val PREFS_COMMUTE = "commute_prefs"
         private const val KEY_DIRECTION = "current_direction"
         private const val DIRECTION_TO_WORK = "TO_WORK"
@@ -54,10 +49,6 @@ class PollingForegroundService : Service() {
     private lateinit var pollingSettingsRepository: PollingSettingsRepository
 
     @Volatile private var generativeModel: GenerativeModel? = null
-    @Volatile private var sdkReady = false
-    @Volatile private var connectedDevice: IQDevice? = null
-    @Volatile private var targetApp: IQApp? = null
-    private var connectIQ: ConnectIQ? = null
 
     private var lastPollTimeMs: Long? = null
     private var nextPollTimeMs: Long? = null
@@ -79,7 +70,6 @@ class PollingForegroundService : Service() {
 
         val profile = profileRepository.load()
         initGeminiFlash(profile)
-        initConnectIQ()
 
         val notification = buildNotification()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -97,11 +87,6 @@ class PollingForegroundService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         serviceScope.cancel()
-        try {
-            connectIQ?.shutdown(this)
-        } catch (e: Exception) {
-            Log.e(TAG, "Error shutting down ConnectIQ", e)
-        }
         Log.d(TAG, "Service destroyed")
     }
 
@@ -178,92 +163,12 @@ class PollingForegroundService : Service() {
     // BLE send
     // -------------------------------------------------------------------------
 
-    private suspend fun sendBle(status: CommuteStatus) {
-        if (!sdkReady) { Log.d(TAG, "BLE send skipped: SDK not ready"); return }
-        val device = connectedDevice ?: run { Log.d(TAG, "BLE send skipped: no device"); return }
-        val app = targetApp ?: run { Log.d(TAG, "BLE send skipped: app not installed"); return }
-        withContext(Dispatchers.Main) {
-            connectIQ?.sendMessage(
-                device, app, status.toConnectIQMap(),
-                object : ConnectIQ.IQSendMessageListener {
-                    override fun onMessageStatus(
-                        device: IQDevice,
-                        app: IQApp,
-                        msgStatus: ConnectIQ.IQMessageStatus
-                    ) {
-                        if (msgStatus == ConnectIQ.IQMessageStatus.SUCCESS) {
-                            Log.d(TAG, "BLE send success")
-                        } else {
-                            Log.w(TAG, "BLE send failed: ${msgStatus.name}")
-                        }
-                    }
-                }
-            )
-        }
-    }
-
-    // -------------------------------------------------------------------------
-    // ConnectIQ init
-    // -------------------------------------------------------------------------
-
-    private fun initConnectIQ() {
-        connectIQ = ConnectIQ.getInstance(this, ConnectIQ.IQConnectType.WIRELESS)
-        connectIQ?.initialize(this, true, object : ConnectIQ.ConnectIQListener {
-            override fun onSdkReady() {
-                Log.d(TAG, "ConnectIQ SDK ready")
-                sdkReady = true
-                discoverDevice()
-            }
-
-            override fun onInitializeError(status: ConnectIQ.IQSdkErrorStatus) {
-                Log.e(TAG, "ConnectIQ init error: $status")
-                sdkReady = false
-            }
-
-            override fun onSdkShutDown() {
-                Log.d(TAG, "ConnectIQ SDK shut down")
-                sdkReady = false
-            }
-        })
-    }
-
-    private fun discoverDevice() {
-        val iq = connectIQ ?: return
-        val devices = try {
-            iq.connectedDevices
-        } catch (e: Exception) {
-            Log.e(TAG, "Error getting connected devices", e)
-            null
-        }
-        val device = devices?.firstOrNull { dev ->
-            try { iq.getDeviceStatus(dev) == IQDevice.IQDeviceStatus.CONNECTED } catch (e: Exception) { false }
-        }
-        if (device == null) {
-            connectedDevice = null
-            targetApp = null
-            Log.d(TAG, "No connected Garmin device")
-            return
-        }
-        connectedDevice = device
-        Log.d(TAG, "Found device: ${device.friendlyName}")
-        loadAppInfo(device)
-    }
-
-    private fun loadAppInfo(device: IQDevice) {
-        connectIQ?.getApplicationInfo(
-            GARMIN_APP_UUID, device,
-            object : ConnectIQ.IQApplicationInfoListener {
-                override fun onApplicationInfoReceived(app: IQApp) {
-                    Log.d(TAG, "Garmin app found on ${device.friendlyName}")
-                    targetApp = app
-                }
-
-                override fun onApplicationNotInstalled(applicationId: String) {
-                    Log.w(TAG, "Garmin app not installed on ${device.friendlyName}")
-                    targetApp = null
-                }
-            }
-        )
+    // ConnectIQ SDK requires an Activity context to show system dialogs (e.g. "Install Garmin
+    // Connect"). Initializing it from a Service context causes a BadTokenException crash.
+    // BLE push is therefore skipped from the background service; the watch is updated via the
+    // manual "Fetch Live" button in MainActivity when the user opens the app.
+    private fun sendBle(status: CommuteStatus) {
+        Log.d(TAG, "BLE send skipped in service (no Activity context): action=${status.action}")
     }
 
     // -------------------------------------------------------------------------
