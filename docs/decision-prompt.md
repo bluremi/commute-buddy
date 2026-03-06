@@ -4,6 +4,12 @@
 > 10/10 test scenarios passed with temperature=0, thinking=low (1024 tokens).
 > See `decision-prompt-test.md` for full test data and `run-prompt-tests.py` for automated runner.
 
+> **Note (FEAT-07):** The system prompt used in the app has been updated since this document was written.
+> `SystemPromptBuilder.kt` now generates the prompt dynamically from the saved `CommuteProfile` and
+> replaces the DECISION FRAMEWORK section with an explicit four-step decision procedure (Steps 1–4).
+> The commute profile structure, output schema, and API settings in this document remain accurate.
+> The "System Prompt (final, validated)" section below reflects the original validated version for reference.
+
 ## Overview
 
 The decision prompt replaces the simple "summarize these alerts" approach (FEAT-02) with

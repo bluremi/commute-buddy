@@ -73,6 +73,15 @@ When the watch Glance is viewed, it instantly displays the cached status — no 
 - **BLE schema updated** (`shared/schema.json`): `action` (string), `summary`, `affected_routes`, `reroute_hint` (optional), `timestamp`; payload remains well under 1KB
 - **Android results display** shows Action tier, Affected routes, Summary, and (for REROUTE) Reroute hint; all error/fallback paths produce a valid `CommuteStatus` with `action=NORMAL` and error description as summary
 
+### Commute Profile Configuration — Increments 1–2 (FEAT-07, in progress)
+- **Data model:** `CommuteLeg` (lines, direction, fromStation, toStation) and `CommuteProfile` (toWorkLegs, toHomeLegs, alternates) with full JSON serialization; `CommuteProfile.default()` pre-populates the Astoria commute (TO_WORK: N,W→4,5→6; TO_HOME: 6→4,5→N,W; alternates: F,R,7)
+- **`CommuteProfileRepository`** persists/loads the active profile in SharedPreferences as a JSON string; returns the default profile if nothing has been saved
+- **`SystemPromptBuilder`** generates the complete system prompt dynamically from the saved `CommuteProfile` — replaces the 65-line hardcoded `SYSTEM_PROMPT` constant that was in `MainActivity`. The system prompt now uses an explicit **four-step decision procedure** (identify active legs → check primary legs → classify severity → evaluate alternates) that replaced the original DECISION FRAMEWORK description format, yielding more reliable NORMAL/REROUTE classification when alternate lines are disrupted but primary legs are clear
+- **`MONITORED_ROUTES` removed:** the route filter set is now derived at runtime via `profile.monitoredRoutes()` — all unique lines across both directions' legs plus alternates. `MtaAlertParser.kt` no longer carries a hardcoded constant
+- **Direction toggle:** `MaterialButtonToggleGroup` (To Work / To Home) above the Fetch Live button. Selection updates `currentDirection`, persists to SharedPreferences, and is passed to `buildPromptText()` on every fetch; model re-init is not needed when direction changes (direction is in the user prompt, not the system prompt)
+- **Prompt test suite updated:** `docs/decision-prompt-test.md` and `docs/run-prompt-tests.py` expanded with two live-captured test cases (Live 11, 12 — B/D/F/M signal delays with primary route clear); system prompt in the runner synced to current `SystemPromptBuilder` output
+- Increments 3–4 (configuration Activity with leg editor and bottom-sheet line picker) still pending
+
 ### Garmin Glance + Full-App UI (FEAT-06) — Color-Coded Watch Display with Native Paged Detail
 - **Schema fix:** watch message handler in `CommuteBuddyApp.onPhoneMessage()` updated from old integer `status`/`route_string`/`reason` keys (FEAT-04) to the new `action`/`summary`/`affected_routes`/`reroute_hint`/`timestamp` keys introduced by FEAT-05; invalid or incomplete messages are silently rejected
 - **Color-coded glance:** `CommuteBuddyGlanceView` reads `cs_action` and `cs_affected_routes` from `Application.Storage` and renders a one-line status in color — NORMAL → green "Normal", MINOR_DELAYS → yellow "Delays — N,W", REROUTE → red "Reroute — N,W", STAY_HOME → gray "Stay Home"; falls back to white "Waiting..." before first message
@@ -107,7 +116,7 @@ When the watch Glance is viewed, it instantly displays the cached status — no 
 
 **Monorepo** structure — both apps are tightly coupled through the BLE message schema.
 
-- **Android app** (`android/`): `MainActivity.kt` initializes the Connect IQ SDK on launch, discovers the paired Garmin device, verifies the watch app is installed, and sends a payload via `ConnectIQ.sendMessage()`. Currently triggered by explicit button press; future stories will move this to a Foreground Service with scheduled polling. The live data pipeline is: `MtaAlertFetcher.fetchAlerts()` (HTTP GET, background coroutine) → `MtaAlertParser.parseAlerts()` (JSON, extracts `en` plain-text translations) → `filterByRoutes()` (keep `MONITORED_ROUTES = {N, W, 4, 5, 6, R, 7}`) → `filterByActivePeriod()` (exclude advisories outside their scheduled windows) → `buildPromptText()` (structured per-alert blocks with ISO 8601 timestamps, direction header, commute direction) → Gemini Flash decision engine (Firebase AI Logic SDK, `temperature=0`, `ThinkingLevel.LOW`) → `CommuteStatus.fromJson()` → display + BLE push. All API calls pass through `ApiRateLimiter` — a multi-layer rate limiter (persisted daily cap, per-minute limit, cooldown, single-flight mutex) that survives app restarts and prevents runaway costs.
+- **Android app** (`android/`): `MainActivity.kt` initializes the Connect IQ SDK on launch, discovers the paired Garmin device, verifies the watch app is installed, and sends a payload via `ConnectIQ.sendMessage()`. Currently triggered by explicit button press; future stories will move this to a Foreground Service with scheduled polling. On startup, `CommuteProfileRepository` loads the saved (or default) `CommuteProfile` from SharedPreferences, and `SystemPromptBuilder.buildSystemPrompt(profile)` generates the full system prompt passed to the `GenerativeModel`. A `MaterialButtonToggleGroup` direction toggle (To Work / To Home) persists the selected direction across restarts and passes it to `buildPromptText()` on every fetch. The live data pipeline is: `MtaAlertFetcher.fetchAlerts()` (HTTP GET, background coroutine) → `MtaAlertParser.parseAlerts()` (JSON, extracts `en` plain-text translations) → `filterByRoutes()` (keep routes from `profile.monitoredRoutes()` — all unique lines across both leg sets plus alternates) → `filterByActivePeriod()` (exclude advisories outside their scheduled windows) → `buildPromptText()` (structured per-alert blocks with ISO 8601 timestamps, direction header, current direction) → Gemini Flash decision engine (Firebase AI Logic SDK, `temperature=0`, `ThinkingLevel.LOW`) → `CommuteStatus.fromJson()` → display + BLE push. All API calls pass through `ApiRateLimiter` — a multi-layer rate limiter (persisted daily cap, per-minute limit, cooldown, single-flight mutex) that survives app restarts and prevents runaway costs.
 - **Garmin app** (`garmin/`): `CommuteBuddyApp.mc` registers for phone messages in `onStart()` via `Communications.registerForPhoneAppMessages()`. On message receipt, validates the incoming `Dictionary` payload (action must be one of NORMAL/MINOR_DELAYS/REROUTE/STAY_HOME, summary and affected_routes must be non-null Strings), stores `cs_action`, `cs_summary`, `cs_affected_routes`, `cs_reroute_hint`, `cs_timestamp` in `Application.Storage`, clears `cs_reroute_hint` when absent (prevents stale hint persistence), and calls `WatchUi.requestUpdate()`. `CommuteBuddyGlanceView.mc` reads `cs_action` and `cs_affected_routes` from Storage on every `onUpdate()` — renders color-coded `"Normal"` (green), `"Delays — N,W"` (yellow), `"Reroute — N,W"` (red), `"Stay Home"` (gray), or `"Waiting..."` (white) as fallback. Full-app detail uses native page navigation: `getInitialView()` returns `[ViewLoop, ViewLoopDelegate]` with `DetailPageFactory`. The factory builds a page model from storage, chunks long summaries via `DetailPagination`, and provides `DetailPageView` + `DetailPageDelegate` per page. No manual scroll offset; `ViewLoopDelegate` handles swipes and button navigation.
 - Apps do not share source code; they share a BLE message schema documented in `shared/schema.json`.
 
@@ -124,18 +133,24 @@ commute-buddy/
 │       └── src/main/
 │           ├── AndroidManifest.xml                 # BLUETOOTH_SCAN, BLUETOOTH_CONNECT permissions
 │           ├── kotlin/com/commutebuddy/app/
-│           │   ├── MainActivity.kt                 # SDK init, device discovery, Fetch Live pipeline, sendCommuteStatus(), AI POC (4 tier buttons)
+│           │   ├── MainActivity.kt                 # SDK init, device discovery, CommuteProfileRepository load, direction toggle, Fetch Live pipeline, sendCommuteStatus(), AI POC (4 tier buttons)
+│           │   ├── CommuteLeg.kt                   # Data class: lines, direction, fromStation, toStation; toJson()/fromJson() serialization
+│           │   ├── CommuteProfile.kt               # Data class: toWorkLegs, toHomeLegs, alternates; monitoredRoutes() derives unique route set; toJson()/fromJson(); default Astoria profile
+│           │   ├── CommuteProfileRepository.kt     # Persists/loads CommuteProfile to SharedPreferences as JSON string; returns default profile if none saved
+│           │   ├── SystemPromptBuilder.kt          # Generates full system prompt from CommuteProfile; four-step decision procedure; alternates referenced dynamically
 │           │   ├── CommuteStatus.kt                # BLE schema data class; fromJson() deserialization; toConnectIQMap() for BLE send; statusLabel display
 │           │   ├── ApiRateLimiter.kt               # Multi-layer rate limiter (daily cap, per-minute, cooldown, single-flight); injectable clock for unit tests
 │           │   ├── MtaTestData.kt                  # Hardcoded real MTA alert strings (4 tiers) for FEAT-02 POC
 │           │   ├── MtaAlertFetcher.kt              # suspend fetchAlerts(): HTTP GET subway-alerts.json feed; Result<String>; Dispatchers.IO; 10s/15s timeouts
-│           │   └── MtaAlertParser.kt               # parseAlerts(), filterByRoutes(), filterByActivePeriod(), buildPromptText(); MtaAlert + ActivePeriod data classes; MONITORED_ROUTES constant
+│           │   └── MtaAlertParser.kt               # parseAlerts(), filterByRoutes(), filterByActivePeriod(), buildPromptText(); MtaAlert + ActivePeriod data classes; MONITORED_ROUTES removed (derived from profile at runtime)
 │           ├── res/
-│           │   ├── layout/activity_main.xml        # Live MTA Alerts section (Fetch Live button) + AI POC section (2×2 tier buttons, scrollable results)
+│           │   ├── layout/activity_main.xml        # Direction toggle (MaterialButtonToggleGroup: To Work / To Home) + Fetch Live button + AI POC section (2×2 tier buttons, scrollable results)
 │           │   └── values/strings.xml
 │           └── test/kotlin/com/commutebuddy/app/
+│               ├── CommuteProfileTest.kt           # Round-trip serialization, monitoredRoutes() derivation, default profile contents
+│               ├── SystemPromptBuilderTest.kt      # Generated prompt contains leg data, alternates, decision procedure steps, static sections
 │               ├── CommuteStatusTest.kt            # toConnectIQMap() key names, value matching, value types
-│               ├── MtaAlertParserTest.kt           # parseAlerts, filterByRoutes, filterByActivePeriod, buildPromptText
+│               ├── MtaAlertParserTest.kt           # parseAlerts, filterByRoutes (uses CommuteProfile.default().monitoredRoutes()), filterByActivePeriod, buildPromptText
 │               └── ApiRateLimiterTest.kt
 ├── garmin/                                         # Open in VS Code
 │   ├── monkey.jungle                               # Build config, references manifest.xml
@@ -152,8 +167,8 @@ commute-buddy/
 ├── docs/
 │   ├── mta-feed-research.md                        # MTA GTFS-RT feed URLs, JSON structure, alert text examples & length tiers
 │   ├── decision-prompt.md                          # Decision prompt canonical reference: system prompt, schema, commute profile, API settings, test results
-│   ├── decision-prompt-test.md                     # Copy-paste test script for AI Studio + actual results from manual and automated testing
-│   ├── run-prompt-tests.py                         # Automated test runner: calls Gemini API for all 10 decision prompt scenarios
+│   ├── decision-prompt-test.md                     # Copy-paste test script for AI Studio + actual results from manual testing; includes Live Captures section for real-world cases
+│   ├── run-prompt-tests.py                         # Automated test runner: calls Gemini API for all 12 decision prompt scenarios (10 synthetic + 2 live captures); system prompt kept in sync with SystemPromptBuilder.kt
 │   └── garmin/
 │       ├── android-sdk-api-notes.md                # Connect IQ Android SDK 2.3.0 — correct API (getDeviceStatus, IQDevice.IQDeviceStatus); prevents LLM/doc drift
 │       ├── glances.md                              # Glance lifecycle, memory limits, Live vs Background UI update modes

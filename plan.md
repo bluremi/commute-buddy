@@ -70,12 +70,12 @@ Currently the commute profile is hardcoded in `MainActivity.kt` as a `SYSTEM_PRO
 **Model: Sonnet** | Reason: New data model design, JSON serialization, prompt text generation -- requires understanding the existing system prompt structure and making correct design decisions.
 
 #### Increment 2: Wire dynamic profile and direction toggle into live pipeline
-- [ ] In `MainActivity`, replace `SYSTEM_PROMPT` constant with call to `SystemPromptBuilder.buildSystemPrompt()` using profile from `CommuteProfileRepository`; re-initialize `GenerativeModel` in `initGeminiFlash()` using the dynamic prompt
-- [ ] In `MainActivity`, replace hardcoded `MONITORED_ROUTES` reference (line 376) with `profile.monitoredRoutes()`; remove the `MONITORED_ROUTES` top-level constant from `MtaAlertParser.kt`
-- [ ] In `MainActivity`, replace hardcoded `"TO_WORK"` (line 386) with a `currentDirection` variable
-- [ ] Add a TO_WORK / TO_HOME segmented button (Material `MaterialButtonToggleGroup`) above the "Fetch Live" button in `activity_main.xml`; selection updates `currentDirection` and persists to SharedPreferences; default TO_WORK
-- [ ] When direction changes, no model re-init needed (direction is in the user prompt, not system prompt); just update `currentDirection`
-- [ ] Update `MtaAlertParserTest.kt` -- tests that reference the removed `MONITORED_ROUTES` constant should use an inline set or test `CommuteProfile.monitoredRoutes()` instead
+- [x] In `MainActivity`, replace `SYSTEM_PROMPT` constant with call to `SystemPromptBuilder.buildSystemPrompt()` using profile from `CommuteProfileRepository`; re-initialize `GenerativeModel` in `initGeminiFlash()` using the dynamic prompt
+- [x] In `MainActivity`, replace hardcoded `MONITORED_ROUTES` reference (line 376) with `profile.monitoredRoutes()`; remove the `MONITORED_ROUTES` top-level constant from `MtaAlertParser.kt`
+- [x] In `MainActivity`, replace hardcoded `"TO_WORK"` (line 386) with a `currentDirection` variable
+- [x] Add a TO_WORK / TO_HOME segmented button (Material `MaterialButtonToggleGroup`) above the "Fetch Live" button in `activity_main.xml`; selection updates `currentDirection` and persists to SharedPreferences; default TO_WORK
+- [x] When direction changes, no model re-init needed (direction is in the user prompt, not system prompt); just update `currentDirection`
+- [x] Update `MtaAlertParserTest.kt` -- tests that reference the removed `MONITORED_ROUTES` constant should use an inline set or test `CommuteProfile.monitoredRoutes()` instead
 
 **Testing:** Run `gradle :app:testDebugUnitTest` -- all tests pass. Deploy to phone, verify "Fetch Live" works with the default profile (same behavior as before). Toggle TO_HOME and fetch again -- confirm the direction in the Gemini prompt changes (check Logcat or results output).
 **Model: Sonnet** | Reason: Cross-file wiring with state management -- needs to correctly thread profile/direction through the pipeline without breaking existing behavior.
