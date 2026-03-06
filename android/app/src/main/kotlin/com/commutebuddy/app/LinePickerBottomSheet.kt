@@ -1,13 +1,19 @@
 package com.commutebuddy.app
 
+import android.content.res.ColorStateList
+import android.graphics.Color
+import android.graphics.Typeface
 import android.os.Bundle
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
+import com.google.android.material.shape.ShapeAppearanceModel
 
 class LinePickerBottomSheet : BottomSheetDialogFragment() {
 
@@ -18,11 +24,20 @@ class LinePickerBottomSheet : BottomSheetDialogFragment() {
     companion object {
         private const val ARG_SELECTED = "selected_lines"
 
-        val ALL_LINES = listOf(
-            "1", "2", "3", "4", "5", "6", "7",
-            "A", "B", "C", "D", "E", "F", "G",
-            "J", "L", "M", "N", "Q", "R", "S", "W", "Z"
+        // Grouped by trunk line — order determines display order
+        private val LINE_GROUPS = listOf(
+            listOf("1", "2", "3"),
+            listOf("4", "5", "6"),
+            listOf("7"),
+            listOf("A", "C", "E"),
+            listOf("B", "D", "F", "M"),
+            listOf("G"),
+            listOf("J", "Z"),
+            listOf("L", "S"),
+            listOf("N", "Q", "R", "W")
         )
+
+        val ALL_LINES: List<String> = LINE_GROUPS.flatten()
 
         fun newInstance(selected: List<String>, callback: Callback): LinePickerBottomSheet {
             val fragment = LinePickerBottomSheet()
@@ -32,6 +47,22 @@ class LinePickerBottomSheet : BottomSheetDialogFragment() {
             fragment.callback = callback
             return fragment
         }
+
+        private fun lineColor(line: String): Int = when (line) {
+            "1", "2", "3"      -> Color.parseColor("#D82233")
+            "4", "5", "6"      -> Color.parseColor("#009952")
+            "7"                -> Color.parseColor("#9A38A1")
+            "A", "C", "E"      -> Color.parseColor("#0062CF")
+            "B", "D", "F", "M" -> Color.parseColor("#EB6800")
+            "G"                -> Color.parseColor("#799534")
+            "J", "Z"           -> Color.parseColor("#8E5C33")
+            "L", "S"           -> Color.parseColor("#7C858C")
+            "N", "Q", "R", "W" -> Color.parseColor("#F6BC26")
+            else               -> Color.GRAY
+        }
+
+        // Yellow lines (#F6BC26) need black text for contrast; all others use white
+        private fun isLightBackground(line: String) = line in setOf("N", "Q", "R", "W")
     }
 
     var callback: Callback? = null
@@ -46,23 +77,86 @@ class LinePickerBottomSheet : BottomSheetDialogFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         val selected = arguments?.getStringArrayList(ARG_SELECTED) ?: arrayListOf()
-        val chipGroup = view.findViewById<ChipGroup>(R.id.chipGroup)
+        val chipContainer = view.findViewById<LinearLayout>(R.id.chipContainer)
 
-        for (line in ALL_LINES) {
-            val chip = layoutInflater.inflate(R.layout.item_filter_chip, chipGroup, false) as Chip
-            chip.text = line
-            chip.isChecked = line in selected
-            chipGroup.addView(chip)
+        for (group in LINE_GROUPS) {
+            val chipGroup = ChipGroup(requireContext()).apply {
+                val params = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+                params.bottomMargin = dp(4).toInt()
+                layoutParams = params
+                isSingleSelection = false
+                chipSpacingHorizontal = dp(6).toInt()
+                chipSpacingVertical = dp(4).toInt()
+            }
+            for (line in group) {
+                chipGroup.addView(createLineChip(line, line in selected))
+            }
+            chipContainer.addView(chipGroup)
         }
 
         view.findViewById<MaterialButton>(R.id.doneButton).setOnClickListener {
             val result = mutableListOf<String>()
-            for (i in 0 until chipGroup.childCount) {
-                val chip = chipGroup.getChildAt(i) as Chip
-                if (chip.isChecked) result.add(chip.text.toString())
+            for (i in 0 until chipContainer.childCount) {
+                val group = chipContainer.getChildAt(i) as? ChipGroup ?: continue
+                for (j in 0 until group.childCount) {
+                    val chip = group.getChildAt(j) as? Chip ?: continue
+                    if (chip.isChecked) result.add(chip.text.toString())
+                }
             }
             callback?.onLinesSelected(result)
             dismiss()
         }
     }
+
+    private fun createLineChip(line: String, isChecked: Boolean): Chip {
+        val bgColor = lineColor(line)
+        val isLight = isLightBackground(line)
+        val textColor = if (isLight) Color.BLACK else Color.WHITE
+        // Stroke color matches text color: white on dark, black on yellow
+        val strokeColor = textColor
+
+        val chipSizePx = dp(44).toInt()
+
+        return Chip(requireContext()).apply {
+            text = line
+            isCheckable = true
+            this.isChecked = isChecked
+
+            // No icon overlays — selection indicated by stroke alone
+            isCheckedIconVisible = false
+            isChipIconVisible = false
+            isCloseIconVisible = false
+
+            chipBackgroundColor = ColorStateList.valueOf(bgColor)
+            setTextColor(textColor)
+            textSize = 14f
+            typeface = Typeface.DEFAULT_BOLD
+            gravity = Gravity.CENTER
+
+            // Stroke: thick and opaque when checked, invisible when unchecked
+            chipStrokeWidth = dp(3)
+            chipStrokeColor = ColorStateList(
+                arrayOf(intArrayOf(android.R.attr.state_checked), intArrayOf()),
+                intArrayOf(strokeColor, Color.TRANSPARENT)
+            )
+
+            // Circular shape: zero out all internal padding, fix size, maximise corner radius
+            setEnsureMinTouchTargetSize(false)
+            shapeAppearanceModel = ShapeAppearanceModel.builder()
+                .setAllCornerSizes(chipSizePx / 2f)
+                .build()
+            chipMinHeight = dp(44)
+            chipStartPadding = 0f
+            chipEndPadding = 0f
+            textStartPadding = dp(2)
+            textEndPadding = dp(2)
+
+            layoutParams = ChipGroup.LayoutParams(chipSizePx, chipSizePx)
+        }
+    }
+
+    private fun dp(value: Int): Float = value * resources.displayMetrics.density
 }
