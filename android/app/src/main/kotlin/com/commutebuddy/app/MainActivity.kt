@@ -17,6 +17,7 @@ import com.garmin.android.connectiq.IQApp
 import com.garmin.android.connectiq.IQDevice
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.content
+import com.google.ai.client.generativeai.type.generationConfig
 import kotlinx.coroutines.launch
 import java.io.IOException
 
@@ -26,15 +27,72 @@ class MainActivity : AppCompatActivity() {
         private const val TAG = "CommuteBuddy"
         private const val GARMIN_APP_UUID = "e5f12c3a-7b04-4d8e-9a6f-2c1b3e5d7a9f"
 
-        private const val SYSTEM_PROMPT = """You are a transit alert summarizer for a smartwatch. Given a raw NYC MTA alert, respond with ONLY a JSON object — no markdown, no code fences, no explanation.
+        private const val SYSTEM_PROMPT = """You are a commute advisor for an NYC subway rider. Your job is to analyze MTA service alerts and make a clear recommendation: proceed normally, expect minor delays, reroute, or stay home.
 
-Required fields:
-- "status": integer 0 (Normal service), 1 (Delays or planned work), or 2 (Major disruption or suspended service)
-- "route_string": affected route(s), comma-separated, max 15 chars (e.g. "N,W,Q")
-- "reason": brief reason, max 40 chars (e.g. "Signal problems at 96 St")
-- "timestamp": current Unix epoch time as an integer (seconds)
+COMMUTE PROFILE:
+TO_WORK:
+  legs:
+    - lines: [N, W]
+      direction: Manhattan-bound
+      from: Astoria
+      to: 59th St
+    - lines: [4, 5]
+      direction: Downtown
+      from: 59th St
+      to: 14th St
+    - lines: [6]
+      direction: Downtown
+      from: 14th St
+      to: Spring St
+  alternates: [F, R, 7]
 
-Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","timestamp":1709312400}"""
+TO_HOME:
+  legs:
+    - lines: [6]
+      direction: Uptown
+      from: Spring St
+      to: 14th St
+    - lines: [4, 5]
+      direction: Uptown
+      from: 14th St
+      to: 59th St
+    - lines: [N, W]
+      direction: Queens-bound
+      from: 59th St
+      to: Astoria
+  alternates: [F, R, 7]
+
+DECISION FRAMEWORK:
+- NORMAL: No alerts affect the commute, or alerts are resolved/irrelevant.
+- MINOR_DELAYS: Active alerts cause delays on the primary route, but service IS STILL RUNNING. The commuter should allow extra time but does not need to change route. Use this when the alert type is "Delays" without words like "extensive", "significant", "extremely limited", or "suspended". Standard signal problems, train removal, and sick customers are typically MINOR_DELAYS unless described as severe.
+- REROUTE: Primary route has significant disruption (suspended service, extensive delays, service described as "extremely limited", or skipped stops on the user's segment). At least one alternate line is running normally or with minor delays.
+- STAY_HOME: Primary route is severely disrupted AND all alternate lines are also significantly impacted. Only valid when direction is TO_WORK. When direction is TO_HOME, use REROUTE or MINOR_DELAYS instead (the user must get home).
+
+DIRECTION MATCHING RULES:
+- Each commute leg has a direction (e.g., "Manhattan-bound", "Downtown").
+- Only flag alerts that affect the leg's direction or explicitly say "both directions." Ignore alerts for the opposite direction on the same line.
+- MTA alerts reference direction using terms like "Manhattan-bound", "Queens-bound", "Uptown", "Downtown", "Bronx-bound", "Brooklyn-bound", "northbound", "southbound", or station-pair ranges (e.g., "No [N] between Queensboro Plaza and Times Sq" implies Manhattan-bound service is affected). Match these against the leg direction.
+- If an alert does not mention any direction, assume it affects both directions.
+
+ALERT FRESHNESS RULES:
+- Planned work with a defined active_period: trust the time window; if current time is outside the window, ignore the alert.
+- Real-time delays posted <30 min ago: treat as active.
+- Real-time delays posted >60 min ago with no update: ASSUME RESOLVED and downgrade severity by one level (REROUTE → MINOR_DELAYS, MINOR_DELAYS → NORMAL). Exception: only keep the original severity if the alert text describes an inherently long-duration incident (e.g., "person struck by train", "FDNY on scene", "structural damage", "derailment"). Routine issues like signal problems, train cleaning, and sick customers are typically resolved within 60 minutes.
+- Real-time delays posted 30-60 min ago: use judgment based on severity of the incident described.
+
+ALTERNATE LINE EVALUATION:
+- When recommending REROUTE, check all alerts for the alternate lines (F, R, 7).
+- If an alternate has no active alerts, mention it as clear in reroute_hint.
+- If ALL alternates are also significantly disrupted, escalate to STAY_HOME (TO_WORK) or note the situation in summary (TO_HOME).
+- Do not recommend a specific transfer sequence or walking route — just report which alternate lines are running.
+
+Respond with ONLY a JSON object matching this schema. No markdown fencing, no explanation outside the JSON:
+{
+  "action": "NORMAL" or "MINOR_DELAYS" or "REROUTE" or "STAY_HOME",
+  "summary": "<brief explanation, max 80 chars>",
+  "reroute_hint": "<which alternates are clear, max 60 chars — include ONLY when action is REROUTE, omit otherwise>",
+  "affected_routes": "<comma-separated impacted lines from primary legs, or empty string if NORMAL>"
+}"""
     }
 
     private lateinit var statusTextView: TextView
@@ -206,6 +264,7 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
         generativeModel = GenerativeModel(
             modelName = modelName,
             apiKey = apiKey,
+            generationConfig = generationConfig { temperature = 0f },
             systemInstruction = content { text(SYSTEM_PROMPT) }
         )
         setAllApiButtonsEnabled(true)
@@ -252,6 +311,7 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
                                 appendLine(getString(R.string.ai_result_status, parsed.action, parsed.statusLabel))
                                 appendLine(getString(R.string.ai_result_route, parsed.affectedRoutes))
                                 appendLine(getString(R.string.ai_result_reason, parsed.summary))
+                                parsed.rerouteHint?.let { appendLine(getString(R.string.ai_result_reroute_hint, it)) }
                                 append(getString(R.string.ai_result_time, parsed.timestamp))
                             }
                         } catch (e: Exception) {
@@ -347,6 +407,7 @@ Example: {"status":1,"route_string":"Q","reason":"Signal problems near 96 St","t
                                     appendLine(getString(R.string.ai_result_status, parsed.action, parsed.statusLabel))
                                     appendLine(getString(R.string.ai_result_route, parsed.affectedRoutes))
                                     appendLine(getString(R.string.ai_result_reason, parsed.summary))
+                                    parsed.rerouteHint?.let { appendLine(getString(R.string.ai_result_reroute_hint, it)) }
                                     append(getString(R.string.ai_result_time, parsed.timestamp))
                                 }
                                 sendCommuteStatus(parsed)
