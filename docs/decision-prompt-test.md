@@ -422,3 +422,171 @@ Description: [N] service operates in two sections during overnight hours. What's
 ```
 
 Expected: `{"action": "NORMAL", "summary": "...outside active period...", "affected_routes": ""}` — it's 08:30, work is 22:00-05:00
+
+---
+
+## Live Captures
+
+Real-world alerts captured during live app testing. These are the exact user messages sent to the model; the system prompt is the variable being tested.
+
+---
+
+### Live 11: B/D/F/M signal delays, TO_WORK, primary legs clear → expect NORMAL
+
+Captured: 2026-03-06 ~17:20 UTC. F train has delays (signal near Bryant Park) and planned work in Brooklyn. The 4 has a Woodlawn-bound (wrong direction) station notice. Primary TO_WORK legs (N/W Manhattan-bound, 4/5 Downtown, 6 Downtown) are unaffected. F is an alternate, not a primary leg.
+
+```
+Current time: 2026-03-06T17:20:30Z
+Direction: TO_WORK
+
+ALERTS:
+---
+Routes: B,D,F,M
+Type: Delays
+Posted: 2026-03-06T15:38:02Z
+Active period: 2026-03-06T16:59:03Z — (open)
+Header: [B][D][F][M] trains are running with delays in both directions while we continue to address a signal problem near 42 St-Bryant Park.
+Description: Service Changes
+
+Some downtown [B] trains are running via the [C] line from 59 St-Columbus Circle to W 4 St-Wash Sq, and then via the [F] to 2 Av, the last stop.
+
+Some downtown [D] trains are running via the [C] line from 59 St-Columbus Circle to Jay St-MetroTech, and then via the [F] to Coney Island-Stillwell Av.
+
+Listen to announcements on your train to hear how it will run.
+
+As an alternative for service between Manhattan and Brooklyn, consider using nearby [N][R] trains.
+---
+---
+Routes: 5
+Type: Station Notice
+Posted: 2026-02-24T13:06:17Z
+Active period: 2026-02-27T11:00:00Z — 2026-02-28T01:45:00Z; 2026-03-02T11:00:00Z — 2026-03-03T01:45:00Z; 2026-03-03T11:00:00Z — 2026-03-04T01:45:00Z; 2026-03-04T11:00:00Z — 2026-03-05T01:45:00Z; 2026-03-05T11:00:00Z — 2026-03-06T01:45:00Z; 2026-03-06T11:00:00Z — 2026-03-07T01:45:00Z; 2026-03-09T10:00:00Z — 2026-03-10T00:45:00Z; 2026-03-10T10:00:00Z — 2026-03-11T00:45:00Z; 2026-03-11T10:00:00Z — 2026-03-12T00:45:00Z; 2026-03-12T10:00:00Z — 2026-03-13T00:45:00Z; 2026-03-13T10:00:00Z — 2026-03-14T00:45:00Z
+Header: In Brooklyn, Manhattan-bound [5] skips Newkirk Av-Little Haiti
+Description: Use nearby Beverly Rd or Flatbush Av-Brooklyn College stations.
+---
+---
+Routes: F
+Type: Reduced Service
+Posted: 2026-01-30T16:43:26Z
+Active period: 2026-03-06T14:15:00Z — 2026-03-06T20:30:00Z
+Header: The last stop for some [F] trains headed toward Coney Island is Church Av
+Description: Transfer at Church Av to continue your trip. [F] service between Church Av and Coney Island-Stillwell Av runs less frequently.
+---
+---
+Routes: F
+Type: Planned - Stops Skipped
+Posted: 2026-01-30T16:40:19Z
+Active period: 2026-03-06T14:15:00Z — 2026-03-06T20:30:00Z
+Header: In Brooklyn, Manhattan-bound [F] skips Avenue P, Avenue N, Bay Pkwy and Avenue I
+All trains at 18 Av board from the Coney Island-bound platform
+Description: For service to these stations, take the [F] to 18 Av and transfer to a Coney Island-bound train.
+---
+---
+Routes: 4
+Type: Station Notice
+Posted: 2026-01-30T14:42:53Z
+Active period: 2026-03-02T10:00:00Z — 2026-04-04T01:45:00Z; 2026-04-06T09:00:00Z — 2026-09-21T03:59:00Z
+Header: In the Bronx, Woodlawn-bound [4] skips Burnside Av
+Description: Use nearby 176 St or 183 St stations.
+---
+---
+Routes: 7
+Type: Station Notice
+Posted: 2025-05-27T13:23:05Z
+Active period: 2025-12-17T10:00:00Z — 2026-04-11T03:59:00Z
+Header: In Queens, Manhattan-bound [7] skips 69 St and 52 St
+All trains at 61 St-Woodside board from the Flushing-bound platform
+Description: Use nearby 74 St-Broadway, 61 St-Woodside or 46 St-Bliss St stations.
+---
+---
+Routes: 7
+Type: Station Notice
+Posted: 2025-03-31T13:38:39Z
+Active period: 2026-02-23T08:00:00Z — 2026-02-28T04:45:00Z; 2026-03-02T08:00:00Z — 2026-03-07T04:45:00Z; 2026-03-09T07:00:00Z — 2026-04-01T03:45:00Z
+Header: In Queens, Flushing-bound [7] skips 103 St-Corona Plaza
+Description: Use nearby Junction Blvd or 111 St stations.
+---
+```
+
+Expected: `{"action": "NORMAL", "affected_routes": ""}` — F/7 alerts are on alternates or wrong-direction stations; N/W, 4/5, 6 primary legs unaffected.
+
+---
+
+### Live 12: Same alerts, TO_HOME → expect NORMAL
+
+Same alert set as Live 11, captured ~6 minutes later with direction toggled to TO_HOME. Primary TO_HOME legs (6 Uptown, 4/5 Uptown, N/W Queens-bound) are also unaffected.
+
+```
+Current time: 2026-03-06T17:26:28Z
+Direction: TO_HOME
+
+ALERTS:
+---
+Routes: B,D,F,M
+Type: Delays
+Posted: 2026-03-06T15:38:02Z
+Active period: 2026-03-06T16:59:03Z — (open)
+Header: [B][D][F][M] trains are running with delays in both directions while we continue to address a signal problem near 42 St-Bryant Park.
+Description: Service Changes
+
+Some downtown [B] trains are running via the [C] line from 59 St-Columbus Circle to W 4 St-Wash Sq, and then via the [F] to 2 Av, the last stop.
+
+Some downtown [D] trains are running via the [C] line from 59 St-Columbus Circle to Jay St-MetroTech, and then via the [F] to Coney Island-Stillwell Av.
+
+Listen to announcements on your train to hear how it will run.
+
+As an alternative for service between Manhattan and Brooklyn, consider using nearby [N][R] trains.
+---
+---
+Routes: 5
+Type: Station Notice
+Posted: 2026-02-24T13:06:17Z
+Active period: 2026-02-27T11:00:00Z — 2026-02-28T01:45:00Z; 2026-03-02T11:00:00Z — 2026-03-03T01:45:00Z; 2026-03-03T11:00:00Z — 2026-03-04T01:45:00Z; 2026-03-04T11:00:00Z — 2026-03-05T01:45:00Z; 2026-03-05T11:00:00Z — 2026-03-06T01:45:00Z; 2026-03-06T11:00:00Z — 2026-03-07T01:45:00Z; 2026-03-09T10:00:00Z — 2026-03-10T00:45:00Z; 2026-03-10T10:00:00Z — 2026-03-11T00:45:00Z; 2026-03-11T10:00:00Z — 2026-03-12T00:45:00Z; 2026-03-12T10:00:00Z — 2026-03-13T00:45:00Z; 2026-03-13T10:00:00Z — 2026-03-14T00:45:00Z
+Header: In Brooklyn, Manhattan-bound [5] skips Newkirk Av-Little Haiti
+Description: Use nearby Beverly Rd or Flatbush Av-Brooklyn College stations.
+---
+---
+Routes: F
+Type: Reduced Service
+Posted: 2026-01-30T16:43:26Z
+Active period: 2026-03-06T14:15:00Z — 2026-03-06T20:30:00Z
+Header: The last stop for some [F] trains headed toward Coney Island is Church Av
+Description: Transfer at Church Av to continue your trip. [F] service between Church Av and Coney Island-Stillwell Av runs less frequently.
+---
+---
+Routes: F
+Type: Planned - Stops Skipped
+Posted: 2026-01-30T16:40:19Z
+Active period: 2026-03-06T14:15:00Z — 2026-03-06T20:30:00Z
+Header: In Brooklyn, Manhattan-bound [F] skips Avenue P, Avenue N, Bay Pkwy and Avenue I
+All trains at 18 Av board from the Coney Island-bound platform
+Description: For service to these stations, take the [F] to 18 Av and transfer to a Coney Island-bound train.
+---
+---
+Routes: 4
+Type: Station Notice
+Posted: 2026-01-30T14:42:53Z
+Active period: 2026-03-02T10:00:00Z — 2026-04-04T01:45:00Z; 2026-04-06T09:00:00Z — 2026-09-21T03:59:00Z
+Header: In the Bronx, Woodlawn-bound [4] skips Burnside Av
+Description: Use nearby 176 St or 183 St stations.
+---
+---
+Routes: 7
+Type: Station Notice
+Posted: 2025-05-27T13:23:05Z
+Active period: 2025-12-17T10:00:00Z — 2026-04-11T03:59:00Z
+Header: In Queens, Manhattan-bound [7] skips 69 St and 52 St
+All trains at 61 St-Woodside board from the Flushing-bound platform
+Description: Use nearby 74 St-Broadway, 61 St-Woodside or 46 St-Bliss St stations.
+---
+---
+Routes: 7
+Type: Station Notice
+Posted: 2025-03-31T13:38:39Z
+Active period: 2026-02-23T08:00:00Z — 2026-02-28T04:45:00Z; 2026-03-02T08:00:00Z — 2026-03-07T04:45:00Z; 2026-03-09T07:00:00Z — 2026-04-01T03:45:00Z
+Header: In Queens, Flushing-bound [7] skips 103 St-Corona Plaza
+Description: Use nearby Junction Blvd or 111 St stations.
+---
+```
+
+Expected: `{"action": "NORMAL", "affected_routes": ""}` — same reasoning as Live 11; 6/4/5/N/W primary legs unaffected.
