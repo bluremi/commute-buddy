@@ -94,6 +94,17 @@ class ApiRateLimiter(
         return RateLimitResult.Allowed(warning)
     }
 
+    /**
+     * Returns the current daily usage as (count, cap).
+     * Resets to 0 if the stored date is not today.
+     */
+    fun getDailyUsage(): Pair<Int, Int> {
+        val today = epochToDateString(clock())
+        val storedDate = prefs.getString(PREF_DATE, "")
+        val count = if (storedDate == today) prefs.getInt(PREF_COUNT, 0) else 0
+        return Pair(count, DAILY_CAP)
+    }
+
     private fun epochToDateString(epochMs: Long): String {
         return SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date(epochMs))
     }

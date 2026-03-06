@@ -284,4 +284,43 @@ class ApiRateLimiterTest {
             result is RateLimitResult.Denied.DailyCapExhausted
         )
     }
+
+    // -------------------------------------------------------------------------
+    // getDailyUsage tests
+    // -------------------------------------------------------------------------
+
+    @Test
+    fun `getDailyUsage returns stored count for today`() {
+        prefs.edit()
+            .putString("rate_limit_date", todayString)
+            .putInt("rate_limit_count", 17)
+            .apply()
+
+        val (count, cap) = limiter.getDailyUsage()
+        assertEquals(17, count)
+        assertEquals(ApiRateLimiter.DAILY_CAP, cap)
+    }
+
+    @Test
+    fun `getDailyUsage returns zero on a new day`() {
+        // Store a count for yesterday
+        prefs.edit()
+            .putString("rate_limit_date", tomorrowString) // wrong date relative to baseTime
+            .putInt("rate_limit_count", 30)
+            .apply()
+
+        val (count, _) = limiter.getDailyUsage()
+        assertEquals("Count should reset to 0 when stored date doesn't match today", 0, count)
+    }
+
+    @Test
+    fun `getDailyUsage reflects count after tryAcquire calls`() {
+        repeat(3) { i ->
+            currentTime = baseTime + i * (ApiRateLimiter.COOLDOWN_MS + 1)
+            limiter.tryAcquire()
+        }
+
+        val (count, _) = limiter.getDailyUsage()
+        assertEquals(3, count)
+    }
 }

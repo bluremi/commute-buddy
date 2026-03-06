@@ -44,6 +44,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private lateinit var statusTextView: TextView
+    private lateinit var apiUsageTextView: TextView
     private lateinit var tierButton1: Button
     private lateinit var tierButton2: Button
     private lateinit var tierButton3: Button
@@ -89,6 +90,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         statusTextView = findViewById(R.id.statusTextView)
+        apiUsageTextView = findViewById(R.id.apiUsageTextView)
 
         tierButton1 = findViewById(R.id.tierButton1)
         tierButton2 = findViewById(R.id.tierButton2)
@@ -127,6 +129,11 @@ class MainActivity : AppCompatActivity() {
         initGeminiFlash()
 
         initConnectIQ()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        updateApiUsageDisplay()
     }
 
     override fun onDestroy() {
@@ -374,6 +381,7 @@ class MainActivity : AppCompatActivity() {
                 sendCommuteStatus(result.status)
             }
         }
+        updateApiUsageDisplay()
     }
 
     // -------------------------------------------------------------------------
@@ -433,6 +441,15 @@ class MainActivity : AppCompatActivity() {
             msg.contains("not found", ignoreCase = true) ->
                 getString(R.string.ai_error_model_not_found, BuildConfig.GEMINI_MODEL_NAME)
             else -> getString(R.string.ai_error_api, msg)
+        }
+    }
+
+    private fun updateApiUsageDisplay() {
+        val (count, cap) = rateLimiter.getDailyUsage()
+        apiUsageTextView.text = if (count >= cap) {
+            "Daily limit reached: $count/$cap — polling paused until tomorrow"
+        } else {
+            "API usage: $count/$cap today"
         }
     }
 

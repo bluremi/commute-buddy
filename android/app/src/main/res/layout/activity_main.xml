@@ -156,4 +156,13 @@
             android:fontFamily="monospace" />
     </ScrollView>
 
+    <TextView
+        android:id="@+id/apiUsageTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:textSize="12sp"
+        android:textAlignment="center"
+        android:text="API usage: 0/50 today" />
+
 </LinearLayout>
