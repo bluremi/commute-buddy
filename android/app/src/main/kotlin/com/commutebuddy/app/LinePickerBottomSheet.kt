@@ -115,8 +115,9 @@ class LinePickerBottomSheet : BottomSheetDialogFragment() {
         val bgColor = lineColor(line)
         val isLight = isLightBackground(line)
         val textColor = if (isLight) Color.BLACK else Color.WHITE
-        // Stroke color matches text color: white on dark, black on yellow
-        val strokeColor = textColor
+        // Use the app's primary CTA purple for the selection stroke on all chips —
+        // more visible than white/black in both light and dark mode
+        val strokeCheckedColor = Color.parseColor("#6200EE")
 
         val chipSizePx = dp(44).toInt()
 
@@ -132,18 +133,18 @@ class LinePickerBottomSheet : BottomSheetDialogFragment() {
 
             chipBackgroundColor = ColorStateList.valueOf(bgColor)
             setTextColor(textColor)
-            textSize = 14f
+            textSize = 16f
             typeface = Typeface.DEFAULT_BOLD
             gravity = Gravity.CENTER
 
-            // Stroke: thick and opaque when checked, invisible when unchecked
+            // Stroke: thick primary-color stroke when checked, invisible when unchecked
             chipStrokeWidth = dp(3)
             chipStrokeColor = ColorStateList(
                 arrayOf(intArrayOf(android.R.attr.state_checked), intArrayOf()),
-                intArrayOf(strokeColor, Color.TRANSPARENT)
+                intArrayOf(strokeCheckedColor, Color.TRANSPARENT)
             )
 
-            // Circular shape: zero out all internal padding, fix size, maximise corner radius
+            // Circular shape: zero out all internal padding so ChipDrawable centres text evenly
             setEnsureMinTouchTargetSize(false)
             shapeAppearanceModel = ShapeAppearanceModel.builder()
                 .setAllCornerSizes(chipSizePx / 2f)
@@ -151,8 +152,8 @@ class LinePickerBottomSheet : BottomSheetDialogFragment() {
             chipMinHeight = dp(44)
             chipStartPadding = 0f
             chipEndPadding = 0f
-            textStartPadding = dp(2)
-            textEndPadding = dp(2)
+            textStartPadding = 0f
+            textEndPadding = 0f
 
             layoutParams = ChipGroup.LayoutParams(chipSizePx, chipSizePx)
         }
