@@ -1,11 +1,14 @@
 package com.commutebuddy.app
 
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.TextView
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import android.view.ViewGroup
 import androidx.core.view.ViewCompat
@@ -16,6 +19,7 @@ import androidx.lifecycle.lifecycleScope
 import com.garmin.android.connectiq.ConnectIQ
 import com.garmin.android.connectiq.IQApp
 import com.garmin.android.connectiq.IQDevice
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.firebase.Firebase
 import com.google.firebase.ai.GenerativeModel
@@ -47,6 +51,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var fetchLiveButton: Button
     private lateinit var resultsTextView: TextView
     private lateinit var directionToggle: MaterialButtonToggleGroup
+    private lateinit var configureCommuteButton: MaterialButton
+    private lateinit var configureCommuteLauncher: ActivityResultLauncher<Intent>
 
     private lateinit var connectIQ: ConnectIQ
     private lateinit var rateLimiter: ApiRateLimiter
@@ -75,6 +81,13 @@ class MainActivity : AppCompatActivity() {
             WindowInsetsCompat.CONSUMED
         }
 
+        configureCommuteLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { _ ->
+            profile = profileRepository.load()
+            initGeminiFlash()
+        }
+
         statusTextView = findViewById(R.id.statusTextView)
 
         tierButton1 = findViewById(R.id.tierButton1)
@@ -84,6 +97,10 @@ class MainActivity : AppCompatActivity() {
         fetchLiveButton = findViewById(R.id.fetchLiveButton)
         resultsTextView = findViewById(R.id.resultsTextView)
         directionToggle = findViewById(R.id.directionToggle)
+        configureCommuteButton = findViewById(R.id.configureCommuteButton)
+        configureCommuteButton.setOnClickListener {
+            configureCommuteLauncher.launch(Intent(this, CommuteProfileActivity::class.java))
+        }
         tierButton1.setOnClickListener { onTierClicked(MtaTestData.Tier.TIER_1, 1) }
         tierButton2.setOnClickListener { onTierClicked(MtaTestData.Tier.TIER_2, 2) }
         tierButton3.setOnClickListener { onTierClicked(MtaTestData.Tier.TIER_3, 3) }

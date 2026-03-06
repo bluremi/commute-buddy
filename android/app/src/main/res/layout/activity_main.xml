@@ -29,6 +29,15 @@
         android:textSize="18sp"
         android:textStyle="bold" />
 
+    <!-- Configure Commute button (FEAT-07) -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/configureCommuteButton"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="@string/button_configure_commute" />
+
     <!-- Direction toggle (FEAT-07) -->
     <com.google.android.material.button.MaterialButtonToggleGroup
         android:id="@+id/directionToggle"

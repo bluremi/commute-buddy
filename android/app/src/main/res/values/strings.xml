@@ -51,6 +51,24 @@
     <string name="direction_to_work">To Work</string>
     <string name="direction_to_home">To Home</string>
 
+    <!-- Commute profile configuration (FEAT-07 Increment 3) -->
+    <string name="title_configure_commute">Configure Commute</string>
+    <string name="button_configure_commute">Configure Commute</string>
+    <string name="section_to_work_legs">TO_WORK Legs</string>
+    <string name="section_to_home_legs">TO_HOME Legs</string>
+    <string name="section_alternates">Alternate Lines (optional)</string>
+    <string name="button_add_leg">+ Add Leg</string>
+    <string name="button_remove_leg">Remove</string>
+    <string name="button_save_profile">Save</string>
+    <string name="hint_lines">Lines (e.g. N,W)</string>
+    <string name="hint_from_station">From station</string>
+    <string name="hint_to_station">To station</string>
+    <string name="hint_alternates">Alternate lines (e.g. F,R,7)</string>
+    <string name="error_lines_required">Enter at least one line</string>
+    <string name="error_station_required">Station is required</string>
+    <string name="error_leg_required_work">At least one TO_WORK leg is required</string>
+    <string name="error_leg_required_home">At least one TO_HOME leg is required</string>
+
     <!-- Live MTA Alerts (FEAT-03) -->
     <string name="live_section_title">Live MTA Alerts</string>
     <string name="live_fetch_button">Fetch Live</string>
