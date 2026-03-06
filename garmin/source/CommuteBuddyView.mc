@@ -64,8 +64,17 @@ class CommuteBuddyView extends WatchUi.View {
 
         // Summary — medium font, white, center-justified and wrapped
         if (summary instanceof String) {
-            dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-            dc.drawWrappedText(cx - 160, 135, 320, 80, summary as String, Graphics.TEXT_JUSTIFY_CENTER, Graphics.FONT_MEDIUM);
+            var summaryArea = new WatchUi.TextArea({
+                :text => summary as String,
+                :color => Graphics.COLOR_WHITE,
+                :font => Graphics.FONT_MEDIUM,
+                :locX => cx - 160,
+                :locY => 135,
+                :width => 320,
+                :height => 80,
+                :justification => Graphics.TEXT_JUSTIFY_CENTER
+            });
+            summaryArea.draw(dc);
         }
 
         // Affected routes — small font, white; omit for NORMAL with empty routes
@@ -79,8 +88,17 @@ class CommuteBuddyView extends WatchUi.View {
 
         // Reroute hint — small font, white; only when REROUTE and hint is stored
         if (actionStr.equals("REROUTE") && rerouteHint instanceof String) {
-            dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-            dc.drawWrappedText(cx - 160, 265, 320, 50, rerouteHint as String, Graphics.TEXT_JUSTIFY_CENTER, Graphics.FONT_SMALL);
+            var hintArea = new WatchUi.TextArea({
+                :text => rerouteHint as String,
+                :color => Graphics.COLOR_WHITE,
+                :font => Graphics.FONT_SMALL,
+                :locX => cx - 160,
+                :locY => 265,
+                :width => 320,
+                :height => 50,
+                :justification => Graphics.TEXT_JUSTIFY_CENTER
+            });
+            hintArea.draw(dc);
         }
 
         // Freshness — small font, light gray; relative age of the last update
