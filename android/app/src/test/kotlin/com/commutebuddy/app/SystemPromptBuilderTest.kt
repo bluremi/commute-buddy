@@ -69,6 +69,12 @@ class SystemPromptBuilderTest {
     }
 
     @Test
+    fun generatedPrompt_alternateLineEvaluation_hasGuardClause() {
+        val prompt = SystemPromptBuilder.buildSystemPrompt(defaultProfile)
+        assertTrue(prompt.contains("ONLY evaluate alternate lines if at least one primary leg"))
+    }
+
+    @Test
     fun generatedPrompt_customAlternates_reflectedInEvaluationSection() {
         val profile = CommuteProfile(
             toWorkLegs = listOf(CommuteLeg(listOf("A"), "Downtown", "Jay St", "Fulton St")),
