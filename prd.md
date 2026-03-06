@@ -20,14 +20,15 @@ When the watch Glance is viewed, it instantly displays the cached status — no 
 - While getting ready, user glances at watch and sees "Normal", "Minor delays — N,W", "Reroute — N,W" (with which alternates are clear), or "Stay home" — making an informed decision before putting on their coat
 
 **2. Active Commute**
-- User leaves apartment; Android app is already polling every 15–30 seconds
+- User leaves apartment; Android app is already polling every 5 minutes
 - User descends into subway and loses cell service
 - Watch retains last-known state from the phone — instant glance, no spinner
 
-**3. Auto-Shutdown (Battery Preservation)**
-- When commute starts, Android app queries Google Maps Routes API for estimated transit duration
-- Sets a TTL at 150% of estimated duration
-- App auto-kills the polling service and drops BLE to idle when TTL expires
+**3. Background Polling (Battery-Aware)**
+- Android app polls on a fixed schedule: every 5 minutes (configurable) during active commute windows, once per hour outside them
+- Commute windows are user-configured (e.g., 8:00–9:30 AM, 5:30–7:00 PM)
+- The hourly off-window poll keeps the watch reasonably fresh for ad-hoc trips
+- `ApiRateLimiter`'s persisted 50/day hard cap is the ultimate safeguard — polling gracefully stops when the cap is reached
 
 ## Key Features
 
@@ -235,8 +236,7 @@ Set-Location "a:\Phil\Phil Docs\Development\commute-buddy\android"
 - [x] FEAT-05: Decision engine integration — Replace simple Gemini summarization with validated decision prompt. Update CommuteStatus and BLE schema to new fields (action, summary, reroute_hint, affected_routes). Expand MONITORED_ROUTES to include alternate lines (R, 7). Restructure buildPromptText() to structured per-alert format. Migrate to Firebase AI Logic SDK for ThinkingConfig support. Hardcode commute profile for now.
 - [x] FEAT-06: Garmin Glance + full-app UI — Color-coded action tiers on glance (green/yellow/red/gray), full detail (summary, reroute_hint, freshness) in app view. Update watch message handling for new schema.
 - [x] FEAT-07: Commute profile configuration — UI to define commute legs (line + direction + stations) and alternate lines. Replaces hardcoded profile. Includes commute direction toggle (to work / to home).
-- [ ] FEAT-08: Configurable commute window with scheduled background polling
-- [ ] FEAT-09: Dynamic TTL via Google Maps Routes API for auto-shutdown
+- [ ] FEAT-08: Background polling service — Fixed-schedule polling with configurable commute windows and polling interval (default 5 min during window, 1 hr outside). User configures windows and interval in Android settings. Runs as a Foreground Service. The ApiRateLimiter's persisted 50/day hard cap ensures the schedule never exceeds the daily budget regardless of configuration.
 - [ ] FEAT-10: Token usage optimization — Each Gemini request currently consumes ~2.5K input tokens (~700 system prompt + ~1,800 user prompt). Real MTA feed descriptions for planned work (suspension notices, shuttle routes, ADA notices) can be 800-1,500 chars each; with 7 monitored routes there can be 5-8 active alerts simultaneously. The model makes decisions primarily from `header_text`; `description_text` adds nuance but exhibits rapidly diminishing returns past ~400 chars. Fix: cap `description_text` at ~400 chars in `buildPromptText()`. These changes could reduce input tokens by 500-1,200 per request. Not urgent — at the current 50/day rate limiter cap the free tier is not at risk — but worth doing before FEAT-08 introduces automatic polling.
 
 ### Bugs
