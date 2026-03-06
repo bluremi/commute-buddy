@@ -136,6 +136,7 @@ class LinePickerBottomSheet : BottomSheetDialogFragment() {
             textSize = 16f
             typeface = Typeface.DEFAULT_BOLD
             gravity = Gravity.CENTER
+            textAlignment = View.TEXT_ALIGNMENT_CENTER
 
             // Stroke: thick primary-color stroke when checked, invisible when unchecked
             chipStrokeWidth = dp(3)
