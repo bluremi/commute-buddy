@@ -10,6 +10,8 @@ import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import android.bluetooth.BluetoothAdapter
+import android.content.pm.PackageManager
 import com.garmin.android.connectiq.ConnectIQ
 import com.garmin.android.connectiq.IQApp
 import com.garmin.android.connectiq.IQDevice
@@ -202,10 +204,35 @@ class PollingForegroundService : Service() {
     // ConnectIQ init
     // -------------------------------------------------------------------------
 
+    /**
+     * Returns true only if the environment is clean enough for the ConnectIQ SDK to initialize
+     * without attempting to show a dialog. SDK 2.3.0 ignores autoUI=false and shows a dialog
+     * (crashing in a Service context) when Bluetooth is off, Garmin Connect is missing, or BLE
+     * permissions are absent. Checking upfront avoids the crash.
+     */
+    private fun isConnectIQEnvironmentReady(): Boolean {
+        val bt = BluetoothAdapter.getDefaultAdapter()
+        if (bt == null || !bt.isEnabled) {
+            Log.w(TAG, "Pre-flight: Bluetooth disabled — skipping ConnectIQ init")
+            return false
+        }
+        try {
+            packageManager.getPackageInfo("com.garmin.android.apps.connectmobile", 0)
+        } catch (e: PackageManager.NameNotFoundException) {
+            Log.w(TAG, "Pre-flight: Garmin Connect not installed — skipping ConnectIQ init")
+            return false
+        }
+        if (checkSelfPermission(android.Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED ||
+            checkSelfPermission(android.Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+            Log.w(TAG, "Pre-flight: BLE permissions not granted — skipping ConnectIQ init")
+            return false
+        }
+        return true
+    }
+
     private fun initConnectIQ() {
+        if (!isConnectIQEnvironmentReady()) return
         connectIQ = ConnectIQ.getInstance(this, ConnectIQ.IQConnectType.WIRELESS)
-        // autoUI=false: prevents the SDK from showing dialogs (which require an Activity context).
-        // Errors are delivered via onInitializeError instead of a popup.
         connectIQ?.initialize(this, false, object : ConnectIQ.ConnectIQListener {
             override fun onSdkReady() {
                 Log.d(TAG, "ConnectIQ SDK ready")
