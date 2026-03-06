@@ -100,12 +100,12 @@ The current detail view uses manual swipe-based pixel offset and redraw logic in
 
 ### Increment 5: Visual parity + regression hardening
 **Recommended model:** Composer
-- [ ] Ensure visual parity for:
+- [x] Ensure visual parity for:
   - action color and labels
   - routes and reroute hint display rules
   - freshness text behavior
-- [ ] Confirm no regressions in waiting/fallback states.
-- [ ] Confirm behavior in simulator with representative payload sizes:
+- [x] Confirm no regressions in waiting/fallback states.
+- [x] Confirm behavior in simulator with representative payload sizes:
   - short summary
   - medium summary
   - very long summary + reroute hint

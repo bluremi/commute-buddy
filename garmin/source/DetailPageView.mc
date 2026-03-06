@@ -64,7 +64,7 @@ class DetailPageView extends WatchUi.View {
             var rerouteHint = header.get("rerouteHint") as String?;
             if (rerouteHint != null && rerouteHint.length() > 0) {
                 var hintH = 80;
-                var fitted = Graphics.fitTextToArea(rerouteHint, Graphics.FONT_TINY, textW, hintH, false);
+                var fitted = Graphics.fitTextToArea(rerouteHint, Graphics.FONT_TINY, textW, hintH, true);
                 if (fitted != null) {
                     var hintArea = new WatchUi.TextArea({
                         :text => fitted,

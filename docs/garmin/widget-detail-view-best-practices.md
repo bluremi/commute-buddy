@@ -141,6 +141,18 @@ Run in simulator (`venu3_sim`) and validate:
    - glance behavior unchanged
    - BLE schema unchanged
 
+## Simulator Test Payloads (Increment 5)
+
+Send these from the Android app via BLE/Connect IQ to exercise representative cases. Payload format: `{action, summary, affected_routes, reroute_hint?, timestamp}`.
+
+| Case | action | summary | affected_routes | reroute_hint | Expected |
+|------|--------|--------|-----------------|--------------|----------|
+| **Short** | `NORMAL` | `"All clear."` | `""` | omit | 1 page, green "Normal", no routes |
+| **Medium** | `MINOR_DELAYS` | `"N/W delays Manhattan-bound due to earlier brake activation at Queensboro Plaza."` | `"N,W"` | omit | 1–2 pages, yellow "Minor Delays", routes shown |
+| **Very long + hint** | `REROUTE` | 300+ char summary (e.g. repeat a sentence) | `"N,W,Q"` | `"Use 7 train to 74 St, then N to Queensboro."` | 2+ summary pages, red "Reroute", hint in header, no clipping |
+| **Waiting** | (no message) | — | — | — | "Waiting for update..." centered |
+| **NORMAL empty routes** | `NORMAL` | `"On time."` | `""` | omit | Routes line omitted |
+
 ## Quick Prompt Template For Lower-Cost Models
 
 Use this when delegating implementation:
