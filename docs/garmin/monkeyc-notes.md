@@ -60,6 +60,41 @@ Prefix application-specific storage keys to avoid collisions with any legacy key
 | `cs_reason` | String | Brief reason, max 40 chars |
 | `cs_timestamp` | Number | Unix epoch seconds |
 
+## Modules do not support `private`
+
+Monkey C modules have no concept of data hiding. The `private` keyword is **not allowed** in module-level functions.
+
+**Symptom:** `extraneous input 'private' expecting {'class', 'module', ...}`
+
+**Fix:** Remove `private` from all functions in a `module` block. Use `function` instead of `private function`.
+
+## String.substring requires two arguments
+
+`Lang.String.substring(startIndex, endIndex)` requires **both** arguments. There is no single-argument overload.
+
+**Symptom:** `Trying to call function '$.Toybox.Lang.String.substring' with wrong number of arguments`
+
+**Fix:** For "from index to end of string", use `substring(start, null)`. The API accepts `null` for `endIndex` to mean end of string (API 3.3.2+).
+
+```monkeyc
+var rest = text.substring(chunk.length(), null);  // correct
+var rest = text.substring(chunk.length());        // wrong — 1 arg
+```
+
+## ViewLoopFactory.getView return type
+
+`ViewLoopFactory.getView(page)` must return `[View, BehaviorDelegate]` — a two-element array. Returning a bare `View` or `[View]` causes type errors.
+
+**Fix:** Create a minimal `BehaviorDelegate` subclass (e.g. `DetailPageDelegate`) that does nothing. The `ViewLoopDelegate` handles navigation; the per-page delegate exists only to satisfy the signature.
+
+```monkeyc
+function getView(pageIndex as Number) {
+    var view = new MyPageView(...);
+    var delegate = new MyPageDelegate();
+    return [view, delegate];
+}
+```
+
 ## Reference
 
 - **Connect IQ API docs:** https://developer.garmin.com/connect-iq/api-docs/

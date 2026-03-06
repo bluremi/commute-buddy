@@ -11,16 +11,12 @@ class DetailPageView extends WatchUi.View {
     private var _waiting as Boolean = false;
     private var _header as Dictionary? = null;
     private var _summaryChunk as String = "";
-    private var _pageIndex as Number = 0;
-    private var _totalPages as Number = 1;
 
-    function initialize(waiting as Boolean, header as Dictionary?, summaryChunk as String, pageIndex as Number, totalPages as Number) {
+    function initialize(waiting as Boolean, header as Dictionary?, summaryChunk as String) {
         View.initialize();
         _waiting = waiting;
         _header = header;
         _summaryChunk = summaryChunk;
-        _pageIndex = pageIndex;
-        _totalPages = totalPages;
     }
 
     function onLayout(dc as Graphics.Dc) as Void {

@@ -22,13 +22,14 @@ class DetailPageFactory extends WatchUi.ViewLoopFactory {
         return _pages.size();
     }
 
-    function getView(pageIndex as Number) as WatchUi.View or [WatchUi.View, WatchUi.BehaviorDelegate] {
+    function getView(pageIndex as Number) {
         var page = _pages[pageIndex];
         var waiting = page.get("waiting") as Boolean;
         var header = page.get("header") as Dictionary?;
         var summaryChunk = page.get("summaryChunk") as String;
-        var view = new DetailPageView(waiting, header, summaryChunk, pageIndex, _pages.size());
-        return [view];
+        var view = new DetailPageView(waiting, header, summaryChunk);
+        var delegate = new DetailPageDelegate();
+        return [view, delegate];
     }
 
     private function buildPageModel() as Array<Dictionary> {

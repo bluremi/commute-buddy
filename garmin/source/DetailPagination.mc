@@ -41,12 +41,12 @@ module DetailPagination {
             var chunk = findLargestFittingPrefix(remainder, font, width, height);
             if (chunk.length() > 0) {
                 chunks.add(chunk);
-                remainder = remainder.substring(chunk.length());
+                remainder = remainder.substring(chunk.length(), null);
             } else {
                 // Single token (word or run) too long for one page — must break
                 var forced = forceChunk(remainder, font, width, height);
                 chunks.add(forced);
-                remainder = remainder.substring(forced.length());
+                remainder = remainder.substring(forced.length(), null);
             }
         }
 
@@ -54,7 +54,7 @@ module DetailPagination {
     }
 
     // Find the largest prefix that fits, breaking at word boundaries.
-    private function findLargestFittingPrefix(
+    function findLargestFittingPrefix(
         text as String,
         font as Graphics.FontType,
         width as Number,
@@ -84,7 +84,7 @@ module DetailPagination {
     }
 
     // Advance past whitespace; return index of first non-space or text.length().
-    private function skipSpaces(text as String, start as Number) as Number {
+    function skipSpaces(text as String, start as Number) as Number {
         var i = start;
         while (i < text.length()) {
             var c = text.substring(i, i + 1);
@@ -97,7 +97,7 @@ module DetailPagination {
     }
 
     // Index past the current word (start must be at a non-space).
-    private function nextWordEnd(text as String, start as Number) as Number {
+    function nextWordEnd(text as String, start as Number) as Number {
         var i = start;
         while (i < text.length()) {
             var c = text.substring(i, i + 1);
@@ -110,7 +110,7 @@ module DetailPagination {
     }
 
     // Trim leading whitespace from string.
-    private function trimStart(s as String) as String {
+    function trimStart(s as String) as String {
         var i = 0;
         while (i < s.length()) {
             var c = s.substring(i, i + 1);
@@ -119,11 +119,11 @@ module DetailPagination {
             }
             i++;
         }
-        return s.substring(i);
+        return s.substring(i, null);
     }
 
     // Force a chunk when a single word doesn't fit — binary search for split point.
-    private function forceChunk(
+    function forceChunk(
         text as String,
         font as Graphics.FontType,
         width as Number,
