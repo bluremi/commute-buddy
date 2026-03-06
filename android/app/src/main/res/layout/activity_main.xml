@@ -38,6 +38,15 @@
         android:layout_marginBottom="8dp"
         android:text="@string/button_configure_commute" />
 
+    <!-- Polling Settings button (FEAT-08) -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/pollingSettingsButton"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="@string/button_polling_settings" />
+
     <!-- Direction toggle (FEAT-07) -->
     <com.google.android.material.button.MaterialButtonToggleGroup
         android:id="@+id/directionToggle"

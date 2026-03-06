@@ -53,6 +53,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var resultsTextView: TextView
     private lateinit var directionToggle: MaterialButtonToggleGroup
     private lateinit var configureCommuteButton: MaterialButton
+    private lateinit var pollingSettingsButton: MaterialButton
     private lateinit var configureCommuteLauncher: ActivityResultLauncher<Intent>
 
     private lateinit var connectIQ: ConnectIQ
@@ -102,6 +103,10 @@ class MainActivity : AppCompatActivity() {
         configureCommuteButton = findViewById(R.id.configureCommuteButton)
         configureCommuteButton.setOnClickListener {
             configureCommuteLauncher.launch(Intent(this, CommuteProfileActivity::class.java))
+        }
+        pollingSettingsButton = findViewById(R.id.pollingSettingsButton)
+        pollingSettingsButton.setOnClickListener {
+            startActivity(Intent(this, PollingSettingsActivity::class.java))
         }
         tierButton1.setOnClickListener { onTierClicked(MtaTestData.Tier.TIER_1, 1) }
         tierButton2.setOnClickListener { onTierClicked(MtaTestData.Tier.TIER_2, 2) }

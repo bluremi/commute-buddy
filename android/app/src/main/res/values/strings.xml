@@ -76,6 +76,17 @@
     <string name="label_lines_none">Lines: (none selected)</string>
     <string name="label_alternates_none">Alternates: (none)</string>
 
+    <!-- Polling Settings (FEAT-08 Increment 3) -->
+    <string name="title_polling_settings">Polling Settings</string>
+    <string name="button_polling_settings">Polling Settings</string>
+    <string name="polling_label_enabled">Enable background polling</string>
+    <string name="polling_label_morning_window">Morning Commute Window</string>
+    <string name="polling_label_evening_window">Evening Commute Window</string>
+    <string name="polling_label_to">to</string>
+    <string name="polling_placeholder_time">--:-- --</string>
+    <string name="polling_label_interval">Polling Interval (in-window)</string>
+    <string name="polling_interval_value">%d minutes</string>
+
     <!-- Live MTA Alerts (FEAT-03) -->
     <string name="live_section_title">Live MTA Alerts</string>
     <string name="live_fetch_button">Fetch Live</string>
