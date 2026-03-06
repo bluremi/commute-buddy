@@ -15,8 +15,6 @@ data class MtaAlert(
     val createdAt: Long? = null
 )
 
-val MONITORED_ROUTES = setOf("N", "W", "4", "5", "6", "R", "7")
-
 object MtaAlertParser {
 
     fun parseAlerts(jsonString: String): List<MtaAlert> {

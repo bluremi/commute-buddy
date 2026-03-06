@@ -1,6 +1,7 @@
 package com.commutebuddy.app
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
@@ -15,6 +16,7 @@ import androidx.lifecycle.lifecycleScope
 import com.garmin.android.connectiq.ConnectIQ
 import com.garmin.android.connectiq.IQApp
 import com.garmin.android.connectiq.IQDevice
+import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.firebase.Firebase
 import com.google.firebase.ai.GenerativeModel
 import com.google.firebase.ai.ai
@@ -31,73 +33,10 @@ class MainActivity : AppCompatActivity() {
     companion object {
         private const val TAG = "CommuteBuddy"
         private const val GARMIN_APP_UUID = "e5f12c3a-7b04-4d8e-9a6f-2c1b3e5d7a9f"
-
-        private const val SYSTEM_PROMPT = """You are a commute advisor for an NYC subway rider. Your job is to analyze MTA service alerts and make a clear recommendation: proceed normally, expect minor delays, reroute, or stay home.
-
-COMMUTE PROFILE:
-TO_WORK:
-  legs:
-    - lines: [N, W]
-      direction: Manhattan-bound
-      from: Astoria
-      to: 59th St
-    - lines: [4, 5]
-      direction: Downtown
-      from: 59th St
-      to: 14th St
-    - lines: [6]
-      direction: Downtown
-      from: 14th St
-      to: Spring St
-  alternates: [F, R, 7]
-
-TO_HOME:
-  legs:
-    - lines: [6]
-      direction: Uptown
-      from: Spring St
-      to: 14th St
-    - lines: [4, 5]
-      direction: Uptown
-      from: 14th St
-      to: 59th St
-    - lines: [N, W]
-      direction: Queens-bound
-      from: 59th St
-      to: Astoria
-  alternates: [F, R, 7]
-
-DECISION FRAMEWORK:
-- NORMAL: No alerts affect the commute, or alerts are resolved/irrelevant.
-- MINOR_DELAYS: Active alerts cause delays on the primary route, but service IS STILL RUNNING. The commuter should allow extra time but does not need to change route. Use this when the alert type is "Delays" without words like "extensive", "significant", "extremely limited", or "suspended". Standard signal problems, train removal, and sick customers are typically MINOR_DELAYS unless described as severe.
-- REROUTE: Primary route has significant disruption (suspended service, extensive delays, service described as "extremely limited", or skipped stops on the user's segment). At least one alternate line is running normally or with minor delays.
-- STAY_HOME: Primary route is severely disrupted AND all alternate lines are also significantly impacted. Only valid when direction is TO_WORK. When direction is TO_HOME, use REROUTE or MINOR_DELAYS instead (the user must get home).
-
-DIRECTION MATCHING RULES:
-- Each commute leg has a direction (e.g., "Manhattan-bound", "Downtown").
-- Only flag alerts that affect the leg's direction or explicitly say "both directions." Ignore alerts for the opposite direction on the same line.
-- MTA alerts reference direction using terms like "Manhattan-bound", "Queens-bound", "Uptown", "Downtown", "Bronx-bound", "Brooklyn-bound", "northbound", "southbound", or station-pair ranges (e.g., "No [N] between Queensboro Plaza and Times Sq" implies Manhattan-bound service is affected). Match these against the leg direction.
-- If an alert does not mention any direction, assume it affects both directions.
-
-ALERT FRESHNESS RULES:
-- Planned work with a defined active_period: trust the time window; if current time is outside the window, ignore the alert.
-- Real-time delays posted <30 min ago: treat as active.
-- Real-time delays posted >60 min ago with no update: ASSUME RESOLVED and downgrade severity by one level (REROUTE → MINOR_DELAYS, MINOR_DELAYS → NORMAL). Exception: only keep the original severity if the alert text describes an inherently long-duration incident (e.g., "person struck by train", "FDNY on scene", "structural damage", "derailment"). Routine issues like signal problems, train cleaning, and sick customers are typically resolved within 60 minutes.
-- Real-time delays posted 30-60 min ago: use judgment based on severity of the incident described.
-
-ALTERNATE LINE EVALUATION:
-- When recommending REROUTE, check all alerts for the alternate lines (F, R, 7).
-- If an alternate has no active alerts, mention it as clear in reroute_hint.
-- If ALL alternates are also significantly disrupted, escalate to STAY_HOME (TO_WORK) or note the situation in summary (TO_HOME).
-- Do not recommend a specific transfer sequence or walking route — just report which alternate lines are running.
-
-Respond with ONLY a JSON object matching this schema. No markdown fencing, no explanation outside the JSON:
-{
-  "action": "NORMAL" or "MINOR_DELAYS" or "REROUTE" or "STAY_HOME",
-  "summary": "<brief explanation, max 80 chars>",
-  "reroute_hint": "<which alternates are clear, max 60 chars — include ONLY when action is REROUTE, omit otherwise>",
-  "affected_routes": "<comma-separated impacted lines from primary legs, or empty string if NORMAL>"
-}"""
+        private const val PREFS_COMMUTE = "commute_prefs"
+        private const val KEY_DIRECTION = "current_direction"
+        private const val DIRECTION_TO_WORK = "TO_WORK"
+        private const val DIRECTION_TO_HOME = "TO_HOME"
     }
 
     private lateinit var statusTextView: TextView
@@ -107,9 +46,14 @@ Respond with ONLY a JSON object matching this schema. No markdown fencing, no ex
     private lateinit var tierButton4: Button
     private lateinit var fetchLiveButton: Button
     private lateinit var resultsTextView: TextView
+    private lateinit var directionToggle: MaterialButtonToggleGroup
 
     private lateinit var connectIQ: ConnectIQ
     private lateinit var rateLimiter: ApiRateLimiter
+    private lateinit var profileRepository: CommuteProfileRepository
+    private lateinit var profile: CommuteProfile
+    private lateinit var commutePrefs: SharedPreferences
+    private var currentDirection: String = DIRECTION_TO_WORK
     private var generativeModel: GenerativeModel? = null
     private var sdkReady = false
     private var connectedDevice: IQDevice? = null
@@ -139,11 +83,26 @@ Respond with ONLY a JSON object matching this schema. No markdown fencing, no ex
         tierButton4 = findViewById(R.id.tierButton4)
         fetchLiveButton = findViewById(R.id.fetchLiveButton)
         resultsTextView = findViewById(R.id.resultsTextView)
+        directionToggle = findViewById(R.id.directionToggle)
         tierButton1.setOnClickListener { onTierClicked(MtaTestData.Tier.TIER_1, 1) }
         tierButton2.setOnClickListener { onTierClicked(MtaTestData.Tier.TIER_2, 2) }
         tierButton3.setOnClickListener { onTierClicked(MtaTestData.Tier.TIER_3, 3) }
         tierButton4.setOnClickListener { onTierClicked(MtaTestData.Tier.TIER_4, 4) }
         fetchLiveButton.setOnClickListener { onFetchLiveClicked() }
+
+        commutePrefs = getSharedPreferences(PREFS_COMMUTE, Context.MODE_PRIVATE)
+        profileRepository = CommuteProfileRepository(commutePrefs)
+        profile = profileRepository.load()
+
+        currentDirection = commutePrefs.getString(KEY_DIRECTION, DIRECTION_TO_WORK) ?: DIRECTION_TO_WORK
+        val initialButtonId = if (currentDirection == DIRECTION_TO_HOME) R.id.btnToHome else R.id.btnToWork
+        directionToggle.check(initialButtonId)
+        directionToggle.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (isChecked) {
+                currentDirection = if (checkedId == R.id.btnToHome) DIRECTION_TO_HOME else DIRECTION_TO_WORK
+                commutePrefs.edit().putString(KEY_DIRECTION, currentDirection).apply()
+            }
+        }
 
         rateLimiter = ApiRateLimiter(
             getSharedPreferences("rate_limiter", Context.MODE_PRIVATE)
@@ -258,6 +217,7 @@ Respond with ONLY a JSON object matching this schema. No markdown fencing, no ex
     private fun initGeminiFlash() {
         setAllApiButtonsEnabled(false)
         val modelName = BuildConfig.GEMINI_MODEL_NAME
+        val systemPrompt = SystemPromptBuilder.buildSystemPrompt(profile)
         generativeModel = Firebase.ai(backend = GenerativeBackend.googleAI())
             .generativeModel(
                 modelName = modelName,
@@ -267,7 +227,7 @@ Respond with ONLY a JSON object matching this schema. No markdown fencing, no ex
                         thinkingLevel = ThinkingLevel.LOW
                     }
                 },
-                systemInstruction = content { text(SYSTEM_PROMPT) }
+                systemInstruction = content { text(systemPrompt) }
             )
         setAllApiButtonsEnabled(true)
         Log.d(TAG, "Firebase AI: model ready ($modelName)")
@@ -373,17 +333,18 @@ Respond with ONLY a JSON object matching this schema. No markdown fencing, no ex
                     sendCommuteStatus(CommuteStatus(action = CommuteStatus.ACTION_NORMAL, summary = "Feed parse error", affectedRoutes = "", rerouteHint = null, timestamp = System.currentTimeMillis() / 1000))
                     return@launch
                 }
-                val routeFiltered = MtaAlertParser.filterByRoutes(alerts, MONITORED_ROUTES)
+                val monitoredRoutes = profile.monitoredRoutes()
+                val routeFiltered = MtaAlertParser.filterByRoutes(alerts, monitoredRoutes)
                 val filtered = MtaAlertParser.filterByActivePeriod(routeFiltered, System.currentTimeMillis() / 1000)
                 if (filtered.isEmpty()) {
-                    val routeList = MONITORED_ROUTES.joinToString(", ")
+                    val routeList = monitoredRoutes.sorted().joinToString(", ")
                     resultsTextView.text = getString(R.string.live_no_alerts, routeList)
                     sendCommuteStatus(CommuteStatus(action = CommuteStatus.ACTION_NORMAL, summary = "Good service", affectedRoutes = "", rerouteHint = null, timestamp = System.currentTimeMillis() / 1000))
                     return@launch
                 }
 
                 // Step 3: Rate-limit check
-                val promptText = MtaAlertParser.buildPromptText(filtered, "TO_WORK", System.currentTimeMillis() / 1000)
+                val promptText = MtaAlertParser.buildPromptText(filtered, currentDirection, System.currentTimeMillis() / 1000)
                 when (val rateLimitResult = rateLimiter.tryAcquire()) {
                     is RateLimitResult.Denied -> {
                         resultsTextView.text = rateLimitResult.reason

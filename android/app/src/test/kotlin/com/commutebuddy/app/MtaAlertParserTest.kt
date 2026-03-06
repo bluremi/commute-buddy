@@ -381,7 +381,7 @@ class MtaAlertParserTest {
     @Test
     fun `non-matching route is removed`() {
         val alerts = MtaAlertParser.parseAlerts(MULTI_ALERT_JSON) // N and Q
-        val filtered = MtaAlertParser.filterByRoutes(alerts, MONITORED_ROUTES)
+        val filtered = MtaAlertParser.filterByRoutes(alerts, CommuteProfile.default().monitoredRoutes())
         assertEquals(1, filtered.size)
         assertEquals("N trains are delayed", filtered[0].headerText)
     }
@@ -400,36 +400,37 @@ class MtaAlertParserTest {
 
     @Test
     fun `filtering empty list returns empty list`() {
-        val filtered = MtaAlertParser.filterByRoutes(emptyList(), MONITORED_ROUTES)
+        val filtered = MtaAlertParser.filterByRoutes(emptyList(), setOf("N", "W", "4", "5", "6"))
         assertTrue(filtered.isEmpty())
     }
 
     @Test
-    fun `R train alert passes expanded MONITORED_ROUTES filter`() {
+    fun `R train alert passes default profile monitored routes filter`() {
         val alerts = MtaAlertParser.parseAlerts(R_TRAIN_ALERT_JSON)
-        val filtered = MtaAlertParser.filterByRoutes(alerts, MONITORED_ROUTES)
+        val filtered = MtaAlertParser.filterByRoutes(alerts, CommuteProfile.default().monitoredRoutes())
         assertEquals(1, filtered.size)
         assertEquals("R trains are delayed", filtered[0].headerText)
     }
 
     @Test
-    fun `7 train alert passes expanded MONITORED_ROUTES filter`() {
+    fun `7 train alert passes default profile monitored routes filter`() {
         val alerts = MtaAlertParser.parseAlerts(SEVEN_TRAIN_ALERT_JSON)
-        val filtered = MtaAlertParser.filterByRoutes(alerts, MONITORED_ROUTES)
+        val filtered = MtaAlertParser.filterByRoutes(alerts, CommuteProfile.default().monitoredRoutes())
         assertEquals(1, filtered.size)
         assertEquals("7 trains suspended", filtered[0].headerText)
     }
 
     @Test
-    fun `MONITORED_ROUTES contains R and 7`() {
-        assertTrue("R must be in MONITORED_ROUTES", "R" in MONITORED_ROUTES)
-        assertTrue("7 must be in MONITORED_ROUTES", "7" in MONITORED_ROUTES)
+    fun `default profile monitoredRoutes contains R and 7`() {
+        val routes = CommuteProfile.default().monitoredRoutes()
+        assertTrue("R must be in default monitored routes", "R" in routes)
+        assertTrue("7 must be in default monitored routes", "7" in routes)
     }
 
     @Test
-    fun `Q train alert is excluded by MONITORED_ROUTES`() {
+    fun `Q train alert is excluded by default profile monitored routes`() {
         val alert = MtaAlert("Q train work", null, setOf("Q"), null)
-        val filtered = MtaAlertParser.filterByRoutes(listOf(alert), MONITORED_ROUTES)
+        val filtered = MtaAlertParser.filterByRoutes(listOf(alert), CommuteProfile.default().monitoredRoutes())
         assertTrue(filtered.isEmpty())
     }
 
