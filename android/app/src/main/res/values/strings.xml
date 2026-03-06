@@ -64,10 +64,17 @@
     <string name="hint_from_station">From station</string>
     <string name="hint_to_station">To station</string>
     <string name="hint_alternates">Alternate lines (e.g. F,R,7)</string>
-    <string name="error_lines_required">Enter at least one line</string>
+    <string name="error_lines_required">Select at least one line for each leg</string>
     <string name="error_station_required">Station is required</string>
     <string name="error_leg_required_work">At least one TO_WORK leg is required</string>
     <string name="error_leg_required_home">At least one TO_HOME leg is required</string>
+
+    <!-- Line picker bottom sheet (FEAT-07 Increment 4) -->
+    <string name="title_select_lines">Select Lines</string>
+    <string name="button_select">Select</string>
+    <string name="button_done">Done</string>
+    <string name="label_lines_none">Lines: (none selected)</string>
+    <string name="label_alternates_none">Alternates: (none)</string>
 
     <!-- Live MTA Alerts (FEAT-03) -->
     <string name="live_section_title">Live MTA Alerts</string>
