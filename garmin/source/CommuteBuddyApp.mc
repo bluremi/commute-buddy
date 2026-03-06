@@ -59,7 +59,8 @@ class CommuteBuddyApp extends Application.AppBase {
     }
 
     function getInitialView() {
-        return [new CommuteBuddyView()];
+        var view = new CommuteBuddyView();
+        return [view, new CommuteBuddyDelegate(view)];
     }
 
     function getGlanceView() {

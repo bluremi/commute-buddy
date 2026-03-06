@@ -6,6 +6,8 @@ import Toybox.WatchUi;
 
 class CommuteBuddyView extends WatchUi.View {
 
+    private var _scrollOffset as Number = 0;
+
     function initialize() {
         View.initialize();
     }
@@ -14,6 +16,47 @@ class CommuteBuddyView extends WatchUi.View {
     }
 
     function onShow() as Void {
+    }
+
+    function scrollBy(delta as Number) as Void {
+        _scrollOffset += delta;
+        if (_scrollOffset < 0) {
+            _scrollOffset = 0;
+        }
+        WatchUi.requestUpdate();
+    }
+
+    // Counts pixel rows needed to render text at the given font/width by simulating
+    // word-wrapping using dc.getTextWidthInPixels() and dc.getFontHeight().
+    private function calcWrappedHeight(dc as Graphics.Dc, text as String, font as Graphics.FontType, width as Number) as Number {
+        if (text.length() == 0) {
+            return dc.getFontHeight(font);
+        }
+        var spaceW = dc.getTextWidthInPixels(" ", font);
+        var lineH = dc.getFontHeight(font);
+        var lineWidth = 0;
+        var lines = 1;
+        var wordStart = 0;
+        for (var i = 0; i <= text.length(); i++) {
+            var atEnd = (i == text.length());
+            var isSpace = !atEnd && text.substring(i, i + 1).equals(" ");
+            if (isSpace || atEnd) {
+                if (i > wordStart) {
+                    var word = text.substring(wordStart, i);
+                    var wordW = dc.getTextWidthInPixels(word, font);
+                    if (lineWidth == 0) {
+                        lineWidth = wordW;
+                    } else if (lineWidth + spaceW + wordW > width) {
+                        lines++;
+                        lineWidth = wordW;
+                    } else {
+                        lineWidth += spaceW + wordW;
+                    }
+                }
+                wordStart = i + 1;
+            }
+        }
+        return lines * lineH;
     }
 
     function onUpdate(dc as Graphics.Dc) as Void {
@@ -58,23 +101,31 @@ class CommuteBuddyView extends WatchUi.View {
             actionText = "Stay Home";
         }
 
+        var textW = 310;
+        var pad = 14;
+        var y = 52 - _scrollOffset;
+
         // Action header — large font, color-coded
         dc.setColor(actionColor, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(cx, 52, Graphics.FONT_LARGE, actionText, Graphics.TEXT_JUSTIFY_CENTER);
+        dc.drawText(cx, y, Graphics.FONT_LARGE, actionText, Graphics.TEXT_JUSTIFY_CENTER);
+        y += dc.getFontHeight(Graphics.FONT_LARGE) + pad;
 
-        // Summary — small font for wrap room, white, centered
+        // Summary — small font, white, wrapped to exact content height
         if (summary instanceof String) {
+            var summaryStr = summary as String;
+            var summaryH = calcWrappedHeight(dc, summaryStr, Graphics.FONT_SMALL, textW);
             var summaryArea = new WatchUi.TextArea({
-                :text => summary as String,
+                :text => summaryStr,
                 :color => Graphics.COLOR_WHITE,
                 :font => Graphics.FONT_SMALL,
-                :locX => cx - 155,
-                :locY => 115,
-                :width => 310,
-                :height => 130,
+                :locX => cx - (textW / 2),
+                :locY => y,
+                :width => textW,
+                :height => summaryH,
                 :justification => Graphics.TEXT_JUSTIFY_CENTER
             });
             summaryArea.draw(dc);
+            y += summaryH + pad;
         }
 
         // Affected routes — small font, white; omit for NORMAL with empty routes
@@ -82,26 +133,30 @@ class CommuteBuddyView extends WatchUi.View {
             var routesStr = affectedRoutes as String;
             if (!actionStr.equals("NORMAL") || !routesStr.equals("")) {
                 dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-                dc.drawText(cx, 254, Graphics.FONT_SMALL, "Routes: " + routesStr, Graphics.TEXT_JUSTIFY_CENTER);
+                dc.drawText(cx, y, Graphics.FONT_SMALL, "Routes: " + routesStr, Graphics.TEXT_JUSTIFY_CENTER);
+                y += dc.getFontHeight(Graphics.FONT_SMALL) + pad;
             }
         }
 
         // Reroute hint — tiny font, white; only when REROUTE and hint is stored
         if (actionStr.equals("REROUTE") && rerouteHint instanceof String) {
+            var hintStr = rerouteHint as String;
+            var hintH = calcWrappedHeight(dc, hintStr, Graphics.FONT_TINY, textW);
             var hintArea = new WatchUi.TextArea({
-                :text => rerouteHint as String,
+                :text => hintStr,
                 :color => Graphics.COLOR_WHITE,
                 :font => Graphics.FONT_TINY,
-                :locX => cx - 155,
-                :locY => 282,
-                :width => 310,
-                :height => 42,
+                :locX => cx - (textW / 2),
+                :locY => y,
+                :width => textW,
+                :height => hintH,
                 :justification => Graphics.TEXT_JUSTIFY_CENTER
             });
             hintArea.draw(dc);
+            y += hintH + pad;
         }
 
-        // Freshness — tiny font, light gray; relative age of the last update
+        // Freshness — tiny font, light gray
         if (timestamp instanceof Number) {
             var ageSecs = Time.now().value() - (timestamp as Number).toLong();
             var freshnessText;
@@ -115,7 +170,7 @@ class CommuteBuddyView extends WatchUi.View {
                 freshnessText = "Stale";
             }
             dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(cx, 338, Graphics.FONT_TINY, freshnessText, Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(cx, y, Graphics.FONT_TINY, freshnessText, Graphics.TEXT_JUSTIFY_CENTER);
         }
     }
 
