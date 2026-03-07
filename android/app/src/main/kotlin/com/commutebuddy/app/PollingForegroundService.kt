@@ -64,6 +64,7 @@ class PollingForegroundService : Service() {
 
     private var lastPollTimeMs: Long? = null
     private var nextPollTimeMs: Long? = null
+    private var initialized = false
 
     // -------------------------------------------------------------------------
     // Lifecycle
@@ -80,9 +81,12 @@ class PollingForegroundService : Service() {
             getSharedPreferences("polling_prefs", Context.MODE_PRIVATE)
         )
 
-        val profile = profileRepository.load()
-        initGeminiFlash(profile)
-        initConnectIQ()
+        if (!initialized) {
+            initialized = true
+            val profile = profileRepository.load()
+            initGeminiFlash(profile)
+            initConnectIQ()
+        }
 
         val notification = buildNotification()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
