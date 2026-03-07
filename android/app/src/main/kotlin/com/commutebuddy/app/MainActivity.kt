@@ -2,8 +2,10 @@ package com.commutebuddy.app
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
@@ -12,6 +14,7 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.appcompat.app.AppCompatActivity
 import android.view.ViewGroup
 import androidx.core.view.ViewCompat
@@ -69,6 +72,12 @@ class MainActivity : AppCompatActivity() {
     private var sdkReady = false
     private var connectedDevice: IQDevice? = null
     private var targetApp: IQApp? = null
+
+    private val pollCompletedReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            updateApiUsageDisplay()
+        }
+    }
 
     // -------------------------------------------------------------------------
     // Lifecycle
@@ -145,6 +154,16 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         updateApiUsageDisplay()
+        ContextCompat.registerReceiver(
+            this, pollCompletedReceiver,
+            IntentFilter(PollingForegroundService.ACTION_POLL_COMPLETED),
+            ContextCompat.RECEIVER_NOT_EXPORTED
+        )
+    }
+
+    override fun onPause() {
+        super.onPause()
+        unregisterReceiver(pollCompletedReceiver)
     }
 
     override fun onDestroy() {

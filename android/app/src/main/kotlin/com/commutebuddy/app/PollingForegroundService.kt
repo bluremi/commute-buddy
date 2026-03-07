@@ -41,6 +41,7 @@ class PollingForegroundService : Service() {
     companion object {
         private const val TAG = "PollingService"
         const val NOTIFICATION_CHANNEL_ID = "commute_polling"
+        const val ACTION_POLL_COMPLETED = "com.commutebuddy.app.POLL_COMPLETED"
         private const val NOTIFICATION_ID = 1
         private const val GARMIN_APP_UUID = "e5f12c3a-7b04-4d8e-9a6f-2c1b3e5d7a9f"
         private const val PREFS_COMMUTE = "commute_prefs"
@@ -157,6 +158,7 @@ class PollingForegroundService : Service() {
         )
 
         lastPollTimeMs = System.currentTimeMillis()
+        sendBroadcast(Intent(ACTION_POLL_COMPLETED))
         Log.d(TAG, "Poll result: ${result::class.simpleName}")
 
         when (result) {
