@@ -109,13 +109,13 @@ Currently, the entire pipeline (MTA fetch -> parse -> filter -> Gemini decision 
 **Model: Sonnet** | Reason: Foreground service lifecycle on Android 14+ has specific requirements (notification channels, service types, permissions) that need precise handling.
 
 #### Increment 5: Scheduling logic and pipeline integration
-- [ ] Add coroutine-based scheduling loop in `PollingForegroundService`: launch a `CoroutineScope` in `onStartCommand()`, loop with `delay()` based on current interval
-- [ ] Implement `getNextDelayMs()`: reads `PollingSettings`, checks if current time is within any commute window -> use `intervalMinutes`, otherwise -> 60 min; recalculates on each iteration
-- [ ] Initialize `ConnectIQ` SDK, device discovery, and app lookup inside the service (same pattern as `MainActivity.initConnectIQ()` / `discoverDevice()` / `loadAppInfo()`)
-- [ ] Initialize `GenerativeModel` in the service (same pattern as `MainActivity.initGeminiFlash()`) using profile from `CommuteProfileRepository`
-- [ ] Each loop iteration: call `CommutePipeline.run()` -> on success, send BLE via `ConnectIQ.sendMessage()` -> update notification with last poll time and next scheduled poll
-- [ ] Log each poll attempt and result for debugging
-- [ ] When `PollingSettings` change (service restarted), the loop picks up new intervals on next iteration
+- [x] Add coroutine-based scheduling loop in `PollingForegroundService`: launch a `CoroutineScope` in `onStartCommand()`, loop with `delay()` based on current interval
+- [x] Implement `getNextDelayMs()`: reads `PollingSettings`, checks if current time is within any commute window -> use `intervalMinutes`, otherwise -> 60 min; recalculates on each iteration
+- [x] Initialize `ConnectIQ` SDK, device discovery, and app lookup inside the service (same pattern as `MainActivity.initConnectIQ()` / `discoverDevice()` / `loadAppInfo()`)
+- [x] Initialize `GenerativeModel` in the service (same pattern as `MainActivity.initGeminiFlash()`) using profile from `CommuteProfileRepository`
+- [x] Each loop iteration: call `CommutePipeline.run()` -> on success, send BLE via `ConnectIQ.sendMessage()` -> update notification with last poll time and next scheduled poll
+- [x] Log each poll attempt and result for debugging
+- [x] When `PollingSettings` change (service restarted), the loop picks up new intervals on next iteration
 
 **Testing:** Enable polling during a commute window, verify polls occur at the configured interval (check logcat for poll entries). Change interval in settings, verify new interval takes effect. Verify BLE push reaches the watch. Verify the notification updates with timestamps. Test outside commute window -- verify 1-hour interval.
 **Model: Sonnet** | Reason: Async scheduling loop with window-aware interval switching, ConnectIQ lifecycle in a service context, and coroutine coordination require careful multi-file reasoning.
