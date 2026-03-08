@@ -1,17 +1,17 @@
 """
-Decision Prompt POC — Automated test runner.
+Decision Prompt — Automated test runner.
 Calls Gemini API with system instruction + each test scenario.
-Settings: temperature=0, thinking budget=1024 (low).
+Settings: temperature=0, thinking=LOW.
+
+Install dependency: pip install --upgrade google-genai
+Run: python docs/run-prompt-tests.py
 """
 
 import json
 import os
-import re
-import urllib.request
-import urllib.error
 import time
 
-# Read API key and model name from android/local.properties (same source as the Android app)
+# Read API key from android/local.properties
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 LOCAL_PROPS = os.path.join(SCRIPT_DIR, "..", "android", "local.properties")
 
@@ -31,8 +31,12 @@ def _read_local_property(key):
 
 
 API_KEY = _read_local_property("GEMINI_API_KEY")
-MODEL = _read_local_property("GEMINI_MODEL_NAME")
-ENDPOINT = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent?key={API_KEY}"
+MODEL = "gemini-3-flash-preview"
+
+from google import genai
+from google.genai import types
+
+client = genai.Client(api_key=API_KEY)
 
 SYSTEM_PROMPT = """You are a commute advisor for an NYC subway rider. Your job is to analyze MTA service alerts and make a clear recommendation: proceed normally, expect minor delays, reroute, or stay home.
 
@@ -503,52 +507,31 @@ Description: Use nearby Junction Blvd or 111 St stations.
 
 
 def call_gemini(user_prompt):
-    body = {
-        "system_instruction": {
-            "parts": [{"text": SYSTEM_PROMPT}]
-        },
-        "contents": [
-            {
-                "role": "user",
-                "parts": [{"text": user_prompt}]
-            }
-        ],
-        "generationConfig": {
-            "temperature": 0,
-            "thinkingConfig": {
-                "thinkingBudget": 1024
-            }
-        }
-    }
-    data = json.dumps(body).encode("utf-8")
-    req = urllib.request.Request(
-        ENDPOINT,
-        data=data,
-        headers={"Content-Type": "application/json"},
-        method="POST"
-    )
     try:
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            result = json.loads(resp.read().decode("utf-8"))
-            # Extract text from response
-            candidates = result.get("candidates", [])
-            if candidates:
-                parts = candidates[0].get("content", {}).get("parts", [])
-                for part in parts:
-                    if "text" in part:
-                        return part["text"].strip()
-            return f"ERROR: Unexpected response structure: {json.dumps(result)[:200]}"
-    except urllib.error.HTTPError as e:
-        error_body = e.read().decode("utf-8") if e.fp else ""
-        return f"ERROR {e.code}: {error_body[:300]}"
+        response = client.models.generate_content(
+            model=MODEL,
+            contents=user_prompt,
+            config=types.GenerateContentConfig(
+                system_instruction=SYSTEM_PROMPT,
+                temperature=0.0,
+                thinking_config=types.ThinkingConfig(
+                    thinking_level=types.ThinkingLevel.LOW
+                ),
+            ),
+        )
+        usage = response.usage_metadata
+        thoughts = getattr(usage, "thoughts_token_count", None)
+        if thoughts:
+            print(f"  [thinking tokens used: {thoughts}]")
+        return response.text.strip()
     except Exception as e:
         return f"ERROR: {e}"
 
 
 def main():
     print("=" * 70)
-    print("Decision Prompt POC — Automated Tests")
-    print(f"Model: {MODEL} | Temp: 0 | Thinking: low (1024 tokens)")
+    print("Decision Prompt — Automated Tests (google-genai SDK)")
+    print(f"Model: {MODEL} | Temp: 0 | Thinking: LOW")
     print("=" * 70)
 
     results = []
@@ -559,7 +542,6 @@ def main():
         response = call_gemini(test["prompt"])
         print(f"Actual:   {response}")
 
-        # Try to parse action for quick pass/fail
         try:
             parsed = json.loads(response)
             action = parsed.get("action", "?")
@@ -569,7 +551,6 @@ def main():
         except json.JSONDecodeError:
             results.append((test["name"], test["expected"], response[:50], False, response))
 
-        # Rate limit: stay under 10 RPM
         if i < len(TESTS) - 1:
             time.sleep(3)
 
