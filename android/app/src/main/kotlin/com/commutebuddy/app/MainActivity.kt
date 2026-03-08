@@ -1,5 +1,6 @@
 package com.commutebuddy.app
 
+import android.text.SpannableStringBuilder
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.BroadcastReceiver
@@ -322,18 +323,17 @@ class MainActivity : AppCompatActivity() {
                         }
                         try {
                             val parsed = CommuteStatus.fromJson(rawText)
-                            resultsTextView.text = buildString {
-                                appendLine(prefix)
-                                if (warning != null) {
-                                    appendLine("⚠ $warning")
-                                }
-                                appendLine()
-                                appendLine(getString(R.string.ai_result_status, parsed.action, parsed.statusLabel))
-                                appendLine(getString(R.string.ai_result_route, parsed.affectedRoutes))
-                                appendLine(getString(R.string.ai_result_reason, parsed.summary))
-                                parsed.rerouteHint?.let { appendLine(getString(R.string.ai_result_reroute_hint, it)) }
-                                append(getString(R.string.ai_result_time, parsed.timestamp))
-                            }
+                            val badgeSize = resources.displayMetrics.density * 22f
+                            val ssb = SpannableStringBuilder()
+                            ssb.append(prefix).append("\n")
+                            if (warning != null) ssb.append("⚠ $warning").append("\n")
+                            ssb.append("\n")
+                            ssb.append(getString(R.string.ai_result_status, parsed.action, parsed.statusLabel)).append("\n")
+                            ssb.append("Affected: ").append(MtaLineColors.buildRouteBadges(parsed.affectedRoutes, badgeSize)).append("\n")
+                            ssb.append(getString(R.string.ai_result_reason, parsed.summary)).append("\n")
+                            parsed.rerouteHint?.let { ssb.append(getString(R.string.ai_result_reroute_hint, it)).append("\n") }
+                            ssb.append(getString(R.string.ai_result_time, parsed.timestamp))
+                            resultsTextView.text = ssb
                         } catch (e: Exception) {
                             Log.w(TAG, "Failed to parse Gemini response", e)
                             resultsTextView.text = buildString {
@@ -394,16 +394,17 @@ class MainActivity : AppCompatActivity() {
             }
             is PipelineResult.Decision -> {
                 val parsed = result.status
-                resultsTextView.text = buildString {
-                    appendLine(prefix)
-                    if (result.warning != null) appendLine("⚠ ${result.warning}")
-                    appendLine()
-                    appendLine(getString(R.string.ai_result_status, parsed.action, parsed.statusLabel))
-                    appendLine(getString(R.string.ai_result_route, parsed.affectedRoutes))
-                    appendLine(getString(R.string.ai_result_reason, parsed.summary))
-                    parsed.rerouteHint?.let { appendLine(getString(R.string.ai_result_reroute_hint, it)) }
-                    append(getString(R.string.ai_result_time, parsed.timestamp))
-                }
+                val badgeSize = resources.displayMetrics.density * 22f
+                val ssb = SpannableStringBuilder()
+                ssb.append(prefix).append("\n")
+                if (result.warning != null) ssb.append("⚠ ${result.warning}").append("\n")
+                ssb.append("\n")
+                ssb.append(getString(R.string.ai_result_status, parsed.action, parsed.statusLabel)).append("\n")
+                ssb.append("Affected: ").append(MtaLineColors.buildRouteBadges(parsed.affectedRoutes, badgeSize)).append("\n")
+                ssb.append(getString(R.string.ai_result_reason, parsed.summary)).append("\n")
+                parsed.rerouteHint?.let { ssb.append(getString(R.string.ai_result_reroute_hint, it)).append("\n") }
+                ssb.append(getString(R.string.ai_result_time, parsed.timestamp))
+                resultsTextView.text = ssb
                 sendCommuteStatus(parsed)
             }
             is PipelineResult.RateLimited -> {

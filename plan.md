@@ -51,10 +51,10 @@ The app already has MTA color definitions in `LinePickerBottomSheet.kt` (9 trunk
 ### Implementation Plan
 
 #### Increment 1: Android — Extract MTA colors to shared utility + create badge span
-- [ ] Create `MtaLineColors.kt` — extract `lineColor(line: String): Int` and `isLightBackground(line: String): Boolean` from `LinePickerBottomSheet.kt` into a top-level `object`
-- [ ] Update `LinePickerBottomSheet.kt` to delegate to `MtaLineColors.lineColor()` and `MtaLineColors.isLightBackground()` (remove duplicated private functions)
-- [ ] Create `MtaLineBadgeSpan.kt` — a custom `ReplacementSpan` that draws a filled circle with a centered letter (background = `MtaLineColors.lineColor()`, text color = black for yellow lines, white otherwise)
-- [ ] Add a companion utility function `MtaLineColors.buildRouteBadges(routesCsv: String, textSizePx: Float): SpannableStringBuilder` that splits on `,`, creates one `MtaLineBadgeSpan` per line ID with small gaps between them
+- [x] Create `MtaLineColors.kt` — extract `lineColor(line: String): Int` and `isLightBackground(line: String): Boolean` from `LinePickerBottomSheet.kt` into a top-level `object`
+- [x] Update `LinePickerBottomSheet.kt` to delegate to `MtaLineColors.lineColor()` and `MtaLineColors.isLightBackground()` (remove duplicated private functions)
+- [x] Create `MtaLineBadgeSpan.kt` — a custom `ReplacementSpan` that draws a filled circle with a centered letter (background = `MtaLineColors.lineColor()`, text color = black for yellow lines, white otherwise)
+- [x] Add a companion utility function `MtaLineColors.buildRouteBadges(routesCsv: String, textSizePx: Float): SpannableStringBuilder` that splits on `,`, creates one `MtaLineBadgeSpan` per line ID with small gaps between them
 
 **Testing:** Run unit tests (`& $gradle :app:testDebugUnitTest`). Manually verify LinePickerBottomSheet still renders correctly in the commute profile screen (colors, selection stroke, sizing unchanged).
 

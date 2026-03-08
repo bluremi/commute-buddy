@@ -1,6 +1,7 @@
 package com.commutebuddy.app
 
 import android.content.Context
+import android.text.SpannableStringBuilder
 import android.os.Bundle
 import android.view.MenuItem
 import android.widget.ArrayAdapter
@@ -139,7 +140,9 @@ class CommuteProfileActivity : AppCompatActivity() {
         summary.text = if (lines.isEmpty()) {
             getString(R.string.label_lines_none)
         } else {
-            "Lines: ${lines.joinToString(", ")}"
+            val badgeSize = resources.displayMetrics.density * 22f
+            SpannableStringBuilder("Lines: ")
+                .append(MtaLineColors.buildRouteBadges(lines.joinToString(","), badgeSize))
         }
     }
 
@@ -147,7 +150,9 @@ class CommuteProfileActivity : AppCompatActivity() {
         alternatesSummaryText.text = if (selectedAlternates.isEmpty()) {
             getString(R.string.label_alternates_none)
         } else {
-            "Alternates: ${selectedAlternates.joinToString(", ")}"
+            val badgeSize = resources.displayMetrics.density * 22f
+            SpannableStringBuilder("Alternates: ")
+                .append(MtaLineColors.buildRouteBadges(selectedAlternates.joinToString(","), badgeSize))
         }
     }
 
