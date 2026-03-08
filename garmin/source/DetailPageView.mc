@@ -56,9 +56,30 @@ class DetailPageView extends WatchUi.View {
 
             var routesStr = header.get("routesStr") as String?;
             if (routesStr != null && routesStr.length() > 0) {
-                dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-                dc.drawText(cx, y, Graphics.FONT_SMALL, "Routes: " + routesStr, Graphics.TEXT_JUSTIFY_CENTER);
-                y += dc.getFontHeight(Graphics.FONT_SMALL) + pad;
+                var routes = MtaColors.splitCsv(routesStr);
+                var n = routes.size();
+                if (n > 0) {
+                    var badgeRadius = 13;
+                    var badgeGap = 4;
+                    var badgeDiameter = badgeRadius * 2;
+                    var totalW = n * badgeDiameter + (n - 1) * badgeGap;
+                    var bx = cx - totalW / 2 + badgeRadius;
+                    var by = y + badgeRadius;
+                    for (var i = 0; i < n; i++) {
+                        var line = routes[i] as String;
+                        var lineColor = MtaColors.getLineColor(line);
+                        dc.setColor(lineColor, Graphics.COLOR_TRANSPARENT);
+                        dc.fillCircle(bx, by, badgeRadius);
+                        var textColor = MtaColors.isLightBackground(line)
+                            ? Graphics.COLOR_BLACK
+                            : Graphics.COLOR_WHITE;
+                        dc.setColor(textColor, Graphics.COLOR_TRANSPARENT);
+                        dc.drawText(bx, by, Graphics.FONT_TINY, line,
+                            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+                        bx += badgeDiameter + badgeGap;
+                    }
+                    y += badgeDiameter + pad;
+                }
             }
 
             var rerouteHint = header.get("rerouteHint") as String?;
