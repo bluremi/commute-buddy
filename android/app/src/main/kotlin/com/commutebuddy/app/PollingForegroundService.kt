@@ -1,6 +1,7 @@
 package com.commutebuddy.app
 
 import android.app.Notification
+import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
@@ -88,9 +89,23 @@ class PollingForegroundService : Service() {
             initConnectIQ()
         }
 
+        // Ensure the notification channel exists before startForeground(). The channel is also
+        // created in MainActivity.onCreate(), but if the service was started by BootReceiver
+        // before the user has opened the app, MainActivity has never run and the channel does
+        // not yet exist — causing startForeground() to silently drop the notification.
+        // Creating a channel that already exists is a no-op, so this is always safe.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                NOTIFICATION_CHANNEL_ID,
+                getString(R.string.polling_channel_name),
+                NotificationManager.IMPORTANCE_LOW
+            )
+            getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
+        }
+
         val notification = buildNotification()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+            startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE)
         } else {
             startForeground(NOTIFICATION_ID, notification)
         }

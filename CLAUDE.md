@@ -57,26 +57,33 @@ prd.md is the ground truth of what the project is. Keeping it accurate is as imp
 
 ## ADB Logcat on Windows
 
-**Do not use PowerShell pipeline filtering** (`| Select-String`, `| findstr`) with `adb logcat` — PowerShell mishandles the raw text stream and either hangs silently or throws `InputObjectNotBound` errors.
+**Always use `cmd.exe` (not PowerShell) for `adb logcat`.** PowerShell mishandles the raw byte stream — it either hangs silently, throws `InputObjectNotBound` errors, or drops output unpredictably.
 
-**Use logcat's built-in `-e` flag instead** (device-side filtering, most reliable):
-```powershell
-adb -s <DEVICE_ID> logcat -e "PollingService|CommutePipeline|GenerativeModel|ConnectIQ"
+**Use `-s` tag filtering** (filters by the `TAG` constant in `Log.d(TAG, ...)` calls — more reliable than `-e` content regex):
+```cmd
+adb -s 57171FDCQ008DS logcat -s PollingService:V CommutePipeline:V CommuteBuddy:V BootReceiver:V
 ```
 
-**To target a specific device** (when emulator + phone are both connected):
-```powershell
-adb devices                          # list serial numbers
-adb -s 57171FDCQ008DS logcat -e "..." # target phone by serial
+**For post-mortem dumps** (capture to file, search locally — avoids all streaming issues):
+```cmd
+adb -s 57171FDCQ008DS logcat -d -s PollingService:V CommutePipeline:V > debug.txt
+findstr "PollingService BootReceiver" debug.txt
 ```
 
 **To clear the buffer before a test:**
-```powershell
-adb -s <DEVICE_ID> logcat -c
+```cmd
+adb -s 57171FDCQ008DS logcat -c
 ```
+
+**To test boot behavior without rebooting:** `BOOT_COMPLETED` is a protected broadcast — `adb shell am broadcast` is blocked on non-rooted devices with a SecurityException. Instead, reboot and capture immediately:
+```cmd
+adb -s 57171FDCQ008DS reboot && adb -s 57171FDCQ008DS wait-for-device && adb -s 57171FDCQ008DS logcat -d -s PollingService:V BootReceiver:V > boot.txt
+```
+`wait-for-device` blocks until the phone reconnects, then dumps the buffer (which still contains all boot-time logs).
 
 **Key log tags for this project:**
 - `PollingService` — background polling loop, BLE send results, pre-flight checks
+- `BootReceiver` — boot-triggered service start
 - `CommutePipeline` — fetch/parse/filter/Gemini pipeline steps
 - `GenerativeModel` — Firebase AI SDK (Gemini calls)
 - `CommuteBuddy` — MainActivity (ConnectIQ SDK, device discovery)

@@ -7,8 +7,11 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import androidx.core.app.ActivityCompat
 import android.util.Log
 import android.widget.Button
 import android.widget.TextView
@@ -47,6 +50,7 @@ class MainActivity : AppCompatActivity() {
         private const val KEY_DIRECTION = "current_direction"
         private const val DIRECTION_TO_WORK = "TO_WORK"
         private const val DIRECTION_TO_HOME = "TO_HOME"
+        private const val REQUEST_BLUETOOTH_PERMISSIONS = 1001
     }
 
     private lateinit var statusTextView: TextView
@@ -146,7 +150,7 @@ class MainActivity : AppCompatActivity() {
         initGeminiFlash()
 
         createPollingNotificationChannel()
-        startPollingServiceIfEnabled()
+        requestBluetoothPermissionsThenStartService()
 
         initConnectIQ()
     }
@@ -491,6 +495,27 @@ class MainActivity : AppCompatActivity() {
                 NotificationManager.IMPORTANCE_LOW
             )
             getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
+        }
+    }
+
+    private fun requestBluetoothPermissionsThenStartService() {
+        val needed = arrayOf(
+            Manifest.permission.BLUETOOTH_CONNECT,
+            Manifest.permission.BLUETOOTH_SCAN
+        ).filter {
+            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+        }
+        if (needed.isEmpty()) {
+            startPollingServiceIfEnabled()
+        } else {
+            ActivityCompat.requestPermissions(this, needed.toTypedArray(), REQUEST_BLUETOOTH_PERMISSIONS)
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_BLUETOOTH_PERMISSIONS) {
+            startPollingServiceIfEnabled()
         }
     }
 
