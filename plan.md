@@ -61,9 +61,9 @@ The app already has MTA color definitions in `LinePickerBottomSheet.kt` (9 trunk
 **Model: Sonnet** | Reason: Custom `ReplacementSpan` drawing logic requires understanding Android canvas measurement/draw contracts — not purely mechanical.
 
 #### Increment 2: Android — Use badges in results display and profile activity
-- [ ] Update `MainActivity.handlePipelineResult()` and `onTierClicked()`: switch from `buildString` to `SpannableStringBuilder`; replace the `getString(R.string.ai_result_route, parsed.affectedRoutes)` line with inline badge spans via `MtaLineColors.buildRouteBadges()`
-- [ ] Update `CommuteProfileActivity.updateLinesSummary()`: set the `linesSummaryText` TextView with a `SpannableStringBuilder` containing "Lines: " + badge spans (instead of plain `"Lines: N, W"`)
-- [ ] Update `CommuteProfileActivity.updateAlternatesSummary()`: same approach for `alternatesSummaryText` — "Alternates: " + badge spans
+- [x] Update `MainActivity.handlePipelineResult()` and `onTierClicked()`: switch from `buildString` to `SpannableStringBuilder`; replace the `getString(R.string.ai_result_route, parsed.affectedRoutes)` line with inline badge spans via `MtaLineColors.buildRouteBadges()`
+- [x] Update `CommuteProfileActivity.updateLinesSummary()`: set the `linesSummaryText` TextView with a `SpannableStringBuilder` containing "Lines: " + badge spans (instead of plain `"Lines: N, W"`)
+- [x] Update `CommuteProfileActivity.updateAlternatesSummary()`: same approach for `alternatesSummaryText` — "Alternates: " + badge spans
 
 **Testing:** Build and deploy to device. Verify: (1) Fetch Live results show colored circle badges for affected routes, (2) Commute profile leg cards show badges instead of plain text for lines, (3) Alternates row shows badges, (4) BLE status appended text still renders correctly below the badges.
 
