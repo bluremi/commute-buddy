@@ -56,10 +56,6 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var statusTextView: TextView
     private lateinit var apiUsageTextView: TextView
-    private lateinit var tierButton1: Button
-    private lateinit var tierButton2: Button
-    private lateinit var tierButton3: Button
-    private lateinit var tierButton4: Button
     private lateinit var fetchLiveButton: Button
     private lateinit var resultsTextView: TextView
     private lateinit var directionToggle: MaterialButtonToggleGroup
@@ -110,10 +106,6 @@ class MainActivity : AppCompatActivity() {
         statusTextView = findViewById(R.id.statusTextView)
         apiUsageTextView = findViewById(R.id.apiUsageTextView)
 
-        tierButton1 = findViewById(R.id.tierButton1)
-        tierButton2 = findViewById(R.id.tierButton2)
-        tierButton3 = findViewById(R.id.tierButton3)
-        tierButton4 = findViewById(R.id.tierButton4)
         fetchLiveButton = findViewById(R.id.fetchLiveButton)
         resultsTextView = findViewById(R.id.resultsTextView)
         directionToggle = findViewById(R.id.directionToggle)
@@ -125,10 +117,6 @@ class MainActivity : AppCompatActivity() {
         pollingSettingsButton.setOnClickListener {
             startActivity(Intent(this, PollingSettingsActivity::class.java))
         }
-        tierButton1.setOnClickListener { onTierClicked(MtaTestData.Tier.TIER_1, 1) }
-        tierButton2.setOnClickListener { onTierClicked(MtaTestData.Tier.TIER_2, 2) }
-        tierButton3.setOnClickListener { onTierClicked(MtaTestData.Tier.TIER_3, 3) }
-        tierButton4.setOnClickListener { onTierClicked(MtaTestData.Tier.TIER_4, 4) }
         fetchLiveButton.setOnClickListener { onFetchLiveClicked() }
 
         commutePrefs = getSharedPreferences(PREFS_COMMUTE, Context.MODE_PRIVATE)
@@ -267,11 +255,7 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    // -------------------------------------------------------------------------
-    // AI Summarization POC (FEAT-02)
-    // -------------------------------------------------------------------------
-
-    private val allApiButtons get() = listOf(tierButton1, tierButton2, tierButton3, tierButton4, fetchLiveButton)
+    private val allApiButtons get() = listOf(fetchLiveButton)
 
     private fun initGeminiFlash() {
         setAllApiButtonsEnabled(false)
@@ -290,70 +274,10 @@ class MainActivity : AppCompatActivity() {
             )
         setAllApiButtonsEnabled(true)
         Log.d(TAG, "Firebase AI: model ready ($modelName)")
-        resultsTextView.text = getString(R.string.ai_model_ready, modelName)
     }
 
     private fun setAllApiButtonsEnabled(enabled: Boolean) {
         allApiButtons.forEach { it.isEnabled = enabled }
-    }
-
-    private fun onTierClicked(tier: MtaTestData.Tier, tierNumber: Int) {
-        val alertText = MtaTestData.getAlertText(tier)
-        val model = generativeModel ?: return
-
-        when (val result = rateLimiter.tryAcquire()) {
-            is RateLimitResult.Denied -> {
-                resultsTextView.text = result.reason
-                return
-            }
-            is RateLimitResult.Allowed -> {
-                val warning = result.warningMessage
-                val prefix = getString(R.string.ai_output_prefix, tierNumber)
-                setAllApiButtonsEnabled(false)
-                resultsTextView.text = "$prefix\n${getString(R.string.ai_processing)}"
-                rateLimiter.setInFlight(true)
-
-                lifecycleScope.launch {
-                    try {
-                        val response = model.generateContent(alertText)
-                        val rawText = response.text
-                        if (rawText.isNullOrBlank()) {
-                            resultsTextView.text = "$prefix\n${getString(R.string.ai_error_empty_response)}"
-                            return@launch
-                        }
-                        try {
-                            val parsed = CommuteStatus.fromJson(rawText)
-                            val badgeSize = resources.displayMetrics.density * 22f
-                            val ssb = SpannableStringBuilder()
-                            ssb.append(prefix).append("\n")
-                            if (warning != null) ssb.append("⚠ $warning").append("\n")
-                            ssb.append("\n")
-                            ssb.append(getString(R.string.ai_result_status, parsed.action, parsed.statusLabel)).append("\n")
-                            ssb.append("Affected: ").append(MtaLineColors.buildRouteBadges(parsed.affectedRoutes, badgeSize)).append("\n")
-                            ssb.append(getString(R.string.ai_result_reason, parsed.summary)).append("\n")
-                            parsed.rerouteHint?.let { ssb.append(getString(R.string.ai_result_reroute_hint, it)).append("\n") }
-                            ssb.append(getString(R.string.ai_result_time, parsed.timestamp))
-                            resultsTextView.text = ssb
-                        } catch (e: Exception) {
-                            Log.w(TAG, "Failed to parse Gemini response", e)
-                            resultsTextView.text = buildString {
-                                appendLine(prefix)
-                                appendLine(getString(R.string.ai_parse_error, e.message))
-                                appendLine()
-                                appendLine(getString(R.string.ai_result_raw_output))
-                                append(rawText)
-                            }
-                        }
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Gemini API error", e)
-                        resultsTextView.text = "$prefix\n${classifyApiError(e)}"
-                    } finally {
-                        rateLimiter.setInFlight(false)
-                        setAllApiButtonsEnabled(true)
-                    }
-                }
-            }
-        }
     }
 
     // -------------------------------------------------------------------------

@@ -19,28 +19,15 @@
     <string name="status_sending">Sending…</string>
     <string name="status_send_failed">Send failed: %s</string>
 
-    <!-- AI Summarization POC (FEAT-02) -->
-    <string name="section_ai_poc">AI Summarization POC</string>
-    <string name="button_tier_1">Tier 1\nShort (~100 chars)</string>
-    <string name="button_tier_2">Tier 2\nMedium (~500 chars)</string>
-    <string name="button_tier_3">Tier 3\nLong (~900 chars)</string>
-    <string name="button_tier_4">Tier 4\nStress (~2000 chars)</string>
-    <string name="ai_output_prefix">TIER %d OUTPUT:</string>
-    <string name="ai_model_ready">Model ready (%s)</string>
+    <!-- Gemini / AI errors -->
     <string name="ai_error_model_not_found">Model "%s" not found or deprecated — update GEMINI_MODEL_NAME in local.properties</string>
-    <string name="ai_api_key_missing">API key not configured — see local.properties</string>
     <string name="ai_model_not_ready">AI model not initialized — restart the app</string>
-    <string name="ai_processing">Processing…</string>
-    <string name="ai_parse_error">Parse error: %s</string>
     <string name="ai_result_status">Action: %1$s (%2$s)</string>
-    <string name="ai_result_route">Affected: %s</string>
     <string name="ai_result_reason">Summary: %s</string>
     <string name="ai_result_reroute_hint">Reroute: %s</string>
     <string name="ai_result_time">Time: %d</string>
-    <string name="ai_result_raw_output">Raw output:</string>
     <string name="ai_error_api">API error: %s</string>
     <string name="ai_error_network">Network error — check your connection</string>
-    <string name="ai_error_empty_response">Empty response from model</string>
 
     <!-- BLE send results (FEAT-04) -->
     <string name="ble_send_success">Sent to watch</string>
@@ -96,10 +83,6 @@
     <string name="live_section_title">Live MTA Alerts</string>
     <string name="live_fetch_button">Fetch Live</string>
     <string name="live_fetching">Fetching MTA alerts…</string>
-    <string name="live_parsing">Parsing alerts…</string>
     <string name="live_no_alerts">Good Service — no active alerts for %s</string>
-    <string name="live_summarizing">Analyzing with Gemini…</string>
     <string name="live_output_prefix">LIVE OUTPUT:</string>
-    <string name="live_fetch_error">MTA feed error — check your connection</string>
-    <string name="live_parse_error">Failed to parse MTA feed: %s</string>
 </resources>
