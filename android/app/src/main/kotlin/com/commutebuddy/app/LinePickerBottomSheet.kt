@@ -48,21 +48,9 @@ class LinePickerBottomSheet : BottomSheetDialogFragment() {
             return fragment
         }
 
-        private fun lineColor(line: String): Int = when (line) {
-            "1", "2", "3"      -> Color.parseColor("#D82233")
-            "4", "5", "6"      -> Color.parseColor("#009952")
-            "7"                -> Color.parseColor("#9A38A1")
-            "A", "C", "E"      -> Color.parseColor("#0062CF")
-            "B", "D", "F", "M" -> Color.parseColor("#EB6800")
-            "G"                -> Color.parseColor("#799534")
-            "J", "Z"           -> Color.parseColor("#8E5C33")
-            "L", "S"           -> Color.parseColor("#7C858C")
-            "N", "Q", "R", "W" -> Color.parseColor("#F6BC26")
-            else               -> Color.GRAY
-        }
+        private fun lineColor(line: String): Int = MtaLineColors.lineColor(line)
 
-        // Yellow lines (#F6BC26) need black text for contrast; all others use white
-        private fun isLightBackground(line: String) = line in setOf("N", "Q", "R", "W")
+        private fun isLightBackground(line: String): Boolean = MtaLineColors.isLightBackground(line)
     }
 
     var callback: Callback? = null
