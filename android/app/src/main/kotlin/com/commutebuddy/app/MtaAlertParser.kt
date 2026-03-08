@@ -130,25 +130,19 @@ object MtaAlertParser {
         }
 
         for (alert in alerts) {
+            val description = alert.descriptionText
+                ?.let { if (it.length > 400) it.take(400) + "…" else it }
+                ?: "none"
             sb.appendLine("---")
             sb.appendLine("Routes: ${alert.routeIds.sorted().joinToString(",")}")
             sb.appendLine("Type: ${alert.alertType ?: "Unknown"}")
             sb.appendLine("Posted: ${alert.createdAt?.let { Instant.ofEpochSecond(it).toString() } ?: "unknown"}")
-            sb.appendLine("Active period: ${formatActivePeriod(alert.activePeriods)}")
             sb.appendLine("Header: ${alert.headerText}")
-            sb.appendLine("Description: ${alert.descriptionText ?: "none"}")
+            sb.appendLine("Description: $description")
             sb.appendLine("---")
         }
 
         return sb.toString().trimEnd()
     }
 
-    private fun formatActivePeriod(periods: List<ActivePeriod>): String {
-        if (periods.isEmpty()) return "not specified"
-        return periods.joinToString("; ") { period ->
-            val startStr = if (period.start > 0) Instant.ofEpochSecond(period.start).toString() else "unknown"
-            val endStr = if (period.end > 0) Instant.ofEpochSecond(period.end).toString() else "(open)"
-            "$startStr \u2014 $endStr"
-        }
-    }
 }

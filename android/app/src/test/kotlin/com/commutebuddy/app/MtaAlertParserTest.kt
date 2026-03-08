@@ -464,7 +464,6 @@ class MtaAlertParserTest {
         assertTrue(text.contains("Routes:"))
         assertTrue(text.contains("Type:"))
         assertTrue(text.contains("Posted:"))
-        assertTrue(text.contains("Active period:"))
         assertTrue(text.contains("Header:"))
         assertTrue(text.contains("Description:"))
     }
@@ -509,37 +508,30 @@ class MtaAlertParserTest {
     }
 
     @Test
-    fun `active period shows not specified when activePeriods is empty`() {
-        val alert = MtaAlert("N trains delayed", null, setOf("N"), "Delays")
+    fun `description longer than 400 chars is truncated with ellipsis`() {
+        val longDesc = "A".repeat(401)
+        val alert = MtaAlert("N trains delayed", longDesc, setOf("N"), "Delays")
         val text = MtaAlertParser.buildPromptText(listOf(alert), "TO_WORK", NOW_SECONDS)
-        assertTrue(text.contains("Active period: not specified"))
+        assertTrue(text.contains("Description: ${"A".repeat(400)}…"))
+        assertFalse(text.contains("A".repeat(401)))
     }
 
     @Test
-    fun `active period shows ISO timestamps when periods are present`() {
-        val alert = MtaAlert(
-            headerText = "N trains delayed",
-            descriptionText = null,
-            routeIds = setOf("N"),
-            alertType = "Delays",
-            activePeriods = listOf(ActivePeriod(start = NOW_SECONDS, end = NOW_SECONDS + 3600))
-        )
+    fun `description exactly 400 chars is not truncated`() {
+        val exactDesc = "B".repeat(400)
+        val alert = MtaAlert("N trains delayed", exactDesc, setOf("N"), "Delays")
         val text = MtaAlertParser.buildPromptText(listOf(alert), "TO_WORK", NOW_SECONDS)
-        assertTrue("Active period must contain start ISO timestamp", text.contains("2024-03-01T17:00:00Z"))
-        assertTrue("Active period must contain end ISO timestamp", text.contains("2024-03-01T18:00:00Z"))
+        assertTrue(text.contains("Description: ${"B".repeat(400)}"))
+        assertFalse(text.contains("…"))
     }
 
     @Test
-    fun `active period shows open for end=0`() {
-        val alert = MtaAlert(
-            headerText = "N trains delayed",
-            descriptionText = null,
-            routeIds = setOf("N"),
-            alertType = "Delays",
-            activePeriods = listOf(ActivePeriod(start = NOW_SECONDS, end = 0L))
-        )
+    fun `description shorter than 400 chars is passed through unchanged`() {
+        val shortDesc = "Short description."
+        val alert = MtaAlert("N trains delayed", shortDesc, setOf("N"), "Delays")
         val text = MtaAlertParser.buildPromptText(listOf(alert), "TO_WORK", NOW_SECONDS)
-        assertTrue(text.contains("(open)"))
+        assertTrue(text.contains("Description: Short description."))
+        assertFalse(text.contains("…"))
     }
 
     @Test
