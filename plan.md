@@ -70,9 +70,9 @@ The app already has MTA color definitions in `LinePickerBottomSheet.kt` (9 trunk
 **Model: Composer** | Reason: Mechanical wiring — calling the utility created in increment 1 across three display sites. Pattern is identical each time.
 
 #### Increment 3: Garmin — MTA color module + detail view route badges
-- [ ] Create `MtaColors.mc` — a Monkey C module with `function getLineColor(line as String) as Number` returning the MTA trunk-line color (same 9 groups), defaulting to `COLOR_WHITE` for unknown lines
-- [ ] Update `DetailPageView.mc`: replace the `dc.drawText(cx, y, FONT_SMALL, "Routes: " + routesStr, ...)` block with a loop that splits `routesStr` on `,`, draws a filled circle per route (using `dc.fillCircle()`) with the line letter centered on top (`dc.drawText()`), spaced horizontally and centered on screen
-- [ ] Update `DetailPageFactory.mc` header height calculation to use the badge row height instead of `FONT_SMALL` height for the routes row
+- [x] Create `MtaColors.mc` — a Monkey C module with `function getLineColor(line as String) as Number` returning the MTA trunk-line color (same 9 groups), defaulting to `COLOR_WHITE` for unknown lines
+- [x] Update `DetailPageView.mc`: replace the `dc.drawText(cx, y, FONT_SMALL, "Routes: " + routesStr, ...)` block with a loop that splits `routesStr` on `,`, draws a filled circle per route (using `dc.fillCircle()`) with the line letter centered on top (`dc.drawText()`), spaced horizontally and centered on screen
+- [x] Update `DetailPageFactory.mc` header height calculation to use the badge row height instead of `FONT_SMALL` height for the routes row
 
 **Testing:** Build in VS Code (`Ctrl+Shift+B`), run in Connect IQ Simulator. Send a test payload with `affected_routes = "N,W"` and `"4,5,6"` — verify colored circle badges render centered, no overflow, correct MTA colors.
 
