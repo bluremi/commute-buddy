@@ -37,27 +37,25 @@ module MtaColors {
     //! Splits a comma-separated string into an array of trimmed, non-empty tokens.
     function splitCsv(csv as String) as Array<String> {
         var result = [] as Array<String>;
-        var remaining = csv;
-        while (remaining.length() > 0) {
-            var idx = remaining.indexOf(",");
-            var token;
-            if (idx < 0) {
-                token = remaining;
-                remaining = "";
-            } else {
-                token = remaining.substring(0, idx) as String;
-                remaining = remaining.substring(idx + 1, remaining.length()) as String;
-            }
-            // trim leading spaces
-            while (token.length() > 0 && (token.substring(0, 1) as String).equals(" ")) {
-                token = token.substring(1, token.length()) as String;
-            }
-            // trim trailing spaces
-            while (token.length() > 0 && (token.substring(token.length() - 1, token.length()) as String).equals(" ")) {
-                token = token.substring(0, token.length() - 1) as String;
-            }
-            if (token.length() > 0) {
-                result.add(token);
+        var len = csv.length();
+        var start = 0;
+        for (var i = 0; i <= len; i++) {
+            var atEnd = (i == len);
+            var isComma = !atEnd && (csv.substring(i, i + 1) as String).equals(",");
+            if (atEnd || isComma) {
+                var token = csv.substring(start, i) as String;
+                // trim leading spaces
+                while (token.length() > 0 && (token.substring(0, 1) as String).equals(" ")) {
+                    token = token.substring(1, token.length()) as String;
+                }
+                // trim trailing spaces
+                while (token.length() > 0 && (token.substring(token.length() - 1, token.length()) as String).equals(" ")) {
+                    token = token.substring(0, token.length() - 1) as String;
+                }
+                if (token.length() > 0) {
+                    result.add(token);
+                }
+                start = i + 1;
             }
         }
         return result;
