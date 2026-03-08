@@ -6,6 +6,7 @@ module MtaColors {
 
     //! Returns the MTA trunk-line background color for a given line ID.
     //! Defaults to gray (0xAAAAAA) for unknown lines.
+    (:glance)
     function getLineColor(line as String) as Number {
         if (line.equals("1") || line.equals("2") || line.equals("3")) {
             return 0xD82233;
@@ -30,11 +31,13 @@ module MtaColors {
     }
 
     //! Yellow-background lines (N, Q, R, W) need black text for contrast.
+    (:glance)
     function isLightBackground(line as String) as Boolean {
         return line.equals("N") || line.equals("Q") || line.equals("R") || line.equals("W");
     }
 
     //! Splits a comma-separated string into an array of trimmed, non-empty tokens.
+    (:glance)
     function splitCsv(csv as String) as Array<String> {
         var result = [] as Array<String>;
         var len = csv.length();
