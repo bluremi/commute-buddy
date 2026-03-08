@@ -59,7 +59,7 @@ class DetailPageView extends WatchUi.View {
                 var routes = MtaColors.splitCsv(routesStr);
                 var n = routes.size();
                 if (n > 0) {
-                    var badgeRadius = 13;
+                    var badgeRadius = 16;
                     var badgeGap = 4;
                     var badgeDiameter = badgeRadius * 2;
                     var totalW = n * badgeDiameter + (n - 1) * badgeGap;
