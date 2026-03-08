@@ -97,7 +97,7 @@ DIRECTION MATCHING RULES:
 - If an alert does not mention any direction, assume it affects both directions.
 
 ALERT FRESHNESS RULES:
-- Planned work with a defined active_period: trust the time window; if current time is outside the window, ignore the alert.
+- All alerts below are pre-filtered to currently active time windows. Focus on type and posted time, not active periods.
 - Real-time delays posted <30 min ago: treat as active.
 - Real-time delays posted >60 min ago with no update: ASSUME RESOLVED and downgrade severity by one level (REROUTE → MINOR_DELAYS, MINOR_DELAYS → NORMAL). Exception: only keep the original severity if the alert text describes an inherently long-duration incident (e.g., "person struck by train", "FDNY on scene", "structural damage", "derailment"). Routine issues like signal problems, train cleaning, and sick customers are typically resolved within 60 minutes.
 - Real-time delays posted 30-60 min ago: use judgment based on severity of the incident described.
@@ -131,7 +131,6 @@ ALERTS:
 Routes: N, W
 Type: Delays
 Posted: 2026-03-05T08:22:00-05:00
-Active period: not specified
 Header: [N][W] trains are running with delays in both directions due to signal problems at Queensboro Plaza.
 Description: none
 ---"""
@@ -147,7 +146,6 @@ ALERTS:
 Routes: N
 Type: Planned - Part Suspended
 Posted: 2026-03-04T22:00:00-05:00
-Active period: 2026-03-05 06:00 — 2026-03-05 22:00
 Header: No [N] between Queensboro Plaza, Queens and Times Sq-42 St, Manhattan
 Description: [N] service operates in two sections: 1. Between Astoria-Ditmars Blvd and Queensboro Plaza 2. Between Times Sq-42 St and Coney Island-Stillwell Av. Travel alternatives: For service between Queens and Manhattan, take the [7] at Queensboro Plaza. Transfer between the [N] and [7] at Queensboro Plaza.
 ---
@@ -155,7 +153,6 @@ Description: [N] service operates in two sections: 1. Between Astoria-Ditmars Bl
 Routes: W
 Type: Planned - Part Suspended
 Posted: 2026-03-04T22:00:00-05:00
-Active period: 2026-03-05 06:00 — 2026-03-05 22:00
 Header: No [W] service
 Description: [W] trains are suspended during this service change. For Astoria local station stops, take the [N] between Astoria-Ditmars Blvd and Queensboro Plaza, then transfer to the [7]. What's happening? Track maintenance.
 ---"""
@@ -171,7 +168,6 @@ ALERTS:
 Routes: N
 Type: Planned - Part Suspended
 Posted: 2026-03-04T22:00:00-05:00
-Active period: 2026-03-05 06:00 — 2026-03-05 22:00
 Header: No [N] between Queensboro Plaza, Queens and Times Sq-42 St, Manhattan
 Description: [N] service operates in two sections: 1. Between Astoria-Ditmars Blvd and Queensboro Plaza 2. Between Times Sq-42 St and Coney Island-Stillwell Av. Travel alternatives: For service between Queens and Manhattan, take the [7] at Queensboro Plaza.
 ---
@@ -179,7 +175,6 @@ Description: [N] service operates in two sections: 1. Between Astoria-Ditmars Bl
 Routes: F
 Type: Delays
 Posted: 2026-03-05T08:10:00-05:00
-Active period: not specified
 Header: Manhattan-bound [F] trains are running with delays due to a train with mechanical problems at Jay St-MetroTech.
 Description: none
 ---
@@ -187,7 +182,6 @@ Description: none
 Routes: R
 Type: Delays
 Posted: 2026-03-05T08:05:00-05:00
-Active period: not specified
 Header: Manhattan-bound [R] trains are running with delays after we removed a train in need of cleaning from service at 36 St.
 Description: none
 ---"""
@@ -203,7 +197,6 @@ ALERTS:
 Routes: N
 Type: Planned - Part Suspended
 Posted: 2026-03-04T22:00:00-05:00
-Active period: 2026-03-05 06:00 — 2026-03-05 22:00
 Header: No [N] between Queensboro Plaza, Queens and Times Sq-42 St, Manhattan
 Description: Service operates in two sections. For service between Queens and Manhattan, take the [7] at Queensboro Plaza.
 ---
@@ -211,7 +204,6 @@ Description: Service operates in two sections. For service between Queens and Ma
 Routes: W
 Type: Planned - Part Suspended
 Posted: 2026-03-04T22:00:00-05:00
-Active period: 2026-03-05 06:00 — 2026-03-05 22:00
 Header: No [W] service
 Description: [W] trains are suspended during this service change.
 ---
@@ -219,7 +211,6 @@ Description: [W] trains are suspended during this service change.
 Routes: 4, 5
 Type: Delays
 Posted: 2026-03-05T07:50:00-05:00
-Active period: not specified
 Header: [4][5] trains are running with extensive delays in both directions while FDNY responds to a person struck by a train at 125 St.
 Description: Service is extremely limited. Allow additional travel time.
 ---
@@ -227,7 +218,6 @@ Description: Service is extremely limited. Allow additional travel time.
 Routes: 6
 Type: Delays
 Posted: 2026-03-05T08:00:00-05:00
-Active period: not specified
 Header: Downtown [6] trains are running with delays due to a signal malfunction at 77 St.
 Description: none
 ---
@@ -235,7 +225,6 @@ Description: none
 Routes: F
 Type: Delays
 Posted: 2026-03-05T08:10:00-05:00
-Active period: not specified
 Header: Manhattan-bound [F] trains are running with delays due to a train with mechanical problems at Jay St-MetroTech.
 Description: none
 ---
@@ -243,7 +232,6 @@ Description: none
 Routes: R
 Type: Delays
 Posted: 2026-03-05T07:55:00-05:00
-Active period: not specified
 Header: [R] trains are running with extensive delays in both directions due to a switch problem at Whitehall St.
 Description: Service is extremely limited. Allow additional travel time.
 ---
@@ -251,7 +239,6 @@ Description: Service is extremely limited. Allow additional travel time.
 Routes: 7
 Type: Planned - Part Suspended
 Posted: 2026-03-04T22:00:00-05:00
-Active period: 2026-03-05 06:00 — 2026-03-05 14:00
 Header: No [7] between Queensboro Plaza, Queens and 34 St-Hudson Yards, Manhattan
 Description: [7] runs in Queens between Flushing-Main St and Queensboro Plaza only. Free shuttle buses run between Queensboro Plaza and Vernon Blvd-Jackson Av. What's happening? Track maintenance.
 ---"""
@@ -267,7 +254,6 @@ ALERTS:
 Routes: N
 Type: Planned - Part Suspended
 Posted: 2026-03-04T22:00:00-05:00
-Active period: 2026-03-05 06:00 — 2026-03-05 22:00
 Header: No [N] between Queensboro Plaza, Queens and Times Sq-42 St, Manhattan
 Description: Service operates in two sections. For service between Queens and Manhattan, take the [7] at Queensboro Plaza.
 ---
@@ -275,7 +261,6 @@ Description: Service operates in two sections. For service between Queens and Ma
 Routes: W
 Type: Planned - Part Suspended
 Posted: 2026-03-04T22:00:00-05:00
-Active period: 2026-03-05 06:00 — 2026-03-05 22:00
 Header: No [W] service
 Description: [W] trains are suspended during this service change.
 ---
@@ -283,7 +268,6 @@ Description: [W] trains are suspended during this service change.
 Routes: 4, 5
 Type: Delays
 Posted: 2026-03-05T17:10:00-05:00
-Active period: not specified
 Header: [4][5] trains are running with extensive delays in both directions while FDNY responds to a person struck by a train at 125 St.
 Description: Service is extremely limited. Allow additional travel time.
 ---
@@ -291,7 +275,6 @@ Description: Service is extremely limited. Allow additional travel time.
 Routes: 6
 Type: Delays
 Posted: 2026-03-05T17:15:00-05:00
-Active period: not specified
 Header: Uptown [6] trains are running with delays due to a signal malfunction at 77 St.
 Description: none
 ---
@@ -299,7 +282,6 @@ Description: none
 Routes: F
 Type: Delays
 Posted: 2026-03-05T17:10:00-05:00
-Active period: not specified
 Header: Queens-bound [F] trains are running with delays due to a train with mechanical problems at Jay St-MetroTech.
 Description: none
 ---
@@ -307,7 +289,6 @@ Description: none
 Routes: R
 Type: Delays
 Posted: 2026-03-05T17:05:00-05:00
-Active period: not specified
 Header: [R] trains are running with extensive delays in both directions due to a switch problem at Whitehall St.
 Description: Service is extremely limited. Allow additional travel time.
 ---
@@ -315,7 +296,6 @@ Description: Service is extremely limited. Allow additional travel time.
 Routes: 7
 Type: Planned - Part Suspended
 Posted: 2026-03-04T22:00:00-05:00
-Active period: 2026-03-05 06:00 — 2026-03-05 22:00
 Header: No [7] between Queensboro Plaza, Queens and 34 St-Hudson Yards, Manhattan
 Description: [7] runs in Queens between Flushing-Main St and Queensboro Plaza only. What's happening? Track maintenance.
 ---"""
@@ -331,7 +311,6 @@ ALERTS:
 Routes: N
 Type: Planned - Stops Skipped
 Posted: 2026-03-04T22:00:00-05:00
-Active period: 2026-03-05 06:00 — 2026-03-05 22:00
 Header: In Queens, Queens-bound [N] skips 39 Av, 36 Av and Broadway
 Description: For service to these stations, take the [N] to Astoria-Ditmars Blvd and transfer to a Manhattan-bound [N]. What's happening? Track maintenance.
 ---"""
@@ -347,7 +326,6 @@ ALERTS:
 Routes: 4, 5
 Type: Delays
 Posted: 2026-03-05T08:20:00-05:00
-Active period: not specified
 Header: Downtown [4][5] trains are running with delays due to signal problems at Grand Central-42 St.
 Description: none
 ---"""
@@ -363,14 +341,17 @@ ALERTS:
 Routes: N, W
 Type: Delays
 Posted: 2026-03-05T06:45:00-05:00
-Active period: not specified
 Header: [N][W] trains are running with delays in both directions while we address a signal malfunction at Queensboro Plaza.
 Description: none
 ---"""
     },
     {
+        # NOTE: In production, filterByActivePeriod() in Kotlin would have excluded this alert
+        # before it ever reaches Gemini (active period is 22:00–05:00, current time is 08:30).
+        # This test verifies the model can still infer NORMAL from description text alone
+        # ("overnight hours") when active period metadata is not present in the prompt.
         "name": "Test 10: Planned overnight work, current time is morning",
-        "expected": "NORMAL (outside active period)",
+        "expected": "NORMAL (description says overnight hours; current time 08:30 is daytime)",
         "prompt": """Current time: 2026-03-05T08:30:00-05:00
 Direction: TO_WORK
 
@@ -379,7 +360,6 @@ ALERTS:
 Routes: N, W
 Type: Planned - Part Suspended
 Posted: 2026-03-04T18:00:00-05:00
-Active period: 2026-03-05 22:00 — 2026-03-06 05:00
 Header: No [N] between Queensboro Plaza, Queens and Times Sq-42 St, Manhattan
 Description: [N] service operates in two sections during overnight hours. What's happening? Overnight track maintenance.
 ---"""
@@ -396,7 +376,6 @@ ALERTS:
 Routes: B,D,F,M
 Type: Delays
 Posted: 2026-03-06T15:38:02Z
-Active period: 2026-03-06T16:59:03Z — (open)
 Header: [B][D][F][M] trains are running with delays in both directions while we continue to address a signal problem near 42 St-Bryant Park.
 Description: Service Changes
 
@@ -412,7 +391,6 @@ As an alternative for service between Manhattan and Brooklyn, consider using nea
 Routes: 5
 Type: Station Notice
 Posted: 2026-02-24T13:06:17Z
-Active period: 2026-02-27T11:00:00Z — 2026-02-28T01:45:00Z; 2026-03-02T11:00:00Z — 2026-03-03T01:45:00Z; 2026-03-03T11:00:00Z — 2026-03-04T01:45:00Z; 2026-03-04T11:00:00Z — 2026-03-05T01:45:00Z; 2026-03-05T11:00:00Z — 2026-03-06T01:45:00Z; 2026-03-06T11:00:00Z — 2026-03-07T01:45:00Z; 2026-03-09T10:00:00Z — 2026-03-10T00:45:00Z; 2026-03-10T10:00:00Z — 2026-03-11T00:45:00Z; 2026-03-11T10:00:00Z — 2026-03-12T00:45:00Z; 2026-03-12T10:00:00Z — 2026-03-13T00:45:00Z; 2026-03-13T10:00:00Z — 2026-03-14T00:45:00Z
 Header: In Brooklyn, Manhattan-bound [5] skips Newkirk Av-Little Haiti
 Description: Use nearby Beverly Rd or Flatbush Av-Brooklyn College stations.
 ---
@@ -420,7 +398,6 @@ Description: Use nearby Beverly Rd or Flatbush Av-Brooklyn College stations.
 Routes: F
 Type: Reduced Service
 Posted: 2026-01-30T16:43:26Z
-Active period: 2026-03-06T14:15:00Z — 2026-03-06T20:30:00Z
 Header: The last stop for some [F] trains headed toward Coney Island is Church Av
 Description: Transfer at Church Av to continue your trip. [F] service between Church Av and Coney Island-Stillwell Av runs less frequently.
 ---
@@ -428,7 +405,6 @@ Description: Transfer at Church Av to continue your trip. [F] service between Ch
 Routes: F
 Type: Planned - Stops Skipped
 Posted: 2026-01-30T16:40:19Z
-Active period: 2026-03-06T14:15:00Z — 2026-03-06T20:30:00Z
 Header: In Brooklyn, Manhattan-bound [F] skips Avenue P, Avenue N, Bay Pkwy and Avenue I
 All trains at 18 Av board from the Coney Island-bound platform
 Description: For service to these stations, take the [F] to 18 Av and transfer to a Coney Island-bound train.
@@ -437,7 +413,6 @@ Description: For service to these stations, take the [F] to 18 Av and transfer t
 Routes: 4
 Type: Station Notice
 Posted: 2026-01-30T14:42:53Z
-Active period: 2026-03-02T10:00:00Z — 2026-04-04T01:45:00Z; 2026-04-06T09:00:00Z — 2026-09-21T03:59:00Z
 Header: In the Bronx, Woodlawn-bound [4] skips Burnside Av
 Description: Use nearby 176 St or 183 St stations.
 ---
@@ -445,7 +420,6 @@ Description: Use nearby 176 St or 183 St stations.
 Routes: 7
 Type: Station Notice
 Posted: 2025-05-27T13:23:05Z
-Active period: 2025-12-17T10:00:00Z — 2026-04-11T03:59:00Z
 Header: In Queens, Manhattan-bound [7] skips 69 St and 52 St
 All trains at 61 St-Woodside board from the Flushing-bound platform
 Description: Use nearby 74 St-Broadway, 61 St-Woodside or 46 St-Bliss St stations.
@@ -454,7 +428,6 @@ Description: Use nearby 74 St-Broadway, 61 St-Woodside or 46 St-Bliss St station
 Routes: 7
 Type: Station Notice
 Posted: 2025-03-31T13:38:39Z
-Active period: 2026-02-23T08:00:00Z — 2026-02-28T04:45:00Z; 2026-03-02T08:00:00Z — 2026-03-07T04:45:00Z; 2026-03-09T07:00:00Z — 2026-04-01T03:45:00Z
 Header: In Queens, Flushing-bound [7] skips 103 St-Corona Plaza
 Description: Use nearby Junction Blvd or 111 St stations.
 ---"""
@@ -470,7 +443,6 @@ ALERTS:
 Routes: B,D,F,M
 Type: Delays
 Posted: 2026-03-06T15:38:02Z
-Active period: 2026-03-06T16:59:03Z — (open)
 Header: [B][D][F][M] trains are running with delays in both directions while we continue to address a signal problem near 42 St-Bryant Park.
 Description: Service Changes
 
@@ -486,7 +458,6 @@ As an alternative for service between Manhattan and Brooklyn, consider using nea
 Routes: 5
 Type: Station Notice
 Posted: 2026-02-24T13:06:17Z
-Active period: 2026-02-27T11:00:00Z — 2026-02-28T01:45:00Z; 2026-03-02T11:00:00Z — 2026-03-03T01:45:00Z; 2026-03-03T11:00:00Z — 2026-03-04T01:45:00Z; 2026-03-04T11:00:00Z — 2026-03-05T01:45:00Z; 2026-03-05T11:00:00Z — 2026-03-06T01:45:00Z; 2026-03-06T11:00:00Z — 2026-03-07T01:45:00Z; 2026-03-09T10:00:00Z — 2026-03-10T00:45:00Z; 2026-03-10T10:00:00Z — 2026-03-11T00:45:00Z; 2026-03-11T10:00:00Z — 2026-03-12T00:45:00Z; 2026-03-12T10:00:00Z — 2026-03-13T00:45:00Z; 2026-03-13T10:00:00Z — 2026-03-14T00:45:00Z
 Header: In Brooklyn, Manhattan-bound [5] skips Newkirk Av-Little Haiti
 Description: Use nearby Beverly Rd or Flatbush Av-Brooklyn College stations.
 ---
@@ -494,7 +465,6 @@ Description: Use nearby Beverly Rd or Flatbush Av-Brooklyn College stations.
 Routes: F
 Type: Reduced Service
 Posted: 2026-01-30T16:43:26Z
-Active period: 2026-03-06T14:15:00Z — 2026-03-06T20:30:00Z
 Header: The last stop for some [F] trains headed toward Coney Island is Church Av
 Description: Transfer at Church Av to continue your trip. [F] service between Church Av and Coney Island-Stillwell Av runs less frequently.
 ---
@@ -502,7 +472,6 @@ Description: Transfer at Church Av to continue your trip. [F] service between Ch
 Routes: F
 Type: Planned - Stops Skipped
 Posted: 2026-01-30T16:40:19Z
-Active period: 2026-03-06T14:15:00Z — 2026-03-06T20:30:00Z
 Header: In Brooklyn, Manhattan-bound [F] skips Avenue P, Avenue N, Bay Pkwy and Avenue I
 All trains at 18 Av board from the Coney Island-bound platform
 Description: For service to these stations, take the [F] to 18 Av and transfer to a Coney Island-bound train.
@@ -511,7 +480,6 @@ Description: For service to these stations, take the [F] to 18 Av and transfer t
 Routes: 4
 Type: Station Notice
 Posted: 2026-01-30T14:42:53Z
-Active period: 2026-03-02T10:00:00Z — 2026-04-04T01:45:00Z; 2026-04-06T09:00:00Z — 2026-09-21T03:59:00Z
 Header: In the Bronx, Woodlawn-bound [4] skips Burnside Av
 Description: Use nearby 176 St or 183 St stations.
 ---
@@ -519,7 +487,6 @@ Description: Use nearby 176 St or 183 St stations.
 Routes: 7
 Type: Station Notice
 Posted: 2025-05-27T13:23:05Z
-Active period: 2025-12-17T10:00:00Z — 2026-04-11T03:59:00Z
 Header: In Queens, Manhattan-bound [7] skips 69 St and 52 St
 All trains at 61 St-Woodside board from the Flushing-bound platform
 Description: Use nearby 74 St-Broadway, 61 St-Woodside or 46 St-Bliss St stations.
@@ -528,7 +495,6 @@ Description: Use nearby 74 St-Broadway, 61 St-Woodside or 46 St-Bliss St station
 Routes: 7
 Type: Station Notice
 Posted: 2025-03-31T13:38:39Z
-Active period: 2026-02-23T08:00:00Z — 2026-02-28T04:45:00Z; 2026-03-02T08:00:00Z — 2026-03-07T04:45:00Z; 2026-03-09T07:00:00Z — 2026-04-01T03:45:00Z
 Header: In Queens, Flushing-bound [7] skips 103 St-Corona Plaza
 Description: Use nearby Junction Blvd or 111 St stations.
 ---"""

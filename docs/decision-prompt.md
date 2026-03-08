@@ -108,7 +108,7 @@ DIRECTION MATCHING RULES:
 - If an alert does not mention any direction, assume it affects both directions.
 
 ALERT FRESHNESS RULES:
-- Planned work with a defined active_period: trust the time window; if current time is outside the window, ignore the alert.
+- All alerts below are pre-filtered to currently active time windows. Focus on type and posted time, not active periods.
 - Real-time delays posted <30 min ago: treat as active.
 - Real-time delays posted >60 min ago with no update: ASSUME RESOLVED and downgrade severity by one level (REROUTE → MINOR_DELAYS, MINOR_DELAYS → NORMAL). Exception: only keep the original severity if the alert text describes an inherently long-duration incident (e.g., "person struck by train", "FDNY on scene", "structural damage", "derailment"). Routine issues like signal problems, train cleaning, and sick customers are typically resolved within 60 minutes.
 - Real-time delays posted 30-60 min ago: use judgment based on severity of the incident described.
@@ -140,7 +140,6 @@ ALERTS:
 Routes: {route_ids, comma-separated}
 Type: {alert_type from Mercury extension}
 Posted: {timestamp, ISO 8601}
-Active period: {start — end, or "not specified"}
 Header: {header_text, en plain text}
 Description: {description_text, en plain text, or "none"}
 ---
