@@ -37,7 +37,7 @@ object SystemPromptBuilder {
             append("- If an alert does not mention any direction, assume it affects both directions.\n")
             append("\n")
             append("ALERT FRESHNESS RULES:\n")
-            append("- Planned work with a defined active_period: trust the time window; if current time is outside the window, ignore the alert.\n")
+            append("- All alerts below are pre-filtered to currently active time windows. Focus on type and posted time, not active periods.\n")
             append("- Real-time delays posted <30 min ago: treat as active.\n")
             append("- Real-time delays posted >60 min ago with no update: ASSUME RESOLVED and downgrade severity by one level (REROUTE \u2192 MINOR_DELAYS, MINOR_DELAYS \u2192 NORMAL). Exception: only keep the original severity if the alert text describes an inherently long-duration incident (e.g., \"person struck by train\", \"FDNY on scene\", \"structural damage\", \"derailment\"). Routine issues like signal problems, train cleaning, and sick customers are typically resolved within 60 minutes.\n")
             append("- Real-time delays posted 30-60 min ago: use judgment based on severity of the incident described.\n")

@@ -122,7 +122,7 @@ class SystemPromptBuilderTest {
     fun generatedPrompt_containsAlertFreshnessRulesSection() {
         val prompt = SystemPromptBuilder.buildSystemPrompt(defaultProfile)
         assertTrue(prompt.contains("ALERT FRESHNESS RULES:"))
-        assertTrue(prompt.contains("active_period"))
+        assertTrue(prompt.contains("pre-filtered to currently active time windows"))
         assertTrue(prompt.contains("ASSUME RESOLVED"))
     }
 
