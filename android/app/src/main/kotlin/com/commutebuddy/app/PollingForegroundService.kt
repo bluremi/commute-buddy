@@ -1,5 +1,6 @@
 package com.commutebuddy.app
 
+import android.app.AlarmManager
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -73,6 +74,10 @@ class PollingForegroundService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG, "Service starting")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val alarmManager = getSystemService(AlarmManager::class.java)
+            Log.d(TAG, "Exact alarm permission: ${alarmManager.canScheduleExactAlarms()}")
+        }
 
         rateLimiter = ApiRateLimiter(getSharedPreferences("rate_limiter", Context.MODE_PRIVATE))
         profileRepository = CommuteProfileRepository(

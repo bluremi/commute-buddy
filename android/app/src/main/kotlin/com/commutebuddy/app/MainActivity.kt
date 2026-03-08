@@ -1,6 +1,7 @@
 package com.commutebuddy.app
 
 import android.text.SpannableStringBuilder
+import android.app.AlarmManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.BroadcastReceiver
@@ -10,8 +11,10 @@ import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.Manifest
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import androidx.core.app.ActivityCompat
 import android.util.Log
 import android.widget.Button
@@ -62,6 +65,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var configureCommuteButton: MaterialButton
     private lateinit var pollingSettingsButton: MaterialButton
     private lateinit var configureCommuteLauncher: ActivityResultLauncher<Intent>
+    private lateinit var exactAlarmSettingsLauncher: ActivityResultLauncher<Intent>
 
     private lateinit var connectIQ: ConnectIQ
     private lateinit var rateLimiter: ApiRateLimiter
@@ -101,6 +105,12 @@ class MainActivity : AppCompatActivity() {
         ) { _ ->
             profile = profileRepository.load()
             initGeminiFlash()
+        }
+
+        exactAlarmSettingsLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { _ ->
+            startPollingServiceIfEnabled()
         }
 
         statusTextView = findViewById(R.id.statusTextView)
@@ -448,9 +458,20 @@ class MainActivity : AppCompatActivity() {
         val settings = PollingSettingsRepository(
             getSharedPreferences("polling_prefs", Context.MODE_PRIVATE)
         ).load()
-        if (settings.enabled) {
-            startForegroundService(Intent(this, PollingForegroundService::class.java))
+        if (!settings.enabled) return
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val alarmManager = getSystemService(AlarmManager::class.java)
+            if (!alarmManager.canScheduleExactAlarms()) {
+                exactAlarmSettingsLauncher.launch(
+                    Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+                        .setData(Uri.parse("package:$packageName"))
+                )
+                return
+            }
         }
+
+        startForegroundService(Intent(this, PollingForegroundService::class.java))
     }
 
     private fun setStatus(resId: Int) {

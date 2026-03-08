@@ -1,12 +1,15 @@
 package com.commutebuddy.app
 
 import android.Manifest
+import android.app.AlarmManager
 import android.app.TimePickerDialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.view.MenuItem
 import android.widget.Button
 import android.widget.TextView
@@ -35,6 +38,12 @@ class PollingSettingsActivity : AppCompatActivity() {
         // Start the service regardless — on denial the service runs but notification is hidden
         startPollingService()
         finish()
+    }
+
+    private val exactAlarmSettingsLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { _ ->
+        startPollingServiceWithNotificationCheck()
     }
 
     private lateinit var repository: PollingSettingsRepository
@@ -161,6 +170,18 @@ class PollingSettingsActivity : AppCompatActivity() {
         startForegroundService(Intent(this, PollingForegroundService::class.java))
     }
 
+    private fun startPollingServiceWithNotificationCheck() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED
+        ) {
+            requestNotificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+            return  // finish() called in permission result callback
+        }
+        startPollingService()
+        finish()
+    }
+
     private fun onSaveClicked() {
         val settings = PollingSettings(
             enabled = enabledSwitch.isChecked,
@@ -172,15 +193,18 @@ class PollingSettingsActivity : AppCompatActivity() {
         )
         repository.save(settings)
         if (settings.enabled) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-                    != PackageManager.PERMISSION_GRANTED
-            ) {
-                requestNotificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
-                return  // finish() called in permission result callback
-            } else {
-                startPollingService()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val alarmManager = getSystemService(AlarmManager::class.java)
+                if (!alarmManager.canScheduleExactAlarms()) {
+                    exactAlarmSettingsLauncher.launch(
+                        Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+                            .setData(Uri.parse("package:$packageName"))
+                    )
+                    return  // finish() called after returning from exact alarm settings
+                }
             }
+            startPollingServiceWithNotificationCheck()
+            return
         } else {
             stopService(Intent(this, PollingForegroundService::class.java))
         }
