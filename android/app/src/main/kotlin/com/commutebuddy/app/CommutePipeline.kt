@@ -63,19 +63,6 @@ object CommutePipeline {
 
         // Step 2: Parse
         val alerts = MtaAlertParser.parseAlerts(jsonString)
-        if (alerts.isEmpty() && jsonString.isNotBlank()) {
-            val msg = "Feed parse error: no entities parsed"
-            return PipelineResult.Error(
-                status = CommuteStatus(
-                    action = CommuteStatus.ACTION_NORMAL,
-                    summary = "Feed parse error",
-                    affectedRoutes = "",
-                    rerouteHint = null,
-                    timestamp = nowSeconds
-                ),
-                message = msg
-            )
-        }
 
         // Step 3: Filter by route and active period
         val monitoredRoutes = profile.monitoredRoutes()
