@@ -106,7 +106,7 @@ class DetailPageFactory extends WatchUi.ViewLoopFactory {
         var screenH = System.getDeviceSettings().screenHeight;
         var headerHeight = Graphics.getFontHeight(Graphics.FONT_LARGE) + 14;
         if (routesStr.length() > 0) {
-            headerHeight += 32 + 14; // badge diameter (2 * radius 16) + pad
+            headerHeight += 40 + 14; // badge diameter (2 * radius 20) + pad
         }
         if (hintStr.length() > 0) {
             headerHeight += 80 + 14;
