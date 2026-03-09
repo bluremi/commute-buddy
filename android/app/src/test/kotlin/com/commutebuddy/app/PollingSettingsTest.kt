@@ -1,5 +1,6 @@
 package com.commutebuddy.app
 
+import java.util.Calendar
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -83,7 +84,9 @@ class PollingSettingsTest {
                 CommuteWindow(8, 0, 9, 30),
                 CommuteWindow(17, 30, 19, 0)
             ),
-            intervalMinutes = 7
+            intervalMinutes = 7,
+            activeDays = setOf(Calendar.MONDAY, Calendar.WEDNESDAY, Calendar.FRIDAY),
+            backgroundPolling = false
         )
         val json = original.toJson().toString()
         val restored = PollingSettings.fromJson(org.json.JSONObject(json))
@@ -100,6 +103,35 @@ class PollingSettingsTest {
     }
 
     @Test
+    fun `PollingSettings round-trips activeDays and backgroundPolling`() {
+        val original = PollingSettings(
+            enabled = true,
+            windows = listOf(CommuteWindow(8, 0, 9, 0)),
+            intervalMinutes = 5,
+            activeDays = setOf(Calendar.TUESDAY, Calendar.THURSDAY),
+            backgroundPolling = true
+        )
+        val restored = PollingSettings.fromJson(org.json.JSONObject(original.toJson().toString()))
+        assertEquals(original.activeDays, restored.activeDays)
+        assertEquals(original.backgroundPolling, restored.backgroundPolling)
+    }
+
+    @Test
+    fun `PollingSettings fromJson uses defaults for missing activeDays and backgroundPolling`() {
+        // Old JSON without activeDays or backgroundPolling keys
+        val oldJson = org.json.JSONObject().apply {
+            put("enabled", true)
+            put("windows", org.json.JSONArray().apply {
+                put(CommuteWindow(8, 0, 9, 30).toJson())
+            })
+            put("intervalMinutes", 5)
+        }
+        val restored = PollingSettings.fromJson(oldJson)
+        assertEquals(PollingSettings.DEFAULT_ACTIVE_DAYS, restored.activeDays)
+        assertTrue(restored.backgroundPolling)
+    }
+
+    @Test
     fun `CommuteWindow round-trips through JSON`() {
         val window = CommuteWindow(23, 45, 1, 15)
         val restored = CommuteWindow.fromJson(window.toJson())
@@ -112,6 +144,8 @@ class PollingSettingsTest {
         assertFalse(defaults.enabled)
         assertEquals(5, defaults.intervalMinutes)
         assertEquals(2, defaults.windows.size)
+        assertEquals(PollingSettings.DEFAULT_ACTIVE_DAYS, defaults.activeDays)
+        assertTrue(defaults.backgroundPolling)
 
         val morning = defaults.windows[0]
         assertEquals(8, morning.startHour)
@@ -124,5 +158,18 @@ class PollingSettingsTest {
         assertEquals(30, evening.startMinute)
         assertEquals(19, evening.endHour)
         assertEquals(0, evening.endMinute)
+    }
+
+    @Test
+    fun `DEFAULT_ACTIVE_DAYS contains Mon through Fri only`() {
+        val days = PollingSettings.DEFAULT_ACTIVE_DAYS
+        assertEquals(5, days.size)
+        assertTrue(days.contains(Calendar.MONDAY))
+        assertTrue(days.contains(Calendar.TUESDAY))
+        assertTrue(days.contains(Calendar.WEDNESDAY))
+        assertTrue(days.contains(Calendar.THURSDAY))
+        assertTrue(days.contains(Calendar.FRIDAY))
+        assertFalse(days.contains(Calendar.SATURDAY))
+        assertFalse(days.contains(Calendar.SUNDAY))
     }
 }
