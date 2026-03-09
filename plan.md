@@ -54,34 +54,34 @@ The current `PollingForegroundService` uses a Kotlin coroutine `delay()` loop to
 ### Implementation Plan
 
 #### Increment 1: Permissions — Manifest + Runtime Checks
-- [ ] Add `SCHEDULE_EXACT_ALARM` and `WAKE_LOCK` permissions to `AndroidManifest.xml`
-- [ ] In `MainActivity.requestBluetoothPermissionsThenStartService()`, after BT permissions are granted, check `AlarmManager.canScheduleExactAlarms()` — if denied, launch `Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM` intent and defer service start to `onResume()` (which re-checks)
-- [ ] In `PollingSettingsActivity.onSaveClicked()`, when enabling polling, check `canScheduleExactAlarms()` — if denied, launch the settings intent and defer save/start (similar pattern to the existing notification permission flow)
-- [ ] Add a log line in `PollingForegroundService.onStartCommand()` that logs whether exact alarm permission is granted (informational for now; scheduling comes in increment 2)
+- [x] Add `SCHEDULE_EXACT_ALARM` and `WAKE_LOCK` permissions to `AndroidManifest.xml`
+- [x] In `MainActivity.requestBluetoothPermissionsThenStartService()`, after BT permissions are granted, check `AlarmManager.canScheduleExactAlarms()` — if denied, launch `Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM` intent and defer service start to `onResume()` (which re-checks)
+- [x] In `PollingSettingsActivity.onSaveClicked()`, when enabling polling, check `canScheduleExactAlarms()` — if denied, launch the settings intent and defer save/start (similar pattern to the existing notification permission flow)
+- [x] Add a log line in `PollingForegroundService.onStartCommand()` that logs whether exact alarm permission is granted (informational for now; scheduling comes in increment 2)
 
 **Testing:** Install the APK on the phone. On first launch, verify the exact alarm permission settings page opens after BT permissions are granted (Android 14+ denies by default for new installs). Grant the permission, return to the app, confirm the service starts and logs normally. In Polling Settings, toggle polling off → save → toggle on → save — confirm the permission check fires if it was revoked in between.
 
 **Model: Sonnet** | Reason: Permission flow has async callbacks and conditional branching across two activities; needs careful state handling for the "return from settings" path.
 
 #### Increment 2: AlarmManager Scheduling + WakeLock + Mutex
-- [ ] In `PollingForegroundService`, remove the coroutine `delay()` loop (`runPollingLoop()`, `pollingJob`, and related imports)
-- [ ] Add `ACTION_WAKE_AND_POLL` constant and a `PendingIntent` factory method that targets the service with this action
-- [ ] Rewrite `onStartCommand()` intent routing: if `intent?.action == ACTION_WAKE_AND_POLL` → acquire `PARTIAL_WAKE_LOCK` (10-min timeout), launch `poll()` coroutine with `finally { wakeLock.release(); scheduleNextAlarm() }`; if `null` intent or standard start → just call `scheduleNextAlarm()` (no immediate poll)
-- [ ] Implement `scheduleNextAlarm()`: calculate next alarm time using existing `getNextDelayMs()` logic, call `AlarmManager.setExactAndAllowWhileIdle()` with the `PendingIntent`, update `nextPollTimeMs` and notification
-- [ ] Add a `kotlinx.coroutines.sync.Mutex` field; wrap the `poll()` call in `mutex.tryLock()` — if already locked (concurrent "Fetch Live"), skip the alarm-triggered poll and just reschedule
-- [ ] In `onDestroy()`, cancel any pending alarm via `AlarmManager.cancel(pendingIntent)`
+- [x] In `PollingForegroundService`, remove the coroutine `delay()` loop (`runPollingLoop()`, `pollingJob`, and related imports)
+- [x] Add `ACTION_WAKE_AND_POLL` constant and a `PendingIntent` factory method that targets the service with this action
+- [x] Rewrite `onStartCommand()` intent routing: if `intent?.action == ACTION_WAKE_AND_POLL` → acquire `PARTIAL_WAKE_LOCK` (10-min timeout), launch `poll()` coroutine with `finally { wakeLock.release(); scheduleNextAlarm() }`; if `null` intent or standard start → just call `scheduleNextAlarm()` (no immediate poll)
+- [x] Implement `scheduleNextAlarm()`: calculate next alarm time using existing `getNextDelayMs()` logic, call `AlarmManager.setExactAndAllowWhileIdle()` with the `PendingIntent`, update `nextPollTimeMs` and notification
+- [x] Add a `kotlinx.coroutines.sync.Mutex` field; wrap the `poll()` call in `mutex.tryLock()` — if already locked (concurrent "Fetch Live"), skip the alarm-triggered poll and just reschedule
+- [x] In `onDestroy()`, cancel any pending alarm via `AlarmManager.cancel(pendingIntent)`
 
 **Testing:** Enable polling, unplug the phone, turn the screen off, and leave it for 15–20 minutes spanning a commute window. Check `adb logcat -s PollingService:V` for poll entries at the expected interval. Verify polls actually fire (not stalled). Tap "Fetch Live" on the phone while a poll is due — confirm no crash and logs show one execution, not two concurrent ones. Reboot the phone — confirm the service restarts and schedules its first alarm without an immediate poll.
 
 **Model: Sonnet** | Reason: Core architectural rewrite with async lifecycle coordination (WakeLock acquire/release across coroutine boundaries, intent routing, alarm scheduling). Getting the lifecycle right is critical.
 
 #### Increment 3: Smart Scheduling — On-the-Hour + Window Boundaries
-- [ ] Replace `getNextDelayMs()` with `getNextAlarmTimeMs(): Long` that returns an absolute epoch timestamp (not a relative delay)
-- [ ] When inside a commute window: return `now + intervalMinutes * 60_000`
-- [ ] When outside a commute window: compute top of the next hour (e.g., if it's 10:37, target 11:00)
-- [ ] After computing the candidate time, check it against all commute window start times — if the candidate falls inside or past a window start, truncate to the window start time instead
-- [ ] Update `scheduleNextAlarm()` to use the absolute timestamp directly with `setExactAndAllowWhileIdle(RTC_WAKEUP, absoluteMs, pendingIntent)`
-- [ ] Update notification to derive "Next: HH:mm" from the scheduled absolute time
+- [x] Replace `getNextDelayMs()` with `getNextAlarmTimeMs(): Long` that returns an absolute epoch timestamp (not a relative delay)
+- [x] When inside a commute window: return `now + intervalMinutes * 60_000`
+- [x] When outside a commute window: compute top of the next hour (e.g., if it's 10:37, target 11:00)
+- [x] After computing the candidate time, check it against all commute window start times — if the candidate falls inside or past a window start, truncate to the window start time instead
+- [x] Update `scheduleNextAlarm()` to use the absolute timestamp directly with `setExactAndAllowWhileIdle(RTC_WAKEUP, absoluteMs, pendingIntent)`
+- [x] Update notification to derive "Next: HH:mm" from the scheduled absolute time
 
 **Testing:** Set commute windows to narrow test ranges (e.g., morning window starts in 10 minutes). With polling enabled, verify via logcat that off-window polls fire on the hour. As the window approaches, verify the last off-window alarm fires at the exact window start time (not overshooting into the window). Inside the window, verify the `intervalMinutes` cadence. Check the notification shows the correct "Next" time throughout.
 
