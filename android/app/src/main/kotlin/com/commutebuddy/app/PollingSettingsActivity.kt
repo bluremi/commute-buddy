@@ -22,8 +22,11 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.core.widget.NestedScrollView
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.slider.Slider
+import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.switchmaterial.SwitchMaterial
+import java.util.Calendar
 import java.util.Locale
 
 class PollingSettingsActivity : AppCompatActivity() {
@@ -46,6 +49,17 @@ class PollingSettingsActivity : AppCompatActivity() {
         startPollingServiceWithNotificationCheck()
     }
 
+    // Maps button view IDs to java.util.Calendar day-of-week constants
+    private val buttonDayMap: Map<Int, Int> = mapOf(
+        R.id.btnDayMon to Calendar.MONDAY,
+        R.id.btnDayTue to Calendar.TUESDAY,
+        R.id.btnDayWed to Calendar.WEDNESDAY,
+        R.id.btnDayThu to Calendar.THURSDAY,
+        R.id.btnDayFri to Calendar.FRIDAY,
+        R.id.btnDaySat to Calendar.SATURDAY,
+        R.id.btnDaySun to Calendar.SUNDAY
+    )
+
     private lateinit var repository: PollingSettingsRepository
     private lateinit var enabledSwitch: SwitchMaterial
     private lateinit var morningStartButton: Button
@@ -54,6 +68,8 @@ class PollingSettingsActivity : AppCompatActivity() {
     private lateinit var eveningEndButton: Button
     private lateinit var intervalSlider: Slider
     private lateinit var intervalValueText: TextView
+    private lateinit var activeDaysToggleGroup: MaterialButtonToggleGroup
+    private lateinit var backgroundPollingSwitch: SwitchMaterial
 
     // In-memory state for the four window boundary times
     private var morningStart = 8 to 0
@@ -87,6 +103,8 @@ class PollingSettingsActivity : AppCompatActivity() {
         eveningEndButton = findViewById(R.id.eveningEndButton)
         intervalSlider = findViewById(R.id.intervalSlider)
         intervalValueText = findViewById(R.id.intervalValueText)
+        activeDaysToggleGroup = findViewById(R.id.activeDaysToggleGroup)
+        backgroundPollingSwitch = findViewById(R.id.backgroundPollingSwitch)
 
         val settings = repository.load()
         enabledSwitch.isChecked = settings.enabled
@@ -100,6 +118,11 @@ class PollingSettingsActivity : AppCompatActivity() {
 
         intervalSlider.value = settings.intervalMinutes.toFloat().coerceIn(2f, 15f)
         updateIntervalLabel(settings.intervalMinutes)
+
+        buttonDayMap.forEach { (buttonId, calDay) ->
+            if (calDay in settings.activeDays) activeDaysToggleGroup.check(buttonId)
+        }
+        backgroundPollingSwitch.isChecked = settings.backgroundPolling
 
         updateButtonLabel(morningStartButton, morningStart)
         updateButtonLabel(morningEndButton, morningEnd)
@@ -183,13 +206,29 @@ class PollingSettingsActivity : AppCompatActivity() {
     }
 
     private fun onSaveClicked() {
+        val activeDays = activeDaysToggleGroup.checkedButtonIds
+            .mapNotNull { buttonDayMap[it] }
+            .toSet()
+        val backgroundPolling = backgroundPollingSwitch.isChecked
+
+        if (activeDays.isEmpty() && !backgroundPolling) {
+            Snackbar.make(
+                findViewById(R.id.rootScrollView),
+                R.string.polling_warning_no_polls,
+                Snackbar.LENGTH_LONG
+            ).show()
+            return
+        }
+
         val settings = PollingSettings(
             enabled = enabledSwitch.isChecked,
             windows = listOf(
                 CommuteWindow(morningStart.first, morningStart.second, morningEnd.first, morningEnd.second),
                 CommuteWindow(eveningStart.first, eveningStart.second, eveningEnd.first, eveningEnd.second)
             ),
-            intervalMinutes = intervalSlider.value.toInt()
+            intervalMinutes = intervalSlider.value.toInt(),
+            activeDays = activeDays,
+            backgroundPolling = backgroundPolling
         )
         repository.save(settings)
         if (settings.enabled) {

@@ -74,6 +74,18 @@
     <string name="polling_label_interval">Polling Interval (in-window)</string>
     <string name="polling_interval_value">%d minutes</string>
 
+    <!-- Active days & background polling (FEAT-12) -->
+    <string name="polling_label_active_days">Active Commute Days</string>
+    <string name="polling_label_background_polling">Hourly polls when not commuting</string>
+    <string name="polling_warning_no_polls">No polls will run — enable background polling or select at least one day</string>
+    <string name="polling_day_mon">M</string>
+    <string name="polling_day_tue">T</string>
+    <string name="polling_day_wed">W</string>
+    <string name="polling_day_thu">T</string>
+    <string name="polling_day_fri">F</string>
+    <string name="polling_day_sat">S</string>
+    <string name="polling_day_sun">S</string>
+
     <!-- Polling Foreground Service (FEAT-08 Increment 4) -->
     <string name="polling_channel_name">Commute Polling</string>
     <string name="polling_notification_title">Commute Buddy</string>
