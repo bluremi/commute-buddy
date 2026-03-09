@@ -63,26 +63,26 @@ Currently, polling runs the same schedule every day. The commute windows and int
 ### Implementation Plan
 
 #### Increment 1: Data model — add `activeDays` and `backgroundPolling` to `PollingSettings`
-- [ ] Add `activeDays: Set<Int>` field to `PollingSettings` (using `java.util.Calendar` day constants: `Calendar.MONDAY`..`Calendar.SUNDAY`). Default: Mon–Fri.
-- [ ] Add `backgroundPolling: Boolean` field to `PollingSettings`. Default: `true`.
-- [ ] Update `toJson()` to serialize `activeDays` as a JSON array of ints and `backgroundPolling` as a boolean.
-- [ ] Update `fromJson()` to deserialize the new fields, falling back to defaults when keys are missing (backward compatibility).
-- [ ] Update `default()` to include the new fields.
-- [ ] Add unit tests in `PollingSettingsTest.kt`: JSON round-trip with new fields, backward-compat deserialization of old JSON (no `activeDays`/`backgroundPolling` keys), verify default values.
+- [x] Add `activeDays: Set<Int>` field to `PollingSettings` (using `java.util.Calendar` day constants: `Calendar.MONDAY`..`Calendar.SUNDAY`). Default: Mon–Fri.
+- [x] Add `backgroundPolling: Boolean` field to `PollingSettings`. Default: `true`.
+- [x] Update `toJson()` to serialize `activeDays` as a JSON array of ints and `backgroundPolling` as a boolean.
+- [x] Update `fromJson()` to deserialize the new fields, falling back to defaults when keys are missing (backward compatibility).
+- [x] Update `default()` to include the new fields.
+- [x] Add unit tests in `PollingSettingsTest.kt`: JSON round-trip with new fields, backward-compat deserialization of old JSON (no `activeDays`/`backgroundPolling` keys), verify default values.
 
 **Testing:** Run unit tests via Gradle: `$gradle :app:testDebugUnitTest --tests "com.commutebuddy.app.PollingSettingsTest"`
 
 **Model: Composer** | Reason: Mechanical field additions to an existing data class + JSON serialization following established patterns.
 
 #### Increment 2: Scheduling logic — three-tier alarm scheduling in `getNextAlarmTimeMs()`
-- [ ] Add a helper `isActiveDay(dayOfWeek: Int): Boolean` that checks if the given `Calendar.DAY_OF_WEEK` is in `activeDays`.
-- [ ] Refactor `getNextAlarmTimeMs()` to implement three tiers:
+- [x] Add a helper `isActiveDay(dayOfWeek: Int): Boolean` that checks if the given `Calendar.DAY_OF_WEEK` is in `activeDays`.
+- [x] Refactor `getNextAlarmTimeMs()` to implement three tiers:
   1. **Active day + inside window** → interval-based polling (existing behavior)
   2. **Background polling ON + outside intensive times** (inactive day, or active day outside windows) → hourly (top of next hour, or next window start if sooner on an active day)
   3. **Background polling OFF + outside intensive times** → skip to earliest window start on the next active day
-- [ ] Handle edge case: all days deselected + background OFF → return a far-future sentinel or stop scheduling (service will idle).
-- [ ] Update `nextOccurrenceOf()` to optionally constrain to active days when background polling is OFF.
-- [ ] Add unit tests: extract `getNextAlarmTimeMs` logic into a testable pure function (or test via a helper that accepts `now`, `settings`, and returns the next alarm time). Test cases: inactive day + background ON (→ hourly), inactive day + background OFF (→ next active day's window), active day outside window + background ON (→ hourly), active day outside window + background OFF (→ next window start), all days off + background OFF (→ no scheduling).
+- [x] Handle edge case: all days deselected + background OFF → return a far-future sentinel or stop scheduling (service will idle).
+- [x] Update `nextOccurrenceOf()` to optionally constrain to active days when background polling is OFF.
+- [x] Add unit tests: extract `getNextAlarmTimeMs` logic into a testable pure function (or test via a helper that accepts `now`, `settings`, and returns the next alarm time). Test cases: inactive day + background ON (→ hourly), inactive day + background OFF (→ next active day's window), active day outside window + background ON (→ hourly), active day outside window + background OFF (→ next window start), all days off + background OFF (→ no scheduling).
 
 **Testing:** Run unit tests via Gradle: `$gradle :app:testDebugUnitTest`. Then deploy to device, verify logcat shows correct "Next alarm in Xm Ys" for various scenarios (change phone date/time to simulate active vs inactive days).
 
