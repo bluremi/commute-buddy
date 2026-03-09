@@ -160,11 +160,11 @@ class PollingForegroundService : Service() {
     // -------------------------------------------------------------------------
 
     private fun scheduleNextAlarm() {
-        val delayMs = getNextDelayMs()
-        val triggerAtMs = System.currentTimeMillis() + delayMs
+        val triggerAtMs = getNextAlarmTimeMs()
         nextPollTimeMs = triggerAtMs
         getSystemService(AlarmManager::class.java)
             .setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMs, buildAlarmPendingIntent())
+        val delayMs = triggerAtMs - System.currentTimeMillis()
         val mins = delayMs / 60_000
         val secs = (delayMs % 60_000) / 1000
         Log.d(TAG, "Next alarm in ${mins}m ${secs}s")
@@ -180,13 +180,48 @@ class PollingForegroundService : Service() {
         )
     }
 
-    private fun getNextDelayMs(): Long {
+    private fun getNextAlarmTimeMs(): Long {
         val settings = pollingSettingsRepository.load()
+        val now = System.currentTimeMillis()
         val cal = Calendar.getInstance()
         val hour = cal.get(Calendar.HOUR_OF_DAY)
         val minute = cal.get(Calendar.MINUTE)
-        val inWindow = settings.windows.any { it.isActive(hour, minute) }
-        return if (inWindow) settings.intervalMinutes * 60_000L else 60 * 60_000L
+
+        if (settings.windows.any { it.isActive(hour, minute) }) {
+            return now + settings.intervalMinutes * 60_000L
+        }
+
+        // Outside all windows: target top of the next hour
+        val topOfNextHour = Calendar.getInstance().apply {
+            add(Calendar.HOUR_OF_DAY, 1)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+
+        // If any window starts before the top of the next hour, fire at that start instead
+        val earliestWindowStart = settings.windows
+            .map { nextOccurrenceOf(it.startHour, it.startMinute, now) }
+            .filter { it < topOfNextHour }
+            .minOrNull()
+
+        return earliestWindowStart ?: topOfNextHour
+    }
+
+    /** Returns the next epoch ms at which the given hour:minute occurs, strictly after [afterMs]. */
+    private fun nextOccurrenceOf(hour: Int, minute: Int, afterMs: Long): Long {
+        val after = Calendar.getInstance().apply { timeInMillis = afterMs }
+        val target = Calendar.getInstance().apply {
+            timeInMillis = afterMs
+            set(Calendar.HOUR_OF_DAY, hour)
+            set(Calendar.MINUTE, minute)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        if (!target.after(after)) {
+            target.add(Calendar.DAY_OF_YEAR, 1)
+        }
+        return target.timeInMillis
     }
 
     // -------------------------------------------------------------------------
