@@ -51,6 +51,108 @@ class PollingForegroundService : Service() {
         private const val PREFS_COMMUTE = "commute_prefs"
         private const val KEY_DIRECTION = "current_direction"
         private const val DIRECTION_TO_WORK = "TO_WORK"
+
+        /** Far-future sentinel returned when polling is effectively disabled (no active days + background OFF). */
+        internal const val FAR_FUTURE_OFFSET_MS = 7 * 24 * 60 * 60_000L
+
+        internal fun isActiveDay(dayOfWeek: Int, activeDays: Set<Int>): Boolean =
+            activeDays.contains(dayOfWeek)
+
+        /**
+         * Pure scheduling function — testable without a running service.
+         *
+         * Three tiers:
+         *  1. Active day + inside a commute window → interval-based (intensive) polling
+         *  2. Background polling ON, outside intensive times → top of next hour, or sooner
+         *     if an active-day window starts before then
+         *  3. Background polling OFF, outside intensive times → earliest window start on
+         *     the next active day; far-future sentinel if no active days or windows
+         */
+        internal fun computeNextAlarmTimeMs(settings: PollingSettings, nowMs: Long): Long {
+            val cal = Calendar.getInstance().apply { timeInMillis = nowMs }
+            val dayOfWeek = cal.get(Calendar.DAY_OF_WEEK)
+            val hour = cal.get(Calendar.HOUR_OF_DAY)
+            val minute = cal.get(Calendar.MINUTE)
+
+            val onActiveDay = isActiveDay(dayOfWeek, settings.activeDays)
+            val insideWindow = settings.windows.any { it.isActive(hour, minute) }
+
+            // Tier 1: Active day + inside window → interval-based polling
+            if (onActiveDay && insideWindow) {
+                return nowMs + settings.intervalMinutes * 60_000L
+            }
+
+            // Outside intensive polling times
+            if (!settings.backgroundPolling) {
+                // Tier 3: Background OFF → skip to earliest window start on the next active day
+                if (settings.activeDays.isEmpty() || settings.windows.isEmpty()) {
+                    return nowMs + FAR_FUTURE_OFFSET_MS
+                }
+                return settings.windows
+                    .map { nextOccurrenceOnActiveDay(it.startHour, it.startMinute, nowMs, settings.activeDays) }
+                    .min()
+            }
+
+            // Tier 2: Background ON → top of next hour, or sooner if an active-day window fires first
+            val topOfNextHour = Calendar.getInstance().apply {
+                timeInMillis = nowMs
+                add(Calendar.HOUR_OF_DAY, 1)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }.timeInMillis
+
+            val earliestActiveWindowStart = if (settings.activeDays.isNotEmpty() && settings.windows.isNotEmpty()) {
+                settings.windows
+                    .map { nextOccurrenceOnActiveDay(it.startHour, it.startMinute, nowMs, settings.activeDays) }
+                    .filter { it < topOfNextHour }
+                    .minOrNull()
+            } else {
+                null
+            }
+
+            return earliestActiveWindowStart ?: topOfNextHour
+        }
+
+        /**
+         * Returns the next epoch ms strictly after [afterMs] at which [hour]:[minute] occurs
+         * on a day contained in [activeDays]. Advances by 1 day at a time up to 7 days.
+         */
+        internal fun nextOccurrenceOnActiveDay(hour: Int, minute: Int, afterMs: Long, activeDays: Set<Int>): Long {
+            val after = Calendar.getInstance().apply { timeInMillis = afterMs }
+            val target = Calendar.getInstance().apply {
+                timeInMillis = afterMs
+                set(Calendar.HOUR_OF_DAY, hour)
+                set(Calendar.MINUTE, minute)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+            if (!target.after(after)) {
+                target.add(Calendar.DAY_OF_YEAR, 1)
+            }
+            var attempts = 0
+            while (!activeDays.contains(target.get(Calendar.DAY_OF_WEEK)) && attempts < 7) {
+                target.add(Calendar.DAY_OF_YEAR, 1)
+                attempts++
+            }
+            return target.timeInMillis
+        }
+
+        /** Returns the next epoch ms strictly after [afterMs] at which [hour]:[minute] occurs. */
+        internal fun nextOccurrenceOf(hour: Int, minute: Int, afterMs: Long): Long {
+            val after = Calendar.getInstance().apply { timeInMillis = afterMs }
+            val target = Calendar.getInstance().apply {
+                timeInMillis = afterMs
+                set(Calendar.HOUR_OF_DAY, hour)
+                set(Calendar.MINUTE, minute)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+            if (!target.after(after)) {
+                target.add(Calendar.DAY_OF_YEAR, 1)
+            }
+            return target.timeInMillis
+        }
     }
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -182,46 +284,7 @@ class PollingForegroundService : Service() {
 
     private fun getNextAlarmTimeMs(): Long {
         val settings = pollingSettingsRepository.load()
-        val now = System.currentTimeMillis()
-        val cal = Calendar.getInstance()
-        val hour = cal.get(Calendar.HOUR_OF_DAY)
-        val minute = cal.get(Calendar.MINUTE)
-
-        if (settings.windows.any { it.isActive(hour, minute) }) {
-            return now + settings.intervalMinutes * 60_000L
-        }
-
-        // Outside all windows: target top of the next hour
-        val topOfNextHour = Calendar.getInstance().apply {
-            add(Calendar.HOUR_OF_DAY, 1)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-        }.timeInMillis
-
-        // If any window starts before the top of the next hour, fire at that start instead
-        val earliestWindowStart = settings.windows
-            .map { nextOccurrenceOf(it.startHour, it.startMinute, now) }
-            .filter { it < topOfNextHour }
-            .minOrNull()
-
-        return earliestWindowStart ?: topOfNextHour
-    }
-
-    /** Returns the next epoch ms at which the given hour:minute occurs, strictly after [afterMs]. */
-    private fun nextOccurrenceOf(hour: Int, minute: Int, afterMs: Long): Long {
-        val after = Calendar.getInstance().apply { timeInMillis = afterMs }
-        val target = Calendar.getInstance().apply {
-            timeInMillis = afterMs
-            set(Calendar.HOUR_OF_DAY, hour)
-            set(Calendar.MINUTE, minute)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-        }
-        if (!target.after(after)) {
-            target.add(Calendar.DAY_OF_YEAR, 1)
-        }
-        return target.timeInMillis
+        return computeNextAlarmTimeMs(settings, System.currentTimeMillis())
     }
 
     // -------------------------------------------------------------------------
