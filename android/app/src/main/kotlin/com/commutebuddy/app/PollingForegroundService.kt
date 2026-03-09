@@ -4,7 +4,9 @@ import android.app.AlarmManager
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
+import android.os.PowerManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
@@ -27,11 +29,10 @@ import com.google.firebase.ai.type.generationConfig
 import com.google.firebase.ai.type.thinkingConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -44,6 +45,7 @@ class PollingForegroundService : Service() {
         private const val TAG = "PollingService"
         const val NOTIFICATION_CHANNEL_ID = "commute_polling"
         const val ACTION_POLL_COMPLETED = "com.commutebuddy.app.POLL_COMPLETED"
+        const val ACTION_WAKE_AND_POLL = "com.commutebuddy.app.WAKE_AND_POLL"
         private const val NOTIFICATION_ID = 1
         private const val GARMIN_APP_UUID = "e5f12c3a-7b04-4d8e-9a6f-2c1b3e5d7a9f"
         private const val PREFS_COMMUTE = "commute_prefs"
@@ -52,7 +54,7 @@ class PollingForegroundService : Service() {
     }
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private var pollingJob: Job? = null
+    private val pollMutex = Mutex()
 
     private lateinit var rateLimiter: ApiRateLimiter
     private lateinit var profileRepository: CommuteProfileRepository
@@ -73,7 +75,7 @@ class PollingForegroundService : Service() {
     // -------------------------------------------------------------------------
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d(TAG, "Service starting")
+        Log.d(TAG, "onStartCommand: action=${intent?.action}")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val alarmManager = getSystemService(AlarmManager::class.java)
             Log.d(TAG, "Exact alarm permission: ${alarmManager.canScheduleExactAlarms()}")
@@ -115,8 +117,30 @@ class PollingForegroundService : Service() {
             startForeground(NOTIFICATION_ID, notification)
         }
 
-        pollingJob?.cancel()
-        pollingJob = serviceScope.launch { runPollingLoop() }
+        if (intent?.action == ACTION_WAKE_AND_POLL) {
+            val wl = (getSystemService(Context.POWER_SERVICE) as PowerManager)
+                .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "CommuteBuddy:poll")
+            wl.acquire(10 * 60 * 1000L) // 10-min safety timeout
+            serviceScope.launch {
+                try {
+                    if (pollMutex.tryLock()) {
+                        try {
+                            poll()
+                        } finally {
+                            pollMutex.unlock()
+                        }
+                    } else {
+                        Log.w(TAG, "Poll skipped: already in flight")
+                    }
+                } finally {
+                    wl.release()
+                    scheduleNextAlarm()
+                }
+            }
+        } else {
+            // null intent (OS restart) or standard start — schedule only, no immediate poll
+            scheduleNextAlarm()
+        }
 
         return START_STICKY
     }
@@ -124,6 +148,7 @@ class PollingForegroundService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         serviceScope.cancel()
+        getSystemService(AlarmManager::class.java).cancel(buildAlarmPendingIntent())
         try { connectIQ?.shutdown(this) } catch (e: Exception) { Log.e(TAG, "Error shutting down ConnectIQ", e) }
         Log.d(TAG, "Service destroyed")
     }
@@ -131,22 +156,28 @@ class PollingForegroundService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     // -------------------------------------------------------------------------
-    // Scheduling loop
+    // Scheduling
     // -------------------------------------------------------------------------
 
-    private suspend fun runPollingLoop() {
-        while (true) {
-            val delayMs = getNextDelayMs()
-            nextPollTimeMs = System.currentTimeMillis() + delayMs
-            updateNotification()
+    private fun scheduleNextAlarm() {
+        val delayMs = getNextDelayMs()
+        val triggerAtMs = System.currentTimeMillis() + delayMs
+        nextPollTimeMs = triggerAtMs
+        getSystemService(AlarmManager::class.java)
+            .setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMs, buildAlarmPendingIntent())
+        val mins = delayMs / 60_000
+        val secs = (delayMs % 60_000) / 1000
+        Log.d(TAG, "Next alarm in ${mins}m ${secs}s")
+        updateNotification()
+    }
 
-            val mins = delayMs / 60_000
-            val secs = (delayMs % 60_000) / 1000
-            Log.d(TAG, "Next poll in ${mins}m ${secs}s")
-
-            delay(delayMs)
-            poll()
-        }
+    private fun buildAlarmPendingIntent(): PendingIntent {
+        val intent = Intent(this, PollingForegroundService::class.java)
+            .setAction(ACTION_WAKE_AND_POLL)
+        return PendingIntent.getService(
+            this, 0, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
     }
 
     private fun getNextDelayMs(): Long {
