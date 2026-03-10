@@ -166,14 +166,15 @@ class DetailPageFactory extends WatchUi.ViewLoopFactory {
     }
 
     //! Measure the pixel height needed to render text at the given font and width.
-    //! fitTextToArea with wrapWords=true truncates (not null) when text overflows, so
-    //! we check that the fitted string equals the original to confirm nothing was cut.
+    //! fitTextToArea inserts \n chars for line breaks, so fitted.length() >= original
+    //! means full text fits (original chars + injected newlines). Truncated text is
+    //! shorter (words dropped + "..." appended).
     private function measureHintHeight(text as String, font as Graphics.FontType, maxW as Number) as Number {
         var fontH = Graphics.getFontHeight(font);
         for (var lines = 1; lines <= 6; lines++) {
             var h = lines * fontH;
             var fitted = Graphics.fitTextToArea(text, font, maxW, h, true);
-            if (fitted != null && (fitted as String).equals(text)) {
+            if (fitted != null && (fitted as String).length() >= text.length()) {
                 return h;
             }
         }
