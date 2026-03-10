@@ -94,12 +94,19 @@ class DetailPageFactory extends WatchUi.ViewLoopFactory {
             }
         }
 
+        var textW = 310;
+        var measuredHintHeight = 0;
+        if (hintStr.length() > 0) {
+            measuredHintHeight = measureHintHeight(hintStr, Graphics.FONT_TINY, textW);
+        }
+
         var headerDict = {
             "actionColor" => actionColor,
             "actionText" => actionText,
             "routesStr" => routesStr,
             "rerouteHint" => hintStr,
-            "freshnessText" => freshnessText
+            "freshnessText" => freshnessText,
+            "hintHeight" => measuredHintHeight
         };
 
         var summaryStr = (summary instanceof String) ? (summary as String) : "";
@@ -111,8 +118,8 @@ class DetailPageFactory extends WatchUi.ViewLoopFactory {
         if (freshnessText.length() > 0) {
             headerHeight += Graphics.getFontHeight(Graphics.FONT_XTINY) + 14;
         }
-        if (hintStr.length() > 0) {
-            headerHeight += 80 + 14;
+        if (measuredHintHeight > 0) {
+            headerHeight += measuredHintHeight + 14;
         }
         // Page 1: summary fits below header. Pages 2+: no header, full page for summary.
         var bodyHeightPage1 = screenH - 52 - headerHeight - 30;
@@ -123,8 +130,6 @@ class DetailPageFactory extends WatchUi.ViewLoopFactory {
         if (bodyHeightPage2Plus < 80) {
             bodyHeightPage2Plus = 200;
         }
-
-        var textW = 310;
         var chunks = [] as Array<String>;
         var firstChunks = DetailPagination.chunkSummary(summaryStr, Graphics.FONT_XTINY, textW, bodyHeightPage1);
         if (firstChunks.size() > 0) {
@@ -158,5 +163,18 @@ class DetailPageFactory extends WatchUi.ViewLoopFactory {
         }
 
         return pages;
+    }
+
+    //! Measure the pixel height needed to render text at the given font and width.
+    //! Uses fitTextToArea with increasing line counts to find the minimum height.
+    private function measureHintHeight(text as String, font as Graphics.FontType, maxW as Number) as Number {
+        var fontH = Graphics.getFontHeight(font);
+        for (var lines = 1; lines <= 6; lines++) {
+            var h = lines * fontH;
+            if (Graphics.fitTextToArea(text, font, maxW, h, true) != null) {
+                return h;
+            }
+        }
+        return 6 * fontH;
     }
 }
