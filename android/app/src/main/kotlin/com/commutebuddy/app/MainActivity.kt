@@ -17,7 +17,9 @@ import android.os.Bundle
 import android.provider.Settings
 import androidx.core.app.ActivityCompat
 import android.util.Log
+import android.view.View
 import android.widget.Button
+import android.widget.PopupMenu
 import android.widget.TextView
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -64,6 +66,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var directionToggle: MaterialButtonToggleGroup
     private lateinit var configureCommuteButton: MaterialButton
     private lateinit var pollingSettingsButton: MaterialButton
+    private lateinit var debugMenuButton: Button
     private lateinit var configureCommuteLauncher: ActivityResultLauncher<Intent>
     private lateinit var exactAlarmSettingsLauncher: ActivityResultLauncher<Intent>
 
@@ -97,6 +100,10 @@ class MainActivity : AppCompatActivity() {
         ViewCompat.setOnApplyWindowInsetsListener(rootLayout) { view, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             view.updatePadding(top = insets.top, bottom = insets.bottom)
+            (debugMenuButton.layoutParams as? ViewGroup.MarginLayoutParams)?.let { params ->
+                params.bottomMargin = insets.bottom + (12 * resources.displayMetrics.density).toInt()
+                debugMenuButton.requestLayout()
+            }
             WindowInsetsCompat.CONSUMED
         }
 
@@ -127,6 +134,8 @@ class MainActivity : AppCompatActivity() {
         pollingSettingsButton.setOnClickListener {
             startActivity(Intent(this, PollingSettingsActivity::class.java))
         }
+        debugMenuButton = findViewById(R.id.debugMenuButton)
+        debugMenuButton.setOnClickListener { showTestPayloadMenu(it) }
         fetchLiveButton.setOnClickListener { onFetchLiveClicked() }
 
         commutePrefs = getSharedPreferences(PREFS_COMMUTE, Context.MODE_PRIVATE)
@@ -480,5 +489,63 @@ class MainActivity : AppCompatActivity() {
 
     private fun setStatus(message: String) {
         runOnUiThread { statusTextView.text = message }
+    }
+
+    // -------------------------------------------------------------------------
+    // Debug: test payload sender
+    // -------------------------------------------------------------------------
+
+    private fun showTestPayloadMenu(anchor: View) {
+        val payloads = buildTestPayloads()
+        val menu = PopupMenu(this, anchor)
+        payloads.forEachIndexed { i, (label, _) -> menu.menu.add(0, i, i, label) }
+        menu.setOnMenuItemClickListener { item ->
+            val (label, status) = payloads[item.itemId]
+            resultsTextView.text = "[TEST] $label\naction=${status.action}\nroutes=${status.affectedRoutes}\nhint=${status.rerouteHint ?: "—"}\nsummary=${status.summary}"
+            sendCommuteStatus(status)
+            true
+        }
+        menu.show()
+    }
+
+    private fun buildTestPayloads(): List<Pair<String, CommuteStatus>> {
+        val now = System.currentTimeMillis() / 1000
+        return listOf(
+            "NORMAL — short summary" to CommuteStatus(
+                action = CommuteStatus.ACTION_NORMAL,
+                summary = "All clear on N, W, 4, 5, 6. Normal service on all lines.",
+                affectedRoutes = "",
+                rerouteHint = null,
+                timestamp = now
+            ),
+            "MINOR_DELAYS — medium summary" to CommuteStatus(
+                action = CommuteStatus.ACTION_MINOR_DELAYS,
+                summary = "Moderate delays on N and W trains due to a signal problem at Queensboro Plaza. Expect 5–10 minute delays in both directions. The Q train is running on the local track and may be used as an alternate.",
+                affectedRoutes = "N,W",
+                rerouteHint = null,
+                timestamp = now
+            ),
+            "REROUTE — hint + short summary" to CommuteStatus(
+                action = CommuteStatus.ACTION_REROUTE,
+                summary = "No N or W service from Astoria. Weekend track work in effect.",
+                affectedRoutes = "N,W",
+                rerouteHint = "Take the Q to 57 St, transfer to 4 or 5 downtown.",
+                timestamp = now
+            ),
+            "REROUTE — hint + long summary (pagination test)" to CommuteStatus(
+                action = CommuteStatus.ACTION_REROUTE,
+                summary = "Due to planned track maintenance between Queensboro Plaza and 57 St–7 Av, N and W trains are suspended in both directions this weekend. Free shuttle buses are operating between Astoria–Ditmars Blvd and Queensboro Plaza, stopping at all stations. Shuttle buses run every 8–12 minutes. Allow 20–30 extra minutes for your trip. LIRR service from Woodside is an additional option for Manhattan-bound customers.",
+                affectedRoutes = "N,W",
+                rerouteHint = "Take the Q to 57 St, transfer to 4/5 at 59 St.",
+                timestamp = now
+            ),
+            "STAY_HOME — long summary" to CommuteStatus(
+                action = CommuteStatus.ACTION_STAY_HOME,
+                summary = "Severe disruptions on all commute lines. N, W, 4, 5, and 6 trains are experiencing major delays due to a signal outage at Grand Central–42 St. Expect 30+ minute waits system-wide. Shuttle buses are overwhelmed. Emergency crews are on scene. MTA estimates full service will not recover until after 10 AM. Work from home if possible.",
+                affectedRoutes = "N,W,4,5,6",
+                rerouteHint = null,
+                timestamp = now
+            )
+        )
     }
 }
