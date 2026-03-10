@@ -166,29 +166,17 @@ class DetailPageFactory extends WatchUi.ViewLoopFactory {
     }
 
     //! Measure the pixel height needed to render text at the given font and width.
-    //! Simulates word-wrapping using wrapWords=false (returns null when text doesn't
-    //! fit on one line) — same pattern as DetailPagination.findLargestFittingPrefix.
+    //! fitTextToArea with wrapWords=true truncates (not null) when text overflows, so
+    //! we check that the fitted string equals the original to confirm nothing was cut.
     private function measureHintHeight(text as String, font as Graphics.FontType, maxW as Number) as Number {
         var fontH = Graphics.getFontHeight(font);
-        var lineCount = 1;
-        var lineText = "";
-        var pos = 0;
-        var len = text.length();
-        while (pos < len) {
-            while (pos < len && text.substring(pos, pos + 1).equals(" ")) { pos++; }
-            if (pos >= len) { break; }
-            var wordEnd = pos;
-            while (wordEnd < len && !text.substring(wordEnd, wordEnd + 1).equals(" ")) { wordEnd++; }
-            var word = text.substring(pos, wordEnd);
-            var candidate = (lineText.length() == 0) ? word : lineText + " " + word;
-            if (Graphics.fitTextToArea(candidate, font, maxW, fontH, false) != null) {
-                lineText = candidate;
-            } else {
-                lineCount++;
-                lineText = word;
+        for (var lines = 1; lines <= 6; lines++) {
+            var h = lines * fontH;
+            var fitted = Graphics.fitTextToArea(text, font, maxW, h, true);
+            if (fitted != null && (fitted as String).equals(text)) {
+                return h;
             }
-            pos = wordEnd;
         }
-        return lineCount * fontH;
+        return 6 * fontH;
     }
 }
