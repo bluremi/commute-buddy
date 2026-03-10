@@ -166,12 +166,14 @@ class DetailPageFactory extends WatchUi.ViewLoopFactory {
     }
 
     //! Measure the pixel height needed to render text at the given font and width.
-    //! Uses fitTextToArea with increasing line counts to find the minimum height.
+    //! fitTextToArea with wrapWords=true truncates (not null) when text overflows, so
+    //! we check that the fitted string equals the original to confirm nothing was cut.
     private function measureHintHeight(text as String, font as Graphics.FontType, maxW as Number) as Number {
         var fontH = Graphics.getFontHeight(font);
         for (var lines = 1; lines <= 6; lines++) {
             var h = lines * fontH;
-            if (Graphics.fitTextToArea(text, font, maxW, h, true) != null) {
+            var fitted = Graphics.fitTextToArea(text, font, maxW, h, true);
+            if (fitted != null && (fitted as String).equals(text)) {
                 return h;
             }
         }
