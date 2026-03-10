@@ -121,8 +121,13 @@ class DetailPageFactory extends WatchUi.ViewLoopFactory {
         if (measuredHintHeight > 0) {
             headerHeight += measuredHintHeight + 14;
         }
+        System.println("--- FACTORY MATH ---");
+        System.println("Screen Height: " + screenH);
+        System.println("Header Height: " + headerHeight);
+        System.println("measuredHintHeight: " + measuredHintHeight);
         // Page 1: summary fits below header. Pages 2+: no header, full page for summary.
         var bodyHeightPage1 = screenH - 52 - headerHeight - 30;
+        System.println("Calculated bodyHeightPage1: " + bodyHeightPage1);
         var bodyHeightPage2Plus = screenH - 52 - 30;
         if (bodyHeightPage1 < 80) {
             bodyHeightPage1 = 200;
