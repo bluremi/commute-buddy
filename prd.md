@@ -167,7 +167,7 @@ commute-buddy/
 │       └── src/main/
 │           ├── AndroidManifest.xml                 # BLUETOOTH_SCAN, BLUETOOTH_CONNECT, SCHEDULE_EXACT_ALARM, WAKE_LOCK permissions
 │           ├── kotlin/com/commutebuddy/app/
-│           │   ├── MainActivity.kt                 # SDK init, device discovery, CommuteProfileRepository load, direction toggle, Fetch Live pipeline, sendCommuteStatus(), AI POC (4 tier buttons)
+│           │   ├── MainActivity.kt                 # SDK init, device discovery, CommuteProfileRepository load, direction toggle, Fetch Live pipeline, sendCommuteStatus(), AI POC (4 tier buttons); debug "⋮" menu button (bottom-right corner) for sending hardcoded test payloads to the watch without a live fetch
 │           │   ├── CommuteLeg.kt                   # Data class: lines, direction, fromStation, toStation; toJson()/fromJson() serialization
 │           │   ├── CommuteProfile.kt               # Data class: toWorkLegs, toHomeLegs, alternates; monitoredRoutes() derives unique route set; toJson()/fromJson(); default Astoria profile
 │           │   ├── CommuteProfileRepository.kt     # Persists/loads CommuteProfile to SharedPreferences as JSON string; returns default profile if none saved
@@ -188,7 +188,7 @@ commute-buddy/
 │           │   ├── PollingSettingsRepository.kt    # Persists/loads PollingSettings to SharedPreferences as JSON
 │           │   └── PollingSettingsActivity.kt      # On/off toggle + two TimePickerDialog window rows + active days toggle row (MaterialButtonToggleGroup, M–S) + interval Slider + background polling SwitchMaterial; Save starts/stops service; blocks save if all days off + background OFF
 │           ├── res/
-│           │   ├── layout/activity_main.xml        # Configure Commute + Polling Settings buttons + direction toggle + Fetch Live button + API usage display + AI POC section
+│           │   ├── layout/activity_main.xml        # Configure Commute + Polling Settings buttons + direction toggle + Fetch Live button + API usage display + AI POC section; FrameLayout root with debug "⋮" button overlaid at bottom-right
 │           │   ├── layout/activity_polling_settings.xml  # Polling settings: on/off toggle + window pickers + active days toggle row (MaterialButtonToggleGroup) + interval slider + background polling switch + Save button
 │           │   ├── layout/activity_commute_profile.xml  # Scrollable profile editor: TO_WORK/TO_HOME leg containers + Add buttons + alternates row + Save button
 │           │   ├── layout/item_commute_leg.xml     # Leg card: lines summary + Select button + Remove button + direction Spinner + from/to station TextInputLayouts
@@ -284,6 +284,12 @@ Set-Location "a:\Phil\Phil Docs\Development\commute-buddy\android"
 - [x] FEAT-11: UX improvement: whenever a train line is listed in the watch or android app in plain text, use the MTA colorful icon instead of plain text to make it more readable.
 - [x] ARCH-01: Implement Hybrid Polling Architecture — Replace the coroutine `delay()` scheduling loop in `PollingForegroundService` with `AlarmManager` exact alarms. The `AlarmManager` will fire a `PendingIntent` directly to the active `connectedDevice` Foreground Service. This guarantees the hardware Real-Time Clock (RTC) wakes the CPU exactly on time to run the pipeline, resolving the issue of coroutines stalling during deep sleep. Retaining the active Foreground Service exempts the app from Android's 9-minute exact alarm Doze throttling and keeps the ConnectIQ SDK connection warm.
 - [x] FEAT-12: Add setting to select days of week for polling, so that the system doesn't use up API calls on weekends or dedicated WFH days. I'm imagining a togglebuttongroup selector where the days are listed in a row beneath the evening commute window but above the polling interval slider. Selected days should have a color fill with the primary app color, unselected should be transparent. Default should be M-F, S/S unselected.
+- [ ] FEAT-13: Garmin Detail View UX Revamp — Resolve text truncation and establish a clear visual hierarchy on the watch app's detail view.
+  - **Problem:** Critical reroute instructions are currently truncated on the watch because they share space with the longer summary text. Additionally, there is no quick way to visually distinguish the immediate directive (what to do) from the background context (what is happening).
+  - **Solution:** Redesign the detail view to guarantee the full Reroute Hint is always visible on the first screen. The layout will prioritize the Status Title, colored Line Badges, a freshness Timestamp, and the specific Reroute Hint (styled in a color matching the action tier).
+  - **Visual Separation:** A horizontal line will separate the immediate directive from the detailed Summary text. 
+  - **Smart Pagination:** The Summary text will begin below the separator line (in a distinct white text) and automatically paginate across additional screens as needed, ensuring zero text is ever cut off. 
+  - **Dynamic Adaptation:** For statuses that do not have a hint (such as NORMAL or STAY_HOME), the layout will dynamically adapt, removing the hint section and separator line to give more screen real estate to the summary.
 
 ### Bugs
 - [x] BUG-01: Rebuild Garmin full-screen detail UX using native page navigation — replaced manual swipe/scroll with ViewLoop-based paged UI; no summary truncation; native-feeling navigation.
