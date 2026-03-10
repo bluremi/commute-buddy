@@ -129,41 +129,27 @@ class DetailPageFactory extends WatchUi.ViewLoopFactory {
         var bodyHeightPage1 = screenH - 52 - headerHeight - 30;
         System.println("Calculated bodyHeightPage1: " + bodyHeightPage1);
         var bodyHeightPage2Plus = screenH - 52 - 30;
-        if (bodyHeightPage1 < 80) {
-            bodyHeightPage1 = 200;
-        }
-        if (bodyHeightPage2Plus < 80) {
-            bodyHeightPage2Plus = 200;
-        }
-        var chunks = [] as Array<String>;
-        var firstChunks = DetailPagination.chunkSummary(summaryStr, Graphics.FONT_XTINY, textW, bodyHeightPage1);
-        if (firstChunks.size() > 0) {
-            chunks.add(firstChunks[0]);
-            var remainder = DetailPagination.getRemainderAfterChunk(summaryStr, firstChunks[0]);
-            var restChunks = DetailPagination.chunkSummary(remainder, Graphics.FONT_XTINY, textW, bodyHeightPage2Plus);
-            for (var i = 0; i < restChunks.size(); i++) {
-                chunks.add(restChunks[i]);
-            }
-        }
+        var minLineH = Graphics.getFontHeight(Graphics.FONT_XTINY);
 
-        if (chunks.size() == 0) {
-            pages.add({
-                "waiting" => false,
-                "header" => headerDict,
-                "summaryChunk" => ""
-            });
+        if (bodyHeightPage1 >= minLineH) {
+            // Page 1 has room for at least one line of summary below the header.
+            var firstChunks = DetailPagination.chunkSummary(summaryStr, Graphics.FONT_XTINY, textW, bodyHeightPage1);
+            if (firstChunks.size() == 0) {
+                pages.add({"waiting" => false, "header" => headerDict, "summaryChunk" => ""});
+            } else {
+                pages.add({"waiting" => false, "header" => headerDict, "summaryChunk" => firstChunks[0]});
+                var remainder = DetailPagination.getRemainderAfterChunk(summaryStr, firstChunks[0]);
+                var restChunks = DetailPagination.chunkSummary(remainder, Graphics.FONT_XTINY, textW, bodyHeightPage2Plus);
+                for (var i = 0; i < restChunks.size(); i++) {
+                    pages.add({"waiting" => false, "header" => null, "summaryChunk" => restChunks[i]});
+                }
+            }
         } else {
-            pages.add({
-                "waiting" => false,
-                "header" => headerDict,
-                "summaryChunk" => chunks[0]
-            });
-            for (var i = 1; i < chunks.size(); i++) {
-                pages.add({
-                    "waiting" => false,
-                    "header" => null,
-                    "summaryChunk" => chunks[i]
-                });
+            // Header fills page 1 entirely — put all summary on subsequent pages.
+            pages.add({"waiting" => false, "header" => headerDict, "summaryChunk" => ""});
+            var restChunks = DetailPagination.chunkSummary(summaryStr, Graphics.FONT_XTINY, textW, bodyHeightPage2Plus);
+            for (var i = 0; i < restChunks.size(); i++) {
+                pages.add({"waiting" => false, "header" => null, "summaryChunk" => restChunks[i]});
             }
         }
 
