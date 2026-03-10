@@ -82,6 +82,13 @@ class DetailPageView extends WatchUi.View {
                 }
             }
 
+            var freshnessText = header.get("freshnessText") as String?;
+            if (freshnessText != null && freshnessText.length() > 0) {
+                dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+                dc.drawText(cx, y, Graphics.FONT_XTINY, freshnessText, Graphics.TEXT_JUSTIFY_CENTER);
+                y += dc.getFontHeight(Graphics.FONT_XTINY) + pad;
+            }
+
             var rerouteHint = header.get("rerouteHint") as String?;
             if (rerouteHint != null && rerouteHint.length() > 0) {
                 var hintH = 80;
@@ -89,7 +96,7 @@ class DetailPageView extends WatchUi.View {
                 if (fitted != null) {
                     var hintArea = new WatchUi.TextArea({
                         :text => fitted,
-                        :color => Graphics.COLOR_WHITE,
+                        :color => actionColor,
                         :font => Graphics.FONT_TINY,
                         :locX => cx - (textW / 2),
                         :locY => y,
@@ -100,13 +107,6 @@ class DetailPageView extends WatchUi.View {
                     hintArea.draw(dc);
                     y += hintH + pad;
                 }
-            }
-
-            var freshnessText = header.get("freshnessText") as String?;
-            if (freshnessText != null && freshnessText.length() > 0) {
-                dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-                dc.drawText(cx, y, Graphics.FONT_TINY, freshnessText, Graphics.TEXT_JUSTIFY_CENTER);
-                y += dc.getFontHeight(Graphics.FONT_TINY) + pad;
             }
         }
 

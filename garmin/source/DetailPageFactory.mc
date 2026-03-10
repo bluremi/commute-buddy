@@ -108,11 +108,11 @@ class DetailPageFactory extends WatchUi.ViewLoopFactory {
         if (routesStr.length() > 0) {
             headerHeight += 40 + 14; // badge diameter (2 * radius 20) + pad
         }
+        if (freshnessText.length() > 0) {
+            headerHeight += Graphics.getFontHeight(Graphics.FONT_XTINY) + 14;
+        }
         if (hintStr.length() > 0) {
             headerHeight += 80 + 14;
-        }
-        if (freshnessText.length() > 0) {
-            headerHeight += Graphics.getFontHeight(Graphics.FONT_TINY) + 14;
         }
         // Page 1: summary fits below header. Pages 2+: no header, full page for summary.
         var bodyHeightPage1 = screenH - 52 - headerHeight - 30;
