@@ -1,7 +1,6 @@
 import Toybox.Application;
 import Toybox.Communications;
 import Toybox.Lang;
-import Toybox.Time;
 import Toybox.WatchUi;
 
 class CommuteBuddyApp extends Application.AppBase {
@@ -12,13 +11,6 @@ class CommuteBuddyApp extends Application.AppBase {
 
     function onStart(state) {
         Communications.registerForPhoneAppMessages(method(:onPhoneMessage));
-        // TEMP DEBUG — remove before shipping
-        var now = Time.now().value();
-        Application.Storage.setValue("cs_action", "REROUTE");
-        Application.Storage.setValue("cs_affected_routes", "N,W");
-        Application.Storage.setValue("cs_reroute_hint", "Take the Q to 57 St, transfer to 4/5 at 59 St.");
-        Application.Storage.setValue("cs_summary", "Due to planned track maintenance between Queensboro Plaza and 57 St, N and W trains are suspended this weekend. Free shuttle buses are operating between Astoria and Queensboro Plaza every 8-12 minutes. Allow 20-30 extra minutes.");
-        Application.Storage.setValue("cs_timestamp", now);
     }
 
     function onStop(state) {

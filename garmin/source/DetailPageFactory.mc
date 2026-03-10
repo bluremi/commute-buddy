@@ -121,13 +121,8 @@ class DetailPageFactory extends WatchUi.ViewLoopFactory {
         if (measuredHintHeight > 0) {
             headerHeight += measuredHintHeight + 14;
         }
-        System.println("--- FACTORY MATH ---");
-        System.println("Screen Height: " + screenH);
-        System.println("Header Height: " + headerHeight);
-        System.println("measuredHintHeight: " + measuredHintHeight);
         // Page 1: summary fits below header. Pages 2+: no header, full page for summary.
         var bodyHeightPage1 = screenH - 52 - headerHeight - 30;
-        System.println("Calculated bodyHeightPage1: " + bodyHeightPage1);
         var bodyHeightPage2Plus = screenH - 52 - 30;
         var minLineH = Graphics.getFontHeight(Graphics.FONT_XTINY);
 
@@ -162,20 +157,13 @@ class DetailPageFactory extends WatchUi.ViewLoopFactory {
     //! shorter (words dropped + "..." appended).
     private function measureHintHeight(text as String, font as Graphics.FontType, maxW as Number) as Number {
         var fontH = Graphics.getFontHeight(font);
-        System.println("--- measureHintHeight ---");
-        System.println("fontH: " + fontH);
-        System.println("text.length(): " + text.length());
         for (var lines = 1; lines <= 6; lines++) {
             var h = lines * fontH;
             var fitted = Graphics.fitTextToArea(text, font, maxW, h, true);
-            var fittedLen = (fitted != null) ? (fitted as String).length() : -1;
-            System.println("lines=" + lines + " h=" + h + " fittedLen=" + fittedLen);
-            if (fitted != null && fittedLen >= text.length()) {
-                System.println("-> fits at lines=" + lines);
+            if (fitted != null && (fitted as String).length() >= text.length()) {
                 return h;
             }
         }
-        System.println("-> fallback 6*fontH=" + (6 * fontH));
         return 6 * fontH;
     }
 }

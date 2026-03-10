@@ -110,12 +110,8 @@ class DetailPageView extends WatchUi.View {
             }
         }
 
-        System.println("--- VIEW MATH ---");
-        System.println("Current Y offset: " + y);
-        var remainingHeight = dc.getHeight() - y - 30;
-        System.println("Calculated View Height: " + remainingHeight);
-
         if (_summaryChunk.length() > 0) {
+            var remainingHeight = dc.getHeight() - y - 30;
             var fitted = Graphics.fitTextToArea(_summaryChunk, Graphics.FONT_XTINY, textW, remainingHeight, false);
             var toDraw = (fitted != null) ? fitted : _summaryChunk;
             var summaryArea = new WatchUi.TextArea({
