@@ -111,12 +111,12 @@ class DetailPageView extends WatchUi.View {
         }
 
         if (_summaryChunk.length() > 0) {
-            var fitted = Graphics.fitTextToArea(_summaryChunk, Graphics.FONT_SMALL, textW, dc.getHeight() - y - 30, false);
+            var fitted = Graphics.fitTextToArea(_summaryChunk, Graphics.FONT_XTINY, textW, dc.getHeight() - y - 30, false);
             var toDraw = (fitted != null) ? fitted : _summaryChunk;
             var summaryArea = new WatchUi.TextArea({
                 :text => toDraw,
                 :color => Graphics.COLOR_WHITE,
-                :font => Graphics.FONT_SMALL,
+                :font => Graphics.FONT_XTINY,
                 :locX => cx - (textW / 2),
                 :locY => y,
                 :width => textW,

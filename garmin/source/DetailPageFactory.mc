@@ -126,11 +126,11 @@ class DetailPageFactory extends WatchUi.ViewLoopFactory {
 
         var textW = 310;
         var chunks = [] as Array<String>;
-        var firstChunks = DetailPagination.chunkSummary(summaryStr, Graphics.FONT_SMALL, textW, bodyHeightPage1);
+        var firstChunks = DetailPagination.chunkSummary(summaryStr, Graphics.FONT_XTINY, textW, bodyHeightPage1);
         if (firstChunks.size() > 0) {
             chunks.add(firstChunks[0]);
             var remainder = DetailPagination.getRemainderAfterChunk(summaryStr, firstChunks[0]);
-            var restChunks = DetailPagination.chunkSummary(remainder, Graphics.FONT_SMALL, textW, bodyHeightPage2Plus);
+            var restChunks = DetailPagination.chunkSummary(remainder, Graphics.FONT_XTINY, textW, bodyHeightPage2Plus);
             for (var i = 0; i < restChunks.size(); i++) {
                 chunks.add(restChunks[i]);
             }
