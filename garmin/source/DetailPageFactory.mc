@@ -176,13 +176,20 @@ class DetailPageFactory extends WatchUi.ViewLoopFactory {
     //! shorter (words dropped + "..." appended).
     private function measureHintHeight(text as String, font as Graphics.FontType, maxW as Number) as Number {
         var fontH = Graphics.getFontHeight(font);
+        System.println("--- measureHintHeight ---");
+        System.println("fontH: " + fontH);
+        System.println("text.length(): " + text.length());
         for (var lines = 1; lines <= 6; lines++) {
             var h = lines * fontH;
             var fitted = Graphics.fitTextToArea(text, font, maxW, h, true);
-            if (fitted != null && (fitted as String).length() >= text.length()) {
+            var fittedLen = (fitted != null) ? (fitted as String).length() : -1;
+            System.println("lines=" + lines + " h=" + h + " fittedLen=" + fittedLen);
+            if (fitted != null && fittedLen >= text.length()) {
+                System.println("-> fits at lines=" + lines);
                 return h;
             }
         }
+        System.println("-> fallback 6*fontH=" + (6 * fontH));
         return 6 * fontH;
     }
 }
