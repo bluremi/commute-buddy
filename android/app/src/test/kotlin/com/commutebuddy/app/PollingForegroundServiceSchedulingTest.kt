@@ -198,4 +198,36 @@ class PollingForegroundServiceSchedulingTest {
         assertEquals(Calendar.MONDAY, cal.get(Calendar.DAY_OF_WEEK))
         assertEquals(8, cal.get(Calendar.HOUR_OF_DAY))
     }
+
+    // -------------------------------------------------------------------------
+    // resolvePollingDirection
+    // -------------------------------------------------------------------------
+
+    @Test
+    fun `resolvePollingDirection - inside morning window returns TO_WORK`() {
+        val settings = settingsFor()
+        val result = PollingForegroundService.resolvePollingDirection(settings, 8, 30, null)
+        assertEquals("TO_WORK", result)
+    }
+
+    @Test
+    fun `resolvePollingDirection - inside evening window returns TO_HOME`() {
+        val settings = settingsFor()
+        val result = PollingForegroundService.resolvePollingDirection(settings, 18, 0, null)
+        assertEquals("TO_HOME", result)
+    }
+
+    @Test
+    fun `resolvePollingDirection - outside both windows falls back to last polled direction`() {
+        val settings = settingsFor()
+        val result = PollingForegroundService.resolvePollingDirection(settings, 12, 0, "TO_HOME")
+        assertEquals("TO_HOME", result)
+    }
+
+    @Test
+    fun `resolvePollingDirection - outside both windows with no prior poll defaults to TO_WORK`() {
+        val settings = settingsFor()
+        val result = PollingForegroundService.resolvePollingDirection(settings, 12, 0, null)
+        assertEquals("TO_WORK", result)
+    }
 }

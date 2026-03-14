@@ -50,7 +50,9 @@ class PollingForegroundService : Service() {
         private const val GARMIN_APP_UUID = "e5f12c3a-7b04-4d8e-9a6f-2c1b3e5d7a9f"
         private const val PREFS_COMMUTE = "commute_prefs"
         private const val KEY_DIRECTION = "current_direction"
+        private const val KEY_LAST_POLLED_DIRECTION = "last_polled_direction"
         private const val DIRECTION_TO_WORK = "TO_WORK"
+        private const val DIRECTION_TO_HOME = "TO_HOME"
 
         /** Far-future sentinel returned when polling is effectively disabled (no active days + background OFF). */
         internal const val FAR_FUTURE_OFFSET_MS = 7 * 24 * 60 * 60_000L
@@ -136,6 +138,27 @@ class PollingForegroundService : Service() {
                 attempts++
             }
             return target.timeInMillis
+        }
+
+        /**
+         * Determines the direction for a background poll based on the active commute window.
+         *
+         * - Window at index 0 active → TO_WORK
+         * - Window at index 1 active → TO_HOME
+         * - Outside all windows → [lastPolledDirection] if non-null, else TO_WORK
+         */
+        internal fun resolvePollingDirection(
+            settings: PollingSettings,
+            hour: Int,
+            minute: Int,
+            lastPolledDirection: String?
+        ): String {
+            settings.windows.forEachIndexed { index, window ->
+                if (window.isActive(hour, minute)) {
+                    return if (index == 0) DIRECTION_TO_WORK else DIRECTION_TO_HOME
+                }
+            }
+            return lastPolledDirection ?: DIRECTION_TO_WORK
         }
 
         /** Returns the next epoch ms strictly after [afterMs] at which [hour]:[minute] occurs. */
@@ -299,8 +322,16 @@ class PollingForegroundService : Service() {
             return
         }
 
-        val direction = getSharedPreferences(PREFS_COMMUTE, Context.MODE_PRIVATE)
-            .getString(KEY_DIRECTION, DIRECTION_TO_WORK) ?: DIRECTION_TO_WORK
+        val cal = Calendar.getInstance()
+        val hour = cal.get(Calendar.HOUR_OF_DAY)
+        val minute = cal.get(Calendar.MINUTE)
+        val settings = pollingSettingsRepository.load()
+        val prefs = getSharedPreferences(PREFS_COMMUTE, Context.MODE_PRIVATE)
+        val lastPolledDirection = prefs.getString(KEY_LAST_POLLED_DIRECTION, null)
+        val direction = resolvePollingDirection(settings, hour, minute, lastPolledDirection)
+        if (settings.windows.any { it.isActive(hour, minute) }) {
+            prefs.edit().putString(KEY_LAST_POLLED_DIRECTION, direction).apply()
+        }
         val profile = profileRepository.load()
 
         val result = CommutePipeline.run(
