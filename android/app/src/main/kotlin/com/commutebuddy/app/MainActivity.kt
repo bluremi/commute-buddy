@@ -431,16 +431,31 @@ class MainActivity : AppCompatActivity() {
         val pollingPrefs = getSharedPreferences("polling_prefs", Context.MODE_PRIVATE)
         val settings = PollingSettingsRepository(pollingPrefs).load()
         val cal = java.util.Calendar.getInstance()
+        val hour = cal.get(java.util.Calendar.HOUR_OF_DAY)
+        val minute = cal.get(java.util.Calendar.MINUTE)
         val lastPolled = commutePrefs.getString(PollingForegroundService.KEY_LAST_POLLED_DIRECTION, null)
-        val direction = PollingForegroundService.resolvePollingDirection(
-            settings,
-            cal.get(java.util.Calendar.HOUR_OF_DAY),
-            cal.get(java.util.Calendar.MINUTE),
-            lastPolled
-        )
-        val label = if (direction == DIRECTION_TO_HOME) getString(R.string.direction_to_home)
-                    else getString(R.string.direction_to_work)
-        autoPollingDirectionTextView.text = getString(R.string.label_auto_polling_direction, label)
+
+        val activeWindowIndex = settings.windows.indexOfFirst { it.isActive(hour, minute) }
+        val direction: String
+        val contextLabel: String
+        when (activeWindowIndex) {
+            0 -> {
+                direction = DIRECTION_TO_WORK
+                contextLabel = getString(R.string.direction_context_window_1)
+            }
+            1 -> {
+                direction = DIRECTION_TO_HOME
+                contextLabel = getString(R.string.direction_context_window_2)
+            }
+            else -> {
+                direction = lastPolled ?: DIRECTION_TO_WORK
+                contextLabel = getString(R.string.direction_context_last_polled)
+            }
+        }
+
+        val dirLabel = if (direction == DIRECTION_TO_HOME) getString(R.string.direction_to_home)
+                       else getString(R.string.direction_to_work)
+        autoPollingDirectionTextView.text = getString(R.string.label_auto_polling_direction, dirLabel, contextLabel)
     }
 
     private fun updateApiUsageDisplay() {

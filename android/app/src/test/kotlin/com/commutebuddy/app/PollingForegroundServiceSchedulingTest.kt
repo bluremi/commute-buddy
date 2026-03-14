@@ -230,4 +230,34 @@ class PollingForegroundServiceSchedulingTest {
         val result = PollingForegroundService.resolvePollingDirection(settings, 12, 0, null)
         assertEquals("TO_WORK", result)
     }
+
+    @Test
+    fun `resolvePollingDirection - no windows configured always falls back to last polled`() {
+        val settings = settingsFor(windows = emptyList())
+        assertEquals("TO_HOME", PollingForegroundService.resolvePollingDirection(settings, 8, 30, "TO_HOME"))
+    }
+
+    @Test
+    fun `resolvePollingDirection - no windows and no prior poll defaults to TO_WORK`() {
+        val settings = settingsFor(windows = emptyList())
+        assertEquals("TO_WORK", PollingForegroundService.resolvePollingDirection(settings, 8, 30, null))
+    }
+
+    @Test
+    fun `resolvePollingDirection - single window active maps to TO_WORK`() {
+        val settings = settingsFor(windows = listOf(morningWindow))
+        assertEquals("TO_WORK", PollingForegroundService.resolvePollingDirection(settings, 8, 30, null))
+    }
+
+    @Test
+    fun `resolvePollingDirection - single window outside falls back to last polled`() {
+        val settings = settingsFor(windows = listOf(morningWindow))
+        assertEquals("TO_HOME", PollingForegroundService.resolvePollingDirection(settings, 12, 0, "TO_HOME"))
+    }
+
+    @Test
+    fun `resolvePollingDirection - single window outside with no prior poll defaults to TO_WORK`() {
+        val settings = settingsFor(windows = listOf(morningWindow))
+        assertEquals("TO_WORK", PollingForegroundService.resolvePollingDirection(settings, 12, 0, null))
+    }
 }

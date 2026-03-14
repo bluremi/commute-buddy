@@ -100,5 +100,8 @@
 
     <!-- Direction grouping / auto-polling status (FEAT-14) -->
     <string name="label_manual_fetch_direction">Manual fetch direction:</string>
-    <string name="label_auto_polling_direction">Auto-polling direction: %s</string>
+    <string name="label_auto_polling_direction">Auto-polling direction: %1$s (%2$s)</string>
+    <string name="direction_context_window_1">morning window</string>
+    <string name="direction_context_window_2">evening window</string>
+    <string name="direction_context_last_polled">last polled</string>
 </resources>
