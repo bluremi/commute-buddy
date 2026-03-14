@@ -41,19 +41,19 @@ Currently, direction is a global toggle in SharedPreferences that affects both t
 ### Implementation Plan
 
 #### Increment 1: Extract direction-resolution logic into a pure, testable function
-- [ ] Add a `resolvePollingDirection()` companion function to `PollingForegroundService` that takes `settings: PollingSettings`, `hour: Int`, `minute: Int`, and `lastPolledDirection: String?` → returns a direction string. Logic: if inside window 1 → `TO_WORK`; if inside window 2 → `TO_HOME`; else → `lastPolledDirection ?: "TO_WORK"`
-- [ ] Add a new SharedPreferences key `KEY_LAST_POLLED_DIRECTION` (separate from `KEY_DIRECTION`) for persisting the last auto-resolved direction
-- [ ] Update `poll()` in `PollingForegroundService` to call `resolvePollingDirection()` using the current time and settings, use the result instead of reading `KEY_DIRECTION`, and persist the resolved direction to `KEY_LAST_POLLED_DIRECTION` when inside a window
-- [ ] Write unit tests in `PollingForegroundServiceSchedulingTest.kt` for `resolvePollingDirection()`: morning window → TO_WORK, evening window → TO_HOME, outside both → falls back to last polled, no last polled → defaults TO_WORK
+- [x] Add a `resolvePollingDirection()` companion function to `PollingForegroundService` that takes `settings: PollingSettings`, `hour: Int`, `minute: Int`, and `lastPolledDirection: String?` → returns a direction string. Logic: if inside window 1 → `TO_WORK`; if inside window 2 → `TO_HOME`; else → `lastPolledDirection ?: "TO_WORK"`
+- [x] Add a new SharedPreferences key `KEY_LAST_POLLED_DIRECTION` (separate from `KEY_DIRECTION`) for persisting the last auto-resolved direction
+- [x] Update `poll()` in `PollingForegroundService` to call `resolvePollingDirection()` using the current time and settings, use the result instead of reading `KEY_DIRECTION`, and persist the resolved direction to `KEY_LAST_POLLED_DIRECTION` when inside a window
+- [x] Write unit tests in `PollingForegroundServiceSchedulingTest.kt` for `resolvePollingDirection()`: morning window → TO_WORK, evening window → TO_HOME, outside both → falls back to last polled, no last polled → defaults TO_WORK
 
 **Testing:** Run unit tests via Gradle (`testDebugUnitTest`). Manually verify on device: toggle to TO_HOME in the app, trigger a background poll during a commute window — logcat should show the window-derived direction, not the toggle value.
 **Model: Sonnet** | Reason: New logic with edge cases (window matching, fallback chain) requires careful reasoning.
 
 #### Increment 2: Home screen UX — group toggle with Fetch Live and show polling direction
-- [ ] In `activity_main.xml`, add a label above the direction toggle (e.g., "Manual fetch direction:") and visually group the toggle + Fetch Live button (e.g., with a `MaterialCardView` or a subtle divider/label)
-- [ ] Add a new `TextView` below the Fetch Live group showing the current automatic polling direction (e.g., "Auto-polling direction: TO WORK (morning window)") — this reads from `KEY_LAST_POLLED_DIRECTION` and the current window state
-- [ ] In `MainActivity`, add logic to compute and display the current auto-polling direction on `onCreate` and `onResume` (reusing `resolvePollingDirection()` or reading the persisted value)
-- [ ] Add a string resource for the explanatory label text
+- [x] In `activity_main.xml`, add a label above the direction toggle (e.g., "Manual fetch direction:") and visually group the toggle + Fetch Live button (e.g., with a `MaterialCardView` or a subtle divider/label)
+- [x] Add a new `TextView` below the Fetch Live group showing the current automatic polling direction (e.g., "Auto-polling direction: TO WORK (morning window)") — this reads from `KEY_LAST_POLLED_DIRECTION` and the current window state
+- [x] In `MainActivity`, add logic to compute and display the current auto-polling direction on `onCreate` and `onResume` (reusing `resolvePollingDirection()` or reading the persisted value)
+- [x] Add a string resource for the explanatory label text
 
 **Testing:** Manually verify: open the app, confirm the toggle and Fetch Live button are visually grouped with a label, confirm the auto-polling direction status line is visible and updates on resume. Toggle TO WORK / TO HOME and confirm it does NOT change the auto-polling direction display.
 **Model: Composer** | Reason: Mostly XML layout changes and simple TextView binding — mechanical UI work.
