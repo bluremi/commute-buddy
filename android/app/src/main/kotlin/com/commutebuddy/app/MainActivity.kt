@@ -64,6 +64,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var fetchLiveButton: Button
     private lateinit var resultsTextView: TextView
     private lateinit var directionToggle: MaterialButtonToggleGroup
+    private lateinit var autoPollingDirectionTextView: TextView
     private lateinit var configureCommuteButton: MaterialButton
     private lateinit var pollingSettingsButton: MaterialButton
     private lateinit var debugMenuButton: Button
@@ -126,6 +127,7 @@ class MainActivity : AppCompatActivity() {
         fetchLiveButton = findViewById(R.id.fetchLiveButton)
         resultsTextView = findViewById(R.id.resultsTextView)
         directionToggle = findViewById(R.id.directionToggle)
+        autoPollingDirectionTextView = findViewById(R.id.autoPollingDirectionTextView)
         configureCommuteButton = findViewById(R.id.configureCommuteButton)
         configureCommuteButton.setOnClickListener {
             configureCommuteLauncher.launch(Intent(this, CommuteProfileActivity::class.java))
@@ -152,6 +154,8 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        updateAutoPollingDirectionDisplay()
+
         rateLimiter = ApiRateLimiter(
             getSharedPreferences("rate_limiter", Context.MODE_PRIVATE)
         )
@@ -166,6 +170,7 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         updateApiUsageDisplay()
+        updateAutoPollingDirectionDisplay()
         ContextCompat.registerReceiver(
             this, pollCompletedReceiver,
             IntentFilter(PollingForegroundService.ACTION_POLL_COMPLETED),
@@ -420,6 +425,22 @@ class MainActivity : AppCompatActivity() {
                 getString(R.string.ai_error_model_not_found, BuildConfig.GEMINI_MODEL_NAME)
             else -> getString(R.string.ai_error_api, msg)
         }
+    }
+
+    private fun updateAutoPollingDirectionDisplay() {
+        val pollingPrefs = getSharedPreferences("polling_prefs", Context.MODE_PRIVATE)
+        val settings = PollingSettingsRepository(pollingPrefs).load()
+        val cal = java.util.Calendar.getInstance()
+        val lastPolled = commutePrefs.getString(PollingForegroundService.KEY_LAST_POLLED_DIRECTION, null)
+        val direction = PollingForegroundService.resolvePollingDirection(
+            settings,
+            cal.get(java.util.Calendar.HOUR_OF_DAY),
+            cal.get(java.util.Calendar.MINUTE),
+            lastPolled
+        )
+        val label = if (direction == DIRECTION_TO_HOME) getString(R.string.direction_to_home)
+                    else getString(R.string.direction_to_work)
+        autoPollingDirectionTextView.text = getString(R.string.label_auto_polling_direction, label)
     }
 
     private fun updateApiUsageDisplay() {

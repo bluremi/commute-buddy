@@ -97,4 +97,8 @@
     <string name="live_fetching">Fetching MTA alerts…</string>
     <string name="live_no_alerts">Good Service — no active alerts for %s</string>
     <string name="live_output_prefix">LIVE OUTPUT:</string>
+
+    <!-- Direction grouping / auto-polling status (FEAT-14) -->
+    <string name="label_manual_fetch_direction">Manual fetch direction:</string>
+    <string name="label_auto_polling_direction">Auto-polling direction: %s</string>
 </resources>

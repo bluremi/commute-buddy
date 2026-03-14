@@ -50,7 +50,7 @@ class PollingForegroundService : Service() {
         private const val GARMIN_APP_UUID = "e5f12c3a-7b04-4d8e-9a6f-2c1b3e5d7a9f"
         private const val PREFS_COMMUTE = "commute_prefs"
         private const val KEY_DIRECTION = "current_direction"
-        private const val KEY_LAST_POLLED_DIRECTION = "last_polled_direction"
+        internal const val KEY_LAST_POLLED_DIRECTION = "last_polled_direction"
         private const val DIRECTION_TO_WORK = "TO_WORK"
         private const val DIRECTION_TO_HOME = "TO_HOME"
 
