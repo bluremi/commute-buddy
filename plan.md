@@ -42,12 +42,12 @@ This is the second half of the steel thread: PHASE2-01 established the phone-sid
 ### Implementation Plan
 
 #### Increment 1: Wear OS Gradle module — skeleton that compiles
-- [ ] Create `android/wear/build.gradle.kts` — `com.android.application` + `org.jetbrains.kotlin.android` + Compose for Wear OS plugin. `minSdk = 30`, `targetSdk = 34`, `applicationId = "com.commutebuddy.app"`. Dependencies: `androidx.wear.compose:compose-material`, `androidx.wear.compose:compose-foundation`, `androidx.activity:activity-compose`, `com.google.android.gms:play-services-wearable`
-- [ ] Add Kotlin Compose compiler plugin to root `build.gradle.kts` (`org.jetbrains.kotlin.plugin.compose`)
-- [ ] Add `include(":wear")` to `android/settings.gradle.kts`
-- [ ] Create `android/wear/src/main/AndroidManifest.xml` — minimal manifest with `<uses-feature android:name="android.hardware.type.watch" />`, a placeholder `MainActivity`
-- [ ] Create a stub `MainActivity.kt` in `android/wear/src/main/kotlin/com/commutebuddy/wear/` — Compose activity showing "Commute Buddy" text centered on screen
-- [ ] Verify module compiles: `"${GRADLE[0]}" :wear:assembleDebug`
+- [x] Create `android/wear/build.gradle.kts` — `com.android.application` + `org.jetbrains.kotlin.android` + Compose for Wear OS plugin. `minSdk = 30`, `targetSdk = 34`, `applicationId = "com.commutebuddy.app"`. Dependencies: `androidx.wear.compose:compose-material`, `androidx.wear.compose:compose-foundation`, `androidx.activity:activity-compose`, `com.google.android.gms:play-services-wearable`
+- [x] Add Kotlin Compose compiler plugin to root `build.gradle.kts` (`org.jetbrains.kotlin.plugin.compose`)
+- [x] Add `include(":wear")` to `android/settings.gradle.kts`
+- [x] Create `android/wear/src/main/AndroidManifest.xml` — minimal manifest with `<uses-feature android:name="android.hardware.type.watch" />`, a placeholder `MainActivity`
+- [x] Create a stub `MainActivity.kt` in `android/wear/src/main/kotlin/com/commutebuddy/wear/` — Compose activity showing "Commute Buddy" text centered on screen
+- [x] Verify module compiles: `"${GRADLE[0]}" :wear:assembleDebug`
 
 **Testing:** Build succeeds with `:wear:assembleDebug`. Install on Wear OS emulator — app opens and shows "Commute Buddy" text.
 **Model: Sonnet** | Reason: Wear OS Compose module setup requires correct dependency versions and plugin wiring — easy to get wrong with version mismatches.
