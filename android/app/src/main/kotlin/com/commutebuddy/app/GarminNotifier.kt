@@ -39,6 +39,7 @@ class GarminNotifier : WatchNotifier {
     var onSendResult: ((Boolean, String) -> Unit)? = null
 
     @Volatile private var sdkReady = false
+    @Volatile private var sdkShutDown = false
     @Volatile private var connectedDevice: IQDevice? = null
     @Volatile private var targetApp: IQApp? = null
     private var connectIQ: ConnectIQ? = null
@@ -64,6 +65,7 @@ class GarminNotifier : WatchNotifier {
             override fun onSdkShutDown() {
                 Log.d(TAG, "ConnectIQ SDK shut down")
                 sdkReady = false
+                sdkShutDown = true
                 onStatusChanged?.invoke("ConnectIQ SDK shut down")
             }
         })
@@ -92,6 +94,7 @@ class GarminNotifier : WatchNotifier {
     }
 
     fun shutdown(context: Context) {
+        if (sdkShutDown) return
         try { connectIQ?.shutdown(context) } catch (e: Exception) {
             Log.e(TAG, "Error shutting down ConnectIQ", e)
         }
