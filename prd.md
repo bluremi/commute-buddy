@@ -56,11 +56,18 @@ When a watch glance/tile is viewed, it instantly displays the cached status — 
 - Active `connectedDevice` FGS exempts from Android's 9-minute exact alarm Doze throttle
 
 ### Android Companion App
-- **Home screen:** Manual direction toggle (To Work / To Home) for Fetch Live only; auto-polling direction status line; API usage counter (N/50 today)
+- **Home screen:** Manual direction toggle (To Work / To Home) for Fetch Live only; auto-polling direction status line; API usage counter (N/50 today); watch connection status ("No watch connected" / "Garmin connected" / "Wear OS connected" / "Garmin + Wear OS connected")
 - **Commute Profile editor:** Define TO_WORK and TO_HOME legs (lines + direction + stations) and alternate lines; 23 MTA lines as color-coded circular chips in a bottom sheet picker
 - **Polling Settings:** On/off toggle, two commute windows (morning/evening), active days row, polling interval slider, background polling toggle
 - **MTA line badges:** Color-coded circular badges (9 MTA trunk-line color groups) in results, profile editor, and commute status display via `MtaLineColors` + `MtaLineBadgeSpan`
 - **Rate limiter:** Persisted daily cap (50/day), per-minute (10/min), 3s cooldown, single-flight mutex, no auto-retry
+
+### Multi-Watch Broadcasting
+- `WatchNotifier` interface abstracts watch communication; each implementation no-ops gracefully when its watch type is unavailable
+- `GarminNotifier` encapsulates all ConnectIQ SDK init, device discovery, app info loading, and BLE send logic; skips SDK initialization (and suppresses the Garmin Connect install dialog) when Garmin Connect is not installed
+- `WearOsNotifier` uses `DataClient.putDataItem()` with `PutDataMapRequest` at `/commute-status`; includes a `sent_at` timestamp to ensure `onDataChanged()` fires even for identical consecutive payloads
+- Both notifiers wired into `PollingForegroundService` and `MainActivity`; every poll broadcasts to all watch types simultaneously
+- Failure isolation: a throwing notifier is caught and logged; remaining notifiers always execute
 
 ### Garmin Watch App
 - **Glance:** One-line color-coded status — NORMAL (green), MINOR_DELAYS (yellow), REROUTE (red), STAY_HOME (gray). MINOR_DELAYS/REROUTE show each route letter in its MTA trunk-line color
@@ -71,7 +78,7 @@ When a watch glance/tile is viewed, it instantly displays the cached status — 
 
 ### Tech Stack
 
-- **Android App:** Kotlin, `minSdk = 34` (Android 14), Garmin Connect IQ Mobile SDK `2.3.0`
+- **Android App:** Kotlin, `minSdk = 34` (Android 14), Garmin Connect IQ Mobile SDK `2.3.0`, `com.google.android.gms:play-services-wearable`
 - **AI Decision Engine:** Gemini Flash via **Firebase AI Logic SDK** (`com.google.firebase:firebase-ai`, BoM 34.10.0). Model: `gemini-flash-latest` (Gemini 3 Flash Preview); `temperature=0`, `ThinkingLevel.LOW`. API key managed by Firebase (`google-services.json`). Model name configurable via `local.properties` (`GEMINI_MODEL_NAME`).
 - **Garmin Watch App:** Monkey C, Connect IQ SDK `8.4.1`, target: Garmin Venu 3 (`venu3`)
 - **Communication:** BLE via Connect IQ Mobile SDK (`IQConnectType.WIRELESS`)
@@ -82,7 +89,7 @@ When a watch glance/tile is viewed, it instantly displays the cached status — 
 
 **Monorepo** — both apps are tightly coupled through the BLE message schema.
 
-- **Android app** (`android/`): `MainActivity.kt` initializes ConnectIQ SDK, discovers paired Garmin device, manages manual fetch direction and API usage display. `CommutePipeline.run()` encapsulates the full pipeline: `MtaAlertFetcher` (HTTP GET) → `MtaAlertParser` (parse + route filter + active period filter + prompt text builder) → Gemini Flash decision engine → `CommuteStatus.fromJson()` → display + BLE push. `SystemPromptBuilder` generates the system prompt dynamically from the saved `CommuteProfile`. `PollingForegroundService` runs the same pipeline on `AlarmManager` exact-alarm schedule with `PARTIAL_WAKE_LOCK`. Direction is resolved automatically from the active window index (0→TO_WORK, 1→TO_HOME) with SharedPreferences fallback.
+- **Android app** (`android/`): `MainActivity.kt` initializes `GarminNotifier` and `WearOsNotifier`, manages manual fetch direction, API usage display, and watch connection status text. `CommutePipeline.run()` encapsulates the full pipeline: `MtaAlertFetcher` (HTTP GET) → `MtaAlertParser` (parse + route filter + active period filter + prompt text builder) → Gemini Flash decision engine → `CommuteStatus.fromJson()` → display + broadcast. After a successful result, `notifyAll()` (package-level function in `WatchNotifier.kt`) broadcasts to all registered `WatchNotifier` implementations with per-notifier failure isolation. `SystemPromptBuilder` generates the system prompt dynamically from the saved `CommuteProfile`. `PollingForegroundService` runs the same pipeline on `AlarmManager` exact-alarm schedule with `PARTIAL_WAKE_LOCK` and calls `notifyAll()` after each poll. Direction is resolved automatically from the active window index (0→TO_WORK, 1→TO_HOME) with SharedPreferences fallback.
 - **Garmin app** (`garmin/`): `CommuteBuddyApp.mc` receives and validates BLE payloads, stores fields in `Application.Storage`. `CommuteBuddyGlanceView.mc` renders color-coded one-line status. Detail view uses `ViewLoop` + `DetailPageFactory` for native paged navigation with dynamic layout measurement.
 - Apps share a BLE message schema (`shared/schema.json`) but no source code.
 
@@ -99,7 +106,7 @@ commute-buddy/
 │       └── src/main/
 │           ├── AndroidManifest.xml                 # BLUETOOTH_SCAN, BLUETOOTH_CONNECT, SCHEDULE_EXACT_ALARM, WAKE_LOCK, FOREGROUND_SERVICE_CONNECTED_DEVICE
 │           ├── kotlin/com/commutebuddy/app/
-│           │   ├── MainActivity.kt                 # SDK init, device discovery, manual direction toggle, Fetch Live, auto-polling direction status, debug menu
+│           │   ├── MainActivity.kt                 # GarminNotifier + WearOsNotifier init, manual direction toggle, Fetch Live, watch status text, debug menu
 │           │   ├── CommuteLeg.kt                   # Data class: lines, direction, fromStation, toStation
 │           │   ├── CommuteProfile.kt               # Data class: toWorkLegs, toHomeLegs, alternates; monitoredRoutes(); default Astoria profile
 │           │   ├── CommuteProfileRepository.kt     # SharedPreferences persistence for CommuteProfile
@@ -113,7 +120,10 @@ commute-buddy/
 │           │   ├── MtaAlertFetcher.kt              # HTTP GET subway alerts feed; Dispatchers.IO
 │           │   ├── MtaAlertParser.kt               # parseAlerts(), filterByRoutes(), filterByActivePeriod(), buildPromptText()
 │           │   ├── CommutePipeline.kt              # Shared fetch→parse→filter→Gemini→deserialize pipeline
-│           │   ├── PollingForegroundService.kt     # connectedDevice FGS; AlarmManager scheduling; wake lock; auto-direction
+│           │   ├── WatchNotifier.kt                # WatchNotifier interface + notifyAll() package-level function (failure-isolated broadcast)
+│           │   ├── GarminNotifier.kt               # ConnectIQ SDK init, device discovery, app info loading, BLE send; skips init if Garmin Connect absent
+│           │   ├── WearOsNotifier.kt               # DataClient.putDataItem() to /commute-status; sent_at timestamp for change detection; no-ops without Play Services
+│           │   ├── PollingForegroundService.kt     # connectedDevice FGS; AlarmManager scheduling; wake lock; auto-direction; notifyAll() after each poll
 │           │   ├── BootReceiver.kt                 # BOOT_COMPLETED → startForegroundService (with BT permission check)
 │           │   ├── PollingSettings.kt              # Data classes: CommuteWindow, PollingSettings (windows, interval, activeDays, backgroundPolling)
 │           │   ├── PollingSettingsRepository.kt    # SharedPreferences persistence for PollingSettings
@@ -130,10 +140,12 @@ commute-buddy/
 │               ├── PollingSettingsTest.kt
 │               ├── PollingForegroundServiceSchedulingTest.kt
 │               ├── CommuteProfileTest.kt
+│               ├── CommutePipelineTest.kt
 │               ├── SystemPromptBuilderTest.kt
 │               ├── CommuteStatusTest.kt
 │               ├── MtaAlertParserTest.kt
-│               └── ApiRateLimiterTest.kt
+│               ├── ApiRateLimiterTest.kt
+│               └── WatchNotifierOrchestratorTest.kt
 ├── garmin/                                         # Open in VS Code
 │   ├── monkey.jungle
 │   ├── manifest.xml                                # Target: venu3, permission: Communications
@@ -175,8 +187,18 @@ commute-buddy/
 - Green ▶ Play button — build and install APK on connected device or emulator
 - After any `build.gradle.kts` or `local.properties` change: sync first (File → Sync Gradle Files), then ▶ Play
 
-**Android (command line — Windows/PowerShell only):**
-> `gradlew`/`gradlew.bat` are **not committed** to this repo. Use the cached Gradle binary directly:
+**Android (command line):**
+> `gradlew`/`gradlew.bat` are **not committed** to this repo. Use the cached Gradle binary directly.
+
+Bash (e.g., Claude Code, WSL):
+```bash
+GRADLE=(/c/Users/blure/.gradle/wrapper/dists/gradle-8.13-bin/*/gradle-8.13/bin/gradle)
+cd "A:/Phil/Phil Docs/Development/commute-buddy/android"
+"${GRADLE[0]}" :app:testDebugUnitTest   # run unit tests
+"${GRADLE[0]}" :app:assembleDebug       # build APK
+```
+
+PowerShell:
 ```powershell
 $gradle = (Get-ChildItem "$env:USERPROFILE\.gradle\wrapper\dists\gradle-8.13-bin" -Recurse -Filter "gradle.bat" | Select-Object -First 1 -ExpandProperty FullName)
 Set-Location "a:\Phil\Phil Docs\Development\commute-buddy\android"
@@ -243,7 +265,7 @@ Expand the Total Addressable Market (TAM) by supporting Wear OS devices. The ini
 #### Phase II Backlog
 
 **Steel Thread (end-to-end validation)**
-- [ ] PHASE2-01: Android-side dual-broadcast infrastructure — Create `WatchNotifier` interface, extract existing Garmin BLE push into `GarminNotifier`, implement `WearOsNotifier` using Wearable Data Layer API (`DataClient` / `PutDataMapRequest`). Wire both notifiers into `CommutePipeline` so every poll broadcasts to all connected watch types. No-op gracefully when a watch type is not paired. Android-only — no Wear OS module yet.
+- [x] PHASE2-01: Android-side dual-broadcast infrastructure — Create `WatchNotifier` interface, extract existing Garmin BLE push into `GarminNotifier`, implement `WearOsNotifier` using Wearable Data Layer API (`DataClient` / `PutDataMapRequest`). Wire both notifiers into `CommutePipeline` so every poll broadcasts to all connected watch types. No-op gracefully when a watch type is not paired. Android-only — no Wear OS module yet.
 - [ ] PHASE2-02: Wear OS steel thread — receive + display raw status — Create `wear/` Gradle module (min Wear OS 3 / API 30). Implement `WearableListenerService` to receive `CommuteStatus` via `DataClient`. Minimal Main Activity shows one-word action status + "X min ago" timestamp. Validates the full pipeline: phone poll → DataClient → watch display. Test on Wear OS emulator.
 
 **Wear OS UI**
