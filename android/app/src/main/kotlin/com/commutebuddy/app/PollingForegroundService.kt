@@ -14,11 +14,6 @@ import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import android.bluetooth.BluetoothAdapter
-import android.content.pm.PackageManager.NameNotFoundException
-import com.garmin.android.connectiq.ConnectIQ
-import com.garmin.android.connectiq.IQApp
-import com.garmin.android.connectiq.IQDevice
 import com.google.firebase.Firebase
 import com.google.firebase.ai.GenerativeModel
 import com.google.firebase.ai.ai
@@ -33,7 +28,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -47,7 +41,6 @@ class PollingForegroundService : Service() {
         const val ACTION_POLL_COMPLETED = "com.commutebuddy.app.POLL_COMPLETED"
         const val ACTION_WAKE_AND_POLL = "com.commutebuddy.app.WAKE_AND_POLL"
         private const val NOTIFICATION_ID = 1
-        private const val GARMIN_APP_UUID = "e5f12c3a-7b04-4d8e-9a6f-2c1b3e5d7a9f"
         private const val PREFS_COMMUTE = "commute_prefs"
         private const val KEY_DIRECTION = "current_direction"
         internal const val KEY_LAST_POLLED_DIRECTION = "last_polled_direction"
@@ -186,10 +179,7 @@ class PollingForegroundService : Service() {
     private lateinit var pollingSettingsRepository: PollingSettingsRepository
 
     @Volatile private var generativeModel: GenerativeModel? = null
-    @Volatile private var sdkReady = false
-    @Volatile private var connectedDevice: IQDevice? = null
-    @Volatile private var targetApp: IQApp? = null
-    private var connectIQ: ConnectIQ? = null
+    private val garminNotifier = GarminNotifier()
 
     private var lastPollTimeMs: Long? = null
     private var nextPollTimeMs: Long? = null
@@ -218,7 +208,7 @@ class PollingForegroundService : Service() {
             initialized = true
             val profile = profileRepository.load()
             initGeminiFlash(profile)
-            initConnectIQ()
+            garminNotifier.initialize(this)
         }
 
         // Ensure the notification channel exists before startForeground(). The channel is also
@@ -274,7 +264,7 @@ class PollingForegroundService : Service() {
         super.onDestroy()
         serviceScope.cancel()
         getSystemService(AlarmManager::class.java).cancel(buildAlarmPendingIntent())
-        try { connectIQ?.shutdown(this) } catch (e: Exception) { Log.e(TAG, "Error shutting down ConnectIQ", e) }
+        garminNotifier.shutdown(this)
         Log.d(TAG, "Service destroyed")
     }
 
@@ -346,129 +336,16 @@ class PollingForegroundService : Service() {
         Log.d(TAG, "Poll result: ${result::class.simpleName}")
 
         when (result) {
-            is PipelineResult.GoodService -> sendBle(result.status)
-            is PipelineResult.Decision -> sendBle(result.status)
+            is PipelineResult.GoodService -> garminNotifier.notify(result.status)
+            is PipelineResult.Decision -> garminNotifier.notify(result.status)
             is PipelineResult.RateLimited -> Log.w(TAG, "Poll rate limited: ${result.reason}")
             is PipelineResult.Error -> {
                 Log.e(TAG, "Poll error: ${result.message}")
-                sendBle(result.status)
+                garminNotifier.notify(result.status)
             }
         }
 
         updateNotification()
-    }
-
-    // -------------------------------------------------------------------------
-    // BLE send
-    // -------------------------------------------------------------------------
-
-    private suspend fun sendBle(status: CommuteStatus) {
-        if (!sdkReady) { Log.d(TAG, "BLE send skipped: SDK not ready"); return }
-        val device = connectedDevice ?: run { Log.d(TAG, "BLE send skipped: no device"); return }
-        val app = targetApp ?: run { Log.d(TAG, "BLE send skipped: app not installed"); return }
-        withContext(Dispatchers.Main) {
-            connectIQ?.sendMessage(
-                device, app, status.toConnectIQMap(),
-                object : ConnectIQ.IQSendMessageListener {
-                    override fun onMessageStatus(
-                        device: IQDevice,
-                        app: IQApp,
-                        msgStatus: ConnectIQ.IQMessageStatus
-                    ) {
-                        if (msgStatus == ConnectIQ.IQMessageStatus.SUCCESS) {
-                            Log.d(TAG, "BLE send success")
-                        } else {
-                            Log.w(TAG, "BLE send failed: ${msgStatus.name}")
-                        }
-                    }
-                }
-            )
-        }
-    }
-
-    // -------------------------------------------------------------------------
-    // ConnectIQ init
-    // -------------------------------------------------------------------------
-
-    /**
-     * Returns true only if the environment is clean enough for the ConnectIQ SDK to initialize
-     * without attempting to show a dialog. SDK 2.3.0 ignores autoUI=false and shows a dialog
-     * (crashing in a Service context) when Bluetooth is off, Garmin Connect is missing, or BLE
-     * permissions are absent. Checking upfront avoids the crash.
-     */
-    private fun isConnectIQEnvironmentReady(): Boolean {
-        // Only check conditions that cause the SDK to show a dialog (which crashes a Service).
-        // Missing BLE permissions result in onInitializeError, not a dialog — safe to skip here.
-        val bt = BluetoothAdapter.getDefaultAdapter()
-        if (bt == null || !bt.isEnabled) {
-            Log.w(TAG, "Pre-flight: Bluetooth disabled — skipping ConnectIQ init")
-            return false
-        }
-        try {
-            packageManager.getPackageInfo("com.garmin.android.apps.connectmobile", 0)
-        } catch (e: NameNotFoundException) {
-            Log.w(TAG, "Pre-flight: Garmin Connect not installed — skipping ConnectIQ init")
-            return false
-        }
-        return true
-    }
-
-    private fun initConnectIQ() {
-        if (!isConnectIQEnvironmentReady()) return
-        connectIQ = ConnectIQ.getInstance(this, ConnectIQ.IQConnectType.WIRELESS)
-        connectIQ?.initialize(this, false, object : ConnectIQ.ConnectIQListener {
-            override fun onSdkReady() {
-                Log.d(TAG, "ConnectIQ SDK ready")
-                sdkReady = true
-                discoverDevice()
-            }
-
-            override fun onInitializeError(status: ConnectIQ.IQSdkErrorStatus) {
-                Log.e(TAG, "ConnectIQ init error: $status")
-                sdkReady = false
-            }
-
-            override fun onSdkShutDown() {
-                Log.d(TAG, "ConnectIQ SDK shut down")
-                sdkReady = false
-            }
-        })
-    }
-
-    private fun discoverDevice() {
-        val iq = connectIQ ?: return
-        val devices = try { iq.connectedDevices } catch (e: Exception) {
-            Log.e(TAG, "Error getting connected devices", e); null
-        }
-        val device = devices?.firstOrNull { dev ->
-            try { iq.getDeviceStatus(dev) == IQDevice.IQDeviceStatus.CONNECTED } catch (e: Exception) { false }
-        }
-        if (device == null) {
-            connectedDevice = null
-            targetApp = null
-            Log.d(TAG, "No connected Garmin device")
-            return
-        }
-        connectedDevice = device
-        Log.d(TAG, "Found device: ${device.friendlyName}")
-        loadAppInfo(device)
-    }
-
-    private fun loadAppInfo(device: IQDevice) {
-        connectIQ?.getApplicationInfo(
-            GARMIN_APP_UUID, device,
-            object : ConnectIQ.IQApplicationInfoListener {
-                override fun onApplicationInfoReceived(app: IQApp) {
-                    Log.d(TAG, "Garmin app found on ${device.friendlyName}")
-                    targetApp = app
-                }
-
-                override fun onApplicationNotInstalled(applicationId: String) {
-                    Log.w(TAG, "Garmin app not installed on ${device.friendlyName}")
-                    targetApp = null
-                }
-            }
-        )
     }
 
     // -------------------------------------------------------------------------

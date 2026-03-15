@@ -1,0 +1,142 @@
+package com.commutebuddy.app
+
+import android.bluetooth.BluetoothAdapter
+import android.content.Context
+import android.content.pm.PackageManager.NameNotFoundException
+import android.util.Log
+import com.garmin.android.connectiq.ConnectIQ
+import com.garmin.android.connectiq.IQApp
+import com.garmin.android.connectiq.IQDevice
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
+/**
+ * Sends [CommuteStatus] to a paired Garmin watch via the ConnectIQ BLE SDK.
+ *
+ * No-ops gracefully when Bluetooth is off, Garmin Connect is not installed,
+ * no device is paired, or the Commute Buddy watch app is not installed on the device.
+ */
+class GarminNotifier : WatchNotifier {
+
+    companion object {
+        private const val TAG = "GarminNotifier"
+        private const val GARMIN_APP_UUID = "e5f12c3a-7b04-4d8e-9a6f-2c1b3e5d7a9f"
+    }
+
+    @Volatile private var sdkReady = false
+    @Volatile private var connectedDevice: IQDevice? = null
+    @Volatile private var targetApp: IQApp? = null
+    private var connectIQ: ConnectIQ? = null
+
+    override fun initialize(context: Context) {
+        if (!isConnectIQEnvironmentReady(context)) return
+        connectIQ = ConnectIQ.getInstance(context, ConnectIQ.IQConnectType.WIRELESS)
+        connectIQ?.initialize(context, false, object : ConnectIQ.ConnectIQListener {
+            override fun onSdkReady() {
+                Log.d(TAG, "ConnectIQ SDK ready")
+                sdkReady = true
+                discoverDevice()
+            }
+
+            override fun onInitializeError(status: ConnectIQ.IQSdkErrorStatus) {
+                Log.e(TAG, "ConnectIQ init error: $status")
+                sdkReady = false
+            }
+
+            override fun onSdkShutDown() {
+                Log.d(TAG, "ConnectIQ SDK shut down")
+                sdkReady = false
+            }
+        })
+    }
+
+    override suspend fun notify(status: CommuteStatus) {
+        if (!sdkReady) { Log.d(TAG, "BLE send skipped: SDK not ready"); return }
+        val device = connectedDevice ?: run { Log.d(TAG, "BLE send skipped: no device"); return }
+        val app = targetApp ?: run { Log.d(TAG, "BLE send skipped: app not installed"); return }
+        withContext(Dispatchers.Main) {
+            connectIQ?.sendMessage(
+                device, app, status.toConnectIQMap(),
+                object : ConnectIQ.IQSendMessageListener {
+                    override fun onMessageStatus(
+                        device: IQDevice,
+                        app: IQApp,
+                        msgStatus: ConnectIQ.IQMessageStatus
+                    ) {
+                        if (msgStatus == ConnectIQ.IQMessageStatus.SUCCESS) {
+                            Log.d(TAG, "BLE send success")
+                        } else {
+                            Log.w(TAG, "BLE send failed: ${msgStatus.name}")
+                        }
+                    }
+                }
+            )
+        }
+    }
+
+    fun shutdown(context: Context) {
+        try { connectIQ?.shutdown(context) } catch (e: Exception) {
+            Log.e(TAG, "Error shutting down ConnectIQ", e)
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Internal helpers
+    // -------------------------------------------------------------------------
+
+    /**
+     * Returns true only if the environment is clean enough for the ConnectIQ SDK to initialize
+     * without attempting to show a dialog. SDK 2.3.0 ignores autoUI=false and shows a dialog
+     * (crashing in a Service context) when Bluetooth is off or Garmin Connect is missing.
+     */
+    private fun isConnectIQEnvironmentReady(context: Context): Boolean {
+        val bt = BluetoothAdapter.getDefaultAdapter()
+        if (bt == null || !bt.isEnabled) {
+            Log.w(TAG, "Pre-flight: Bluetooth disabled — skipping ConnectIQ init")
+            return false
+        }
+        try {
+            context.packageManager.getPackageInfo("com.garmin.android.apps.connectmobile", 0)
+        } catch (e: NameNotFoundException) {
+            Log.w(TAG, "Pre-flight: Garmin Connect not installed — skipping ConnectIQ init")
+            return false
+        }
+        return true
+    }
+
+    private fun discoverDevice() {
+        val iq = connectIQ ?: return
+        val devices = try { iq.connectedDevices } catch (e: Exception) {
+            Log.e(TAG, "Error getting connected devices", e); null
+        }
+        val device = devices?.firstOrNull { dev ->
+            try { iq.getDeviceStatus(dev) == IQDevice.IQDeviceStatus.CONNECTED } catch (e: Exception) { false }
+        }
+        if (device == null) {
+            connectedDevice = null
+            targetApp = null
+            Log.d(TAG, "No connected Garmin device")
+            return
+        }
+        connectedDevice = device
+        Log.d(TAG, "Found device: ${device.friendlyName}")
+        loadAppInfo(device)
+    }
+
+    private fun loadAppInfo(device: IQDevice) {
+        connectIQ?.getApplicationInfo(
+            GARMIN_APP_UUID, device,
+            object : ConnectIQ.IQApplicationInfoListener {
+                override fun onApplicationInfoReceived(app: IQApp) {
+                    Log.d(TAG, "Garmin app found on ${device.friendlyName}")
+                    targetApp = app
+                }
+
+                override fun onApplicationNotInstalled(applicationId: String) {
+                    Log.w(TAG, "Garmin app not installed on ${device.friendlyName}")
+                    targetApp = null
+                }
+            }
+        )
+    }
+}
