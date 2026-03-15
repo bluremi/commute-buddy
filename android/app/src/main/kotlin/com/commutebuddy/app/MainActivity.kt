@@ -68,7 +68,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var exactAlarmSettingsLauncher: ActivityResultLauncher<Intent>
 
     private lateinit var garminNotifier: GarminNotifier
+    private lateinit var wearOsNotifier: WearOsNotifier
     private lateinit var notifiers: List<WatchNotifier>
+    private var garminReady = false
+    private var wearOsReady = false
     private lateinit var rateLimiter: ApiRateLimiter
     private lateinit var profileRepository: CommuteProfileRepository
     private lateinit var profile: CommuteProfile
@@ -160,7 +163,11 @@ class MainActivity : AppCompatActivity() {
 
         garminNotifier = GarminNotifier().apply {
             autoUI = true
-            onStatusChanged = { msg -> setStatus(msg) }
+            onStatusChanged = { msg ->
+                garminReady = true
+                updateWatchStatus()
+                Log.d(TAG, "Garmin status: $msg")
+            }
             onSendResult = { success, statusName ->
                 runOnUiThread {
                     if (success) resultsTextView.append("\n" + getString(R.string.ble_send_success))
@@ -168,8 +175,15 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-        notifiers = listOf(garminNotifier, WearOsNotifier())
+        wearOsNotifier = WearOsNotifier().apply {
+            onConnected = {
+                wearOsReady = true
+                runOnUiThread { updateWatchStatus() }
+            }
+        }
+        notifiers = listOf(garminNotifier, wearOsNotifier)
         notifiers.forEach { it.initialize(this) }
+        updateWatchStatus()
     }
 
     override fun onResume() {
@@ -399,6 +413,16 @@ class MainActivity : AppCompatActivity() {
 
     private fun setStatus(message: String) {
         runOnUiThread { statusTextView.text = message }
+    }
+
+    private fun updateWatchStatus() {
+        val text = when {
+            garminReady && wearOsReady -> "Garmin + Wear OS connected"
+            garminReady -> "Garmin connected"
+            wearOsReady -> "Wear OS connected"
+            else -> "No watch connected"
+        }
+        setStatus(text)
     }
 
     private suspend fun notifyAll(status: CommuteStatus) {

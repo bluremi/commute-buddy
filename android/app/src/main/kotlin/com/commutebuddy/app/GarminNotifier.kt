@@ -16,8 +16,9 @@ import kotlinx.coroutines.withContext
  * No-ops gracefully when Bluetooth is off, Garmin Connect is not installed,
  * no device is paired, or the Commute Buddy watch app is not installed on the device.
  *
- * Set [autoUI] to `true` when used from an Activity (allows SDK dialogs; skips pre-flight check).
+ * Set [autoUI] to `true` when used from an Activity (allows SDK dialogs).
  * Leave `false` (default) when used from a Service.
+ * In both cases the pre-flight check runs; if it fails (BT off or Garmin Connect missing), init is skipped silently.
  *
  * Set [onStatusChanged] to receive human-readable status strings (e.g. for display in a TextView).
  * Set [onSendResult] to receive BLE send outcomes: `(success, statusName)`.
@@ -45,28 +46,24 @@ class GarminNotifier : WatchNotifier {
     private var connectIQ: ConnectIQ? = null
 
     override fun initialize(context: Context) {
-        if (!autoUI && !isConnectIQEnvironmentReady(context)) return
-        onStatusChanged?.invoke("Initializing Garmin Connect IQ SDK…")
+        if (!isConnectIQEnvironmentReady(context)) return
         connectIQ = ConnectIQ.getInstance(context, ConnectIQ.IQConnectType.WIRELESS)
         connectIQ?.initialize(context, autoUI, object : ConnectIQ.ConnectIQListener {
             override fun onSdkReady() {
                 Log.d(TAG, "ConnectIQ SDK ready")
                 sdkReady = true
-                onStatusChanged?.invoke("Garmin Connect IQ SDK ready")
                 discoverDevice()
             }
 
             override fun onInitializeError(status: ConnectIQ.IQSdkErrorStatus) {
                 Log.e(TAG, "ConnectIQ init error: $status")
                 sdkReady = false
-                onStatusChanged?.invoke("ConnectIQ init error: ${status.name}")
             }
 
             override fun onSdkShutDown() {
                 Log.d(TAG, "ConnectIQ SDK shut down")
                 sdkReady = false
                 sdkShutDown = true
-                onStatusChanged?.invoke("ConnectIQ SDK shut down")
             }
         })
     }
@@ -142,12 +139,10 @@ class GarminNotifier : WatchNotifier {
             connectedDevice = null
             targetApp = null
             Log.d(TAG, "No connected Garmin device")
-            onStatusChanged?.invoke("No Garmin device connected")
             return
         }
         connectedDevice = device
         Log.d(TAG, "Found device: ${device.friendlyName}")
-        onStatusChanged?.invoke("Device found: ${device.friendlyName}")
         loadAppInfo(device)
     }
 
@@ -164,7 +159,6 @@ class GarminNotifier : WatchNotifier {
                 override fun onApplicationNotInstalled(applicationId: String) {
                     Log.w(TAG, "Garmin app not installed on ${device.friendlyName}")
                     targetApp = null
-                    onStatusChanged?.invoke("Garmin app not installed on ${device.friendlyName}")
                 }
             }
         )

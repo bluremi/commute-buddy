@@ -20,6 +20,9 @@ class WearOsNotifier : WatchNotifier {
         const val DATA_PATH = "/commute-status"
     }
 
+    /** Called after the first successful [putDataItem] — use to update connection status UI. */
+    var onConnected: (() -> Unit)? = null
+
     private var appContext: Context? = null
 
     override fun initialize(context: Context) {
@@ -41,7 +44,7 @@ class WearOsNotifier : WatchNotifier {
             val putDataReq = request.asPutDataRequest().setUrgent()
             Wearable.getDataClient(ctx)
                 .putDataItem(putDataReq)
-                .addOnSuccessListener { Log.d(TAG, "Wear OS data put success") }
+                .addOnSuccessListener { Log.d(TAG, "Wear OS data put success"); onConnected?.invoke() }
                 .addOnFailureListener { e -> Log.w(TAG, "Wear OS data put failed: ${e.message}") }
         } catch (e: ApiException) {
             Log.w(TAG, "Wear OS not available: ${e.statusCode} ${e.message}")
