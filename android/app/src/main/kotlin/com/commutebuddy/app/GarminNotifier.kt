@@ -95,7 +95,13 @@ class GarminNotifier : WatchNotifier {
 
     fun shutdown(context: Context) {
         if (sdkShutDown) return
-        try { connectIQ?.shutdown(context) } catch (e: Exception) {
+        try {
+            connectIQ?.shutdown(context)
+        } catch (e: IllegalArgumentException) {
+            // ConnectIQ is a singleton; another GarminNotifier instance (e.g. PollingForegroundService)
+            // may have already called shutdown(), unregistering the shared receiver. Harmless.
+            Log.d(TAG, "ConnectIQ receiver already unregistered — shutdown skipped")
+        } catch (e: Exception) {
             Log.e(TAG, "Error shutting down ConnectIQ", e)
         }
     }
