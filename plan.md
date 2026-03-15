@@ -84,10 +84,10 @@ Currently, Garmin BLE send logic is duplicated in two places — `MainActivity.s
 **Model: Sonnet** | Reason: New API integration (Wearable Data Layer) with graceful error handling and multi-notifier orchestration.
 
 #### Increment 4: Watch status display + suppress spurious Garmin Connect dialog
-- [ ] In `GarminNotifier`: run `isConnectIQEnvironmentReady()` even when `autoUI=true`, so SDK initialization (and its install dialog) is skipped when Garmin Connect is not installed
-- [ ] Strip all intermediate `onStatusChanged` calls from `GarminNotifier`; only fire it in `onApplicationInfoReceived` ("Garmin app ready on {device}")
-- [ ] Add `onConnected: (() -> Unit)?` callback to `WearOsNotifier`; invoke it on first successful `putDataItem`
-- [ ] In `MainActivity`: track `garminReady` and `wearOsReady` booleans; compute status text from their combination ("No watch connected" / "Garmin connected" / "Wear OS connected" / "Garmin + Wear OS connected")
+- [x] In `GarminNotifier`: run `isConnectIQEnvironmentReady()` even when `autoUI=true`, so SDK initialization (and its install dialog) is skipped when Garmin Connect is not installed
+- [x] Strip all intermediate `onStatusChanged` calls from `GarminNotifier`; only fire it in `onApplicationInfoReceived` ("Garmin app ready on {device}")
+- [x] Add `onConnected: (() -> Unit)?` callback to `WearOsNotifier`; invoke it on first successful `putDataItem`
+- [x] In `MainActivity`: track `garminReady` and `wearOsReady` booleans; compute status text from their combination ("No watch connected" / "Garmin connected" / "Wear OS connected" / "Garmin + Wear OS connected")
 
 **Testing:** On the phone emulator (no Garmin Connect installed): confirm no install dialog appears on launch. Confirm status text shows "No watch connected". On a device with Garmin paired: confirm status text shows "Garmin connected" after SDK init. With a Wear OS emulator running: confirm status text updates to include "Wear OS connected" after the first successful data put.
 

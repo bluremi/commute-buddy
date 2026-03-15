@@ -11,3 +11,19 @@ interface WatchNotifier {
     fun initialize(context: Context)
     suspend fun notify(status: CommuteStatus)
 }
+
+/**
+ * Broadcasts [status] to every notifier in [notifiers], isolating failures so that
+ * one throwing notifier does not prevent the others from running.
+ */
+internal suspend fun notifyAll(
+    notifiers: List<WatchNotifier>,
+    status: CommuteStatus,
+    onError: (WatchNotifier, Exception) -> Unit = { _, _ -> }
+) {
+    notifiers.forEach { notifier ->
+        try { notifier.notify(status) } catch (e: Exception) {
+            onError(notifier, e)
+        }
+    }
+}

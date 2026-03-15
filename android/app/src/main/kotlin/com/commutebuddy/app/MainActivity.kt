@@ -426,10 +426,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private suspend fun notifyAll(status: CommuteStatus) {
-        notifiers.forEach { notifier ->
-            try { notifier.notify(status) } catch (e: Exception) {
-                Log.e(TAG, "${notifier::class.simpleName} failed", e)
-            }
+        notifyAll(notifiers, status) { notifier, e ->
+            Log.e(TAG, "${notifier::class.simpleName} failed", e)
         }
     }
 
