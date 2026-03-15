@@ -31,9 +31,6 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
-import com.garmin.android.connectiq.ConnectIQ
-import com.garmin.android.connectiq.IQApp
-import com.garmin.android.connectiq.IQDevice
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.firebase.Firebase
@@ -51,7 +48,6 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "CommuteBuddy"
-        private const val GARMIN_APP_UUID = "e5f12c3a-7b04-4d8e-9a6f-2c1b3e5d7a9f"
         private const val PREFS_COMMUTE = "commute_prefs"
         private const val KEY_DIRECTION = "current_direction"
         private const val DIRECTION_TO_WORK = "TO_WORK"
@@ -71,16 +67,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var configureCommuteLauncher: ActivityResultLauncher<Intent>
     private lateinit var exactAlarmSettingsLauncher: ActivityResultLauncher<Intent>
 
-    private lateinit var connectIQ: ConnectIQ
+    private lateinit var garminNotifier: GarminNotifier
     private lateinit var rateLimiter: ApiRateLimiter
     private lateinit var profileRepository: CommuteProfileRepository
     private lateinit var profile: CommuteProfile
     private lateinit var commutePrefs: SharedPreferences
     private var currentDirection: String = DIRECTION_TO_WORK
     private var generativeModel: GenerativeModel? = null
-    private var sdkReady = false
-    private var connectedDevice: IQDevice? = null
-    private var targetApp: IQApp? = null
 
     private val pollCompletedReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -164,7 +157,17 @@ class MainActivity : AppCompatActivity() {
         createPollingNotificationChannel()
         requestBluetoothPermissionsThenStartService()
 
-        initConnectIQ()
+        garminNotifier = GarminNotifier().apply {
+            autoUI = true
+            onStatusChanged = { msg -> setStatus(msg) }
+            onSendResult = { success, statusName ->
+                runOnUiThread {
+                    if (success) resultsTextView.append("\n" + getString(R.string.ble_send_success))
+                    else resultsTextView.append("\n" + getString(R.string.ble_send_failed, statusName))
+                }
+            }
+        }
+        garminNotifier.initialize(this)
     }
 
     override fun onResume() {
@@ -185,98 +188,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        if (sdkReady) {
-            try {
-                connectIQ.shutdown(this)
-            } catch (e: Exception) {
-                Log.e(TAG, "Error shutting down ConnectIQ", e)
-            }
-        }
-    }
-
-    // -------------------------------------------------------------------------
-    // ConnectIQ SDK init
-    // -------------------------------------------------------------------------
-
-    private fun initConnectIQ() {
-        connectIQ = ConnectIQ.getInstance(this, ConnectIQ.IQConnectType.WIRELESS)
-        setStatus(R.string.status_sdk_initializing)
-
-        connectIQ.initialize(this, true, object : ConnectIQ.ConnectIQListener {
-            override fun onSdkReady() {
-                Log.d(TAG, "ConnectIQ SDK ready")
-                sdkReady = true
-                setStatus(R.string.status_sdk_ready)
-                discoverDevice()
-            }
-
-            override fun onInitializeError(status: ConnectIQ.IQSdkErrorStatus) {
-                Log.e(TAG, "ConnectIQ init error: $status")
-                sdkReady = false
-                setStatus(getString(R.string.status_sdk_error, status.name))
-            }
-
-            override fun onSdkShutDown() {
-                Log.d(TAG, "ConnectIQ SDK shut down")
-                sdkReady = false
-                setStatus(R.string.status_sdk_shutdown)
-            }
-        })
-    }
-
-    // -------------------------------------------------------------------------
-    // Device + app discovery
-    // -------------------------------------------------------------------------
-
-    private fun discoverDevice() {
-        val devices: List<IQDevice>? = try {
-            connectIQ.connectedDevices
-        } catch (e: Exception) {
-            Log.e(TAG, "Error getting connected devices", e)
-            null
-        }
-
-        val connectedDevice = devices?.firstOrNull { device ->
-            try {
-                connectIQ.getDeviceStatus(device) == IQDevice.IQDeviceStatus.CONNECTED
-            } catch (e: Exception) {
-                Log.e(TAG, "Error getting device status", e)
-                false
-            }
-        }
-
-        if (connectedDevice == null) {
-            this.connectedDevice = null
-            targetApp = null
-            setStatus(R.string.status_no_device)
-            return
-        }
-
-        val device = connectedDevice
-        this.connectedDevice = device
-        Log.d(TAG, "Found device: ${device.friendlyName}")
-        setStatus(getString(R.string.status_device_found, device.friendlyName))
-        loadAppInfo(device)
-    }
-
-    private fun loadAppInfo(device: IQDevice) {
-        connectIQ.getApplicationInfo(
-            GARMIN_APP_UUID,
-            device,
-            object : ConnectIQ.IQApplicationInfoListener {
-                override fun onApplicationInfoReceived(app: IQApp) {
-                    Log.d(TAG, "App found on ${device.friendlyName}")
-                    targetApp = app
-                    setStatus(getString(R.string.status_app_ready, device.friendlyName))
-                }
-
-                override fun onApplicationNotInstalled(applicationId: String) {
-                    Log.w(TAG, "App not installed on ${device.friendlyName}")
-                    targetApp = null
-                    setStatus(R.string.status_app_not_installed)
-                }
-            }
-        )
+        garminNotifier.shutdown(this)
     }
 
     private val allApiButtons get() = listOf(fetchLiveButton)
@@ -338,7 +250,7 @@ class MainActivity : AppCompatActivity() {
             is PipelineResult.GoodService -> {
                 val routeList = profile.monitoredRoutes().sorted().joinToString(", ")
                 resultsTextView.text = getString(R.string.live_no_alerts, routeList)
-                sendCommuteStatus(result.status)
+                lifecycleScope.launch { garminNotifier.notify(result.status) }
             }
             is PipelineResult.Decision -> {
                 val parsed = result.status
@@ -353,7 +265,7 @@ class MainActivity : AppCompatActivity() {
                 parsed.rerouteHint?.let { ssb.append(getString(R.string.ai_result_reroute_hint, it)).append("\n") }
                 ssb.append(getString(R.string.ai_result_time, parsed.timestamp))
                 resultsTextView.text = ssb
-                sendCommuteStatus(parsed)
+                lifecycleScope.launch { garminNotifier.notify(parsed) }
             }
             is PipelineResult.RateLimited -> {
                 resultsTextView.text = result.reason
@@ -361,46 +273,10 @@ class MainActivity : AppCompatActivity() {
             is PipelineResult.Error -> {
                 val displayMsg = result.exception?.let { classifyApiError(it) } ?: result.message
                 resultsTextView.text = "$prefix\n$displayMsg"
-                sendCommuteStatus(result.status)
+                lifecycleScope.launch { garminNotifier.notify(result.status) }
             }
         }
         updateApiUsageDisplay()
-    }
-
-    // -------------------------------------------------------------------------
-    // BLE send (FEAT-04)
-    // -------------------------------------------------------------------------
-
-    private fun sendCommuteStatus(status: CommuteStatus) {
-        if (!sdkReady) {
-            resultsTextView.append("\n" + getString(R.string.ble_send_skipped, "SDK not ready"))
-            return
-        }
-        val device = connectedDevice ?: run {
-            resultsTextView.append("\n" + getString(R.string.ble_send_skipped, "no device"))
-            return
-        }
-        val app = targetApp ?: run {
-            resultsTextView.append("\n" + getString(R.string.ble_send_skipped, "app not installed"))
-            return
-        }
-        connectIQ.sendMessage(device, app, status.toConnectIQMap(),
-            object : ConnectIQ.IQSendMessageListener {
-                override fun onMessageStatus(
-                    device: IQDevice,
-                    app: IQApp,
-                    msgStatus: ConnectIQ.IQMessageStatus
-                ) {
-                    runOnUiThread {
-                        if (msgStatus == ConnectIQ.IQMessageStatus.SUCCESS) {
-                            resultsTextView.append("\n" + getString(R.string.ble_send_success))
-                        } else {
-                            resultsTextView.append("\n" + getString(R.string.ble_send_failed, msgStatus.name))
-                        }
-                    }
-                }
-            }
-        )
     }
 
     // -------------------------------------------------------------------------
@@ -519,10 +395,6 @@ class MainActivity : AppCompatActivity() {
         startForegroundService(Intent(this, PollingForegroundService::class.java))
     }
 
-    private fun setStatus(resId: Int) {
-        runOnUiThread { statusTextView.text = getString(resId) }
-    }
-
     private fun setStatus(message: String) {
         runOnUiThread { statusTextView.text = message }
     }
@@ -538,7 +410,7 @@ class MainActivity : AppCompatActivity() {
         menu.setOnMenuItemClickListener { item ->
             val (label, status) = payloads[item.itemId]
             resultsTextView.text = "[TEST] $label\naction=${status.action}\nroutes=${status.affectedRoutes}\nhint=${status.rerouteHint ?: "—"}\nsummary=${status.summary}"
-            sendCommuteStatus(status)
+            lifecycleScope.launch { garminNotifier.notify(status) }
             true
         }
         menu.show()
