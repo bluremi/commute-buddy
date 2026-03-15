@@ -66,4 +66,6 @@ dependencies {
     // Firebase AI Logic SDK (Gemini API with ThinkingConfig support)
     implementation(platform("com.google.firebase:firebase-bom:34.10.0"))
     implementation("com.google.firebase:firebase-ai")
+    // Wear OS Data Layer API (Android phone side only — no wear module yet)
+    implementation("com.google.android.gms:play-services-wearable:18.2.0")
 }

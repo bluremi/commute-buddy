@@ -180,6 +180,7 @@ class PollingForegroundService : Service() {
 
     @Volatile private var generativeModel: GenerativeModel? = null
     private val garminNotifier = GarminNotifier()
+    private val notifiers: List<WatchNotifier> = listOf(garminNotifier, WearOsNotifier())
 
     private var lastPollTimeMs: Long? = null
     private var nextPollTimeMs: Long? = null
@@ -208,7 +209,7 @@ class PollingForegroundService : Service() {
             initialized = true
             val profile = profileRepository.load()
             initGeminiFlash(profile)
-            garminNotifier.initialize(this)
+            notifiers.forEach { it.initialize(this) }
         }
 
         // Ensure the notification channel exists before startForeground(). The channel is also
@@ -336,16 +337,24 @@ class PollingForegroundService : Service() {
         Log.d(TAG, "Poll result: ${result::class.simpleName}")
 
         when (result) {
-            is PipelineResult.GoodService -> garminNotifier.notify(result.status)
-            is PipelineResult.Decision -> garminNotifier.notify(result.status)
+            is PipelineResult.GoodService -> notifyAll(result.status)
+            is PipelineResult.Decision -> notifyAll(result.status)
             is PipelineResult.RateLimited -> Log.w(TAG, "Poll rate limited: ${result.reason}")
             is PipelineResult.Error -> {
                 Log.e(TAG, "Poll error: ${result.message}")
-                garminNotifier.notify(result.status)
+                notifyAll(result.status)
             }
         }
 
         updateNotification()
+    }
+
+    private suspend fun notifyAll(status: CommuteStatus) {
+        notifiers.forEach { notifier ->
+            try { notifier.notify(status) } catch (e: Exception) {
+                Log.e(TAG, "${notifier::class.simpleName} failed", e)
+            }
+        }
     }
 
     // -------------------------------------------------------------------------

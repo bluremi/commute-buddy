@@ -68,6 +68,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var exactAlarmSettingsLauncher: ActivityResultLauncher<Intent>
 
     private lateinit var garminNotifier: GarminNotifier
+    private lateinit var notifiers: List<WatchNotifier>
     private lateinit var rateLimiter: ApiRateLimiter
     private lateinit var profileRepository: CommuteProfileRepository
     private lateinit var profile: CommuteProfile
@@ -167,7 +168,8 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-        garminNotifier.initialize(this)
+        notifiers = listOf(garminNotifier, WearOsNotifier())
+        notifiers.forEach { it.initialize(this) }
     }
 
     override fun onResume() {
@@ -250,7 +252,7 @@ class MainActivity : AppCompatActivity() {
             is PipelineResult.GoodService -> {
                 val routeList = profile.monitoredRoutes().sorted().joinToString(", ")
                 resultsTextView.text = getString(R.string.live_no_alerts, routeList)
-                lifecycleScope.launch { garminNotifier.notify(result.status) }
+                lifecycleScope.launch { notifyAll(result.status) }
             }
             is PipelineResult.Decision -> {
                 val parsed = result.status
@@ -265,7 +267,7 @@ class MainActivity : AppCompatActivity() {
                 parsed.rerouteHint?.let { ssb.append(getString(R.string.ai_result_reroute_hint, it)).append("\n") }
                 ssb.append(getString(R.string.ai_result_time, parsed.timestamp))
                 resultsTextView.text = ssb
-                lifecycleScope.launch { garminNotifier.notify(parsed) }
+                lifecycleScope.launch { notifyAll(parsed) }
             }
             is PipelineResult.RateLimited -> {
                 resultsTextView.text = result.reason
@@ -273,7 +275,7 @@ class MainActivity : AppCompatActivity() {
             is PipelineResult.Error -> {
                 val displayMsg = result.exception?.let { classifyApiError(it) } ?: result.message
                 resultsTextView.text = "$prefix\n$displayMsg"
-                lifecycleScope.launch { garminNotifier.notify(result.status) }
+                lifecycleScope.launch { notifyAll(result.status) }
             }
         }
         updateApiUsageDisplay()
@@ -399,6 +401,14 @@ class MainActivity : AppCompatActivity() {
         runOnUiThread { statusTextView.text = message }
     }
 
+    private suspend fun notifyAll(status: CommuteStatus) {
+        notifiers.forEach { notifier ->
+            try { notifier.notify(status) } catch (e: Exception) {
+                Log.e(TAG, "${notifier::class.simpleName} failed", e)
+            }
+        }
+    }
+
     // -------------------------------------------------------------------------
     // Debug: test payload sender
     // -------------------------------------------------------------------------
@@ -410,7 +420,7 @@ class MainActivity : AppCompatActivity() {
         menu.setOnMenuItemClickListener { item ->
             val (label, status) = payloads[item.itemId]
             resultsTextView.text = "[TEST] $label\naction=${status.action}\nroutes=${status.affectedRoutes}\nhint=${status.rerouteHint ?: "—"}\nsummary=${status.summary}"
-            lifecycleScope.launch { garminNotifier.notify(status) }
+            lifecycleScope.launch { notifyAll(status) }
             true
         }
         menu.show()
