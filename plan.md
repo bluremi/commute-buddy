@@ -74,16 +74,26 @@ Currently, Garmin BLE send logic is duplicated in two places — `MainActivity.s
 **Model: Sonnet** | Reason: Must preserve UI status feedback while replacing the underlying BLE implementation — requires careful understanding of the callback flow.
 
 #### Increment 3: `WearOsNotifier` + Gradle dependency + dual-broadcast wiring
-- [ ] Add `com.google.android.gms:play-services-wearable` to `app/build.gradle.kts`
-- [ ] Create `WearOsNotifier.kt` — implements `WatchNotifier`; uses `Wearable.getDataClient(context)` + `PutDataMapRequest.create("/commute-status")` to write all `CommuteStatus` fields plus a `sent_at` timestamp for uniqueness; catches `ApiException` / missing Play Services gracefully
-- [ ] Wire both notifiers into `PollingForegroundService`: hold a `List<WatchNotifier>`, initialize both in `onStartCommand`, iterate + call `notify()` in `poll()` with per-notifier try/catch
-- [ ] Wire both notifiers into `MainActivity`: same pattern, initialize both in `onCreate`, iterate in `handlePipelineResult()`
+- [x] Add `com.google.android.gms:play-services-wearable` to `app/build.gradle.kts`
+- [x] Create `WearOsNotifier.kt` — implements `WatchNotifier`; uses `Wearable.getDataClient(context)` + `PutDataMapRequest.create("/commute-status")` to write all `CommuteStatus` fields plus a `sent_at` timestamp for uniqueness; catches `ApiException` / missing Play Services gracefully
+- [x] Wire both notifiers into `PollingForegroundService`: hold a `List<WatchNotifier>`, initialize both in `onStartCommand`, iterate + call `notify()` in `poll()` with per-notifier try/catch
+- [x] Wire both notifiers into `MainActivity`: same pattern, initialize both in `onCreate`, iterate in `handlePipelineResult()`
 
-**Testing:** Build and deploy to phone. Confirm Garmin BLE still works (regression). Check logcat for `WearOsNotifier` — should log a graceful no-op or successful data put (depending on whether a Wear OS emulator is running). No crashes.
+**Testing:** Build and deploy to phone. Confirm Garmin BLE still works (regression). Check logcat for `WearOsNotifier` — should log a graceful no-op or successful data put (depending on whether a Wear OS emulator is running). No crashes. Provide instructions to user on how to launch wear OS emulator to test the data put.
 
 **Model: Sonnet** | Reason: New API integration (Wearable Data Layer) with graceful error handling and multi-notifier orchestration.
 
-#### Increment 4: Orchestration unit tests
+#### Increment 4: Watch status display + suppress spurious Garmin Connect dialog
+- [ ] In `GarminNotifier`: run `isConnectIQEnvironmentReady()` even when `autoUI=true`, so SDK initialization (and its install dialog) is skipped when Garmin Connect is not installed
+- [ ] Strip all intermediate `onStatusChanged` calls from `GarminNotifier`; only fire it in `onApplicationInfoReceived` ("Garmin app ready on {device}")
+- [ ] Add `onConnected: (() -> Unit)?` callback to `WearOsNotifier`; invoke it on first successful `putDataItem`
+- [ ] In `MainActivity`: track `garminReady` and `wearOsReady` booleans; compute status text from their combination ("No watch connected" / "Garmin connected" / "Wear OS connected" / "Garmin + Wear OS connected")
+
+**Testing:** On the phone emulator (no Garmin Connect installed): confirm no install dialog appears on launch. Confirm status text shows "No watch connected". On a device with Garmin paired: confirm status text shows "Garmin connected" after SDK init. With a Wear OS emulator running: confirm status text updates to include "Wear OS connected" after the first successful data put.
+
+**Model: Sonnet** | Reason: Touches GarminNotifier initialization logic and introduces cross-notifier state tracking in MainActivity.
+
+#### Increment 5: Orchestration unit tests
 - [ ] Create `WatchNotifierOrchestratorTest.kt` (or add to existing test file) — tests that verify:
   - All notifiers in a list are called when a `CommuteStatus` is broadcast
   - If one notifier throws, the remaining notifiers still execute
@@ -93,3 +103,4 @@ Currently, Garmin BLE send logic is duplicated in two places — `MainActivity.s
 **Testing:** Run `gradle :app:testDebugUnitTest`. All new and existing tests pass.
 
 **Model: Haiku** | Reason: Straightforward test writing against a simple interface — clear pattern, no ambiguity.
+
