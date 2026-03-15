@@ -54,20 +54,20 @@ Currently, Garmin BLE send logic is duplicated in two places — `MainActivity.s
 ### Implementation Plan
 
 #### Increment 1: `WatchNotifier` interface + `GarminNotifier` extraction from `PollingForegroundService`
-- [ ] Create `WatchNotifier.kt` — interface with `fun initialize(context: Context)` and `suspend fun notify(status: CommuteStatus)`
-- [ ] Create `GarminNotifier.kt` — extract `isConnectIQEnvironmentReady()`, `initConnectIQ()`, `discoverDevice()`, `loadAppInfo()`, and `sendBle()` from `PollingForegroundService` into this class
-- [ ] Refactor `PollingForegroundService` to hold a `GarminNotifier` instance: call `initialize()` in `onStartCommand`, call `notify()` in `poll()`, remove the extracted fields/methods (`sdkReady`, `connectedDevice`, `targetApp`, `connectIQ`)
-- [ ] Remove ConnectIQ `shutdown()` from `PollingForegroundService.onDestroy()` — add a `fun shutdown()` to `GarminNotifier` and call it instead
+- [x] Create `WatchNotifier.kt` — interface with `fun initialize(context: Context)` and `suspend fun notify(status: CommuteStatus)`
+- [x] Create `GarminNotifier.kt` — extract `isConnectIQEnvironmentReady()`, `initConnectIQ()`, `discoverDevice()`, `loadAppInfo()`, and `sendBle()` from `PollingForegroundService` into this class
+- [x] Refactor `PollingForegroundService` to hold a `GarminNotifier` instance: call `initialize()` in `onStartCommand`, call `notify()` in `poll()`, remove the extracted fields/methods (`sdkReady`, `connectedDevice`, `targetApp`, `connectIQ`)
+- [x] Remove ConnectIQ `shutdown()` from `PollingForegroundService.onDestroy()` — add a `fun shutdown()` to `GarminNotifier` and call it instead
 
 **Testing:** Build APK and deploy to phone with Garmin Venu 3 paired. Trigger a manual poll (or wait for scheduled poll). Confirm BLE send still works via logcat: `adb -s 57171FDCQ008DS logcat -s PollingService:V CommutePipeline:V`. Look for "BLE send success".
 
 **Model: Sonnet** | Reason: Non-trivial extraction refactor — must carefully move state and callbacks without breaking ConnectIQ lifecycle.
 
 #### Increment 2: Refactor `MainActivity` to use `GarminNotifier`
-- [ ] Replace `MainActivity`'s inline ConnectIQ init (`initConnectIQ`, `discoverDevice`, `loadAppInfo`), BLE state fields (`sdkReady`, `connectedDevice`, `targetApp`, `connectIQ`), and `sendCommuteStatus()` with a shared `GarminNotifier` instance
-- [ ] `MainActivity` still needs device/app status for the status text display — add a status callback or expose `isReady()`/`getStatusText()` on `GarminNotifier`
-- [ ] `handlePipelineResult()` calls `GarminNotifier.notify()` instead of inline `sendCommuteStatus()`
-- [ ] Debug test payload menu still sends via `GarminNotifier.notify()`
+- [x] Replace `MainActivity`'s inline ConnectIQ init (`initConnectIQ`, `discoverDevice`, `loadAppInfo`), BLE state fields (`sdkReady`, `connectedDevice`, `targetApp`, `connectIQ`), and `sendCommuteStatus()` with a shared `GarminNotifier` instance
+- [x] `MainActivity` still needs device/app status for the status text display — add a status callback or expose `isReady()`/`getStatusText()` on `GarminNotifier`
+- [x] `handlePipelineResult()` calls `GarminNotifier.notify()` instead of inline `sendCommuteStatus()`
+- [x] Debug test payload menu still sends via `GarminNotifier.notify()`
 
 **Testing:** Open the app. Confirm SDK status text still shows device name and "App ready". Tap "Fetch Live" with Garmin paired — confirm BLE send success in results text. Send a debug test payload — confirm it arrives on Garmin. Check logcat for any errors.
 
