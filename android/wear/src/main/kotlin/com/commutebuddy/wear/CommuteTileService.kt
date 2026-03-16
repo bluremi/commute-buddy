@@ -5,6 +5,7 @@ import androidx.wear.protolayout.ColorBuilders
 import androidx.wear.protolayout.DeviceParametersBuilders
 import androidx.wear.protolayout.DimensionBuilders
 import androidx.wear.protolayout.LayoutElementBuilders
+import androidx.wear.protolayout.ModifiersBuilders
 import androidx.wear.protolayout.ResourceBuilders
 import androidx.wear.protolayout.TimelineBuilders
 import androidx.wear.protolayout.TypeBuilders
@@ -89,6 +90,83 @@ class CommuteTileService : TileService() {
     }
 }
 
+private const val BADGE_SIZE_DP = 22f
+private const val BADGE_FONT_SP = 10f
+private const val BADGE_SPACING_DP = 4f
+private const val COLOR_WHITE = 0xFFFFFFFF.toInt()
+private const val COLOR_BLACK = 0xFF000000.toInt()
+
+private fun buildBadge(line: String): LayoutElementBuilders.LayoutElement {
+    val bgColor = MtaLineColors.lineColor(line)
+    val textColor = if (MtaLineColors.isLightBackground(line)) COLOR_BLACK else COLOR_WHITE
+    val radius = BADGE_SIZE_DP / 2f
+    return LayoutElementBuilders.Box.Builder()
+        .setWidth(DimensionBuilders.dp(BADGE_SIZE_DP))
+        .setHeight(DimensionBuilders.dp(BADGE_SIZE_DP))
+        .setHorizontalAlignment(LayoutElementBuilders.HORIZONTAL_ALIGN_CENTER)
+        .setVerticalAlignment(LayoutElementBuilders.VERTICAL_ALIGN_CENTER)
+        .setModifiers(
+            ModifiersBuilders.Modifiers.Builder()
+                .setBackground(
+                    ModifiersBuilders.Background.Builder()
+                        .setColor(ColorBuilders.argb(bgColor))
+                        .setCorner(
+                            ModifiersBuilders.Corner.Builder()
+                                .setRadius(DimensionBuilders.dp(radius))
+                                .build()
+                        )
+                        .build()
+                )
+                .build()
+        )
+        .addContent(
+            LayoutElementBuilders.Text.Builder()
+                .setText(TypeBuilders.StringProp.Builder(line).build())
+                .setFontStyle(
+                    LayoutElementBuilders.FontStyle.Builder()
+                        .setColor(ColorBuilders.argb(textColor))
+                        .setWeight(
+                            LayoutElementBuilders.FontWeightProp.Builder()
+                                .setValue(LayoutElementBuilders.FONT_WEIGHT_BOLD)
+                                .build()
+                        )
+                        .setSize(
+                            DimensionBuilders.SpProp.Builder()
+                                .setValue(BADGE_FONT_SP)
+                                .build()
+                        )
+                        .build()
+                )
+                .build()
+        )
+        .build()
+}
+
+private fun buildBadgeRow(affectedRoutes: String): LayoutElementBuilders.LayoutElement {
+    val lines = affectedRoutes.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+    if (lines.isEmpty()) {
+        return LayoutElementBuilders.Box.Builder()
+            .setWidth(DimensionBuilders.wrap())
+            .setHeight(DimensionBuilders.wrap())
+            .build()
+    }
+    val row = LayoutElementBuilders.Row.Builder()
+        .setWidth(DimensionBuilders.wrap())
+        .setHeight(DimensionBuilders.wrap())
+        .setVerticalAlignment(LayoutElementBuilders.VERTICAL_ALIGN_CENTER)
+    for ((index, line) in lines.withIndex()) {
+        if (index > 0) {
+            row.addContent(
+                LayoutElementBuilders.Spacer.Builder()
+                    .setWidth(DimensionBuilders.dp(BADGE_SPACING_DP))
+                    .build()
+            )
+        }
+        row.addContent(buildBadge(line))
+    }
+    return row.build()
+}
+
 private fun buildLayout(
     context: Context,
     deviceParams: DeviceParametersBuilders.DeviceParameters,
@@ -140,10 +218,7 @@ private fun buildLayout(
                         .build()
                 },
                 mainSlot = {
-                    LayoutElementBuilders.Box.Builder()
-                        .setWidth(DimensionBuilders.wrap())
-                        .setHeight(DimensionBuilders.wrap())
-                        .build()
+                    buildBadgeRow(snapshot.affectedRoutes)
                 }
             )
         }
