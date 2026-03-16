@@ -74,11 +74,18 @@ When a watch glance/tile is viewed, it instantly displays the cached status — 
 - **Detail view:** Native `ViewLoop` paged navigation. Page 1: action title → colored route badges → timestamp (FONT_XTINY) → reroute hint (action-tier color). Summary text follows in white. When the hint fills the screen, page 1 is header-only and summary starts on page 2. Deterministic word-boundary pagination via `fitTextToArea()`
 - **BLE schema:** `action` (string), `summary`, `affected_routes`, `reroute_hint` (optional), `timestamp` (long) — documented in `shared/schema.json`
 
+### Wear OS Watch App (Steel Thread)
+- **Main Activity:** Compose for Wear OS. Two states: (a) "Waiting for data…" placeholder (gray) when no status has been received yet; (b) action label in tier color (green/yellow/red) with relative timestamp below ("just now", "N min ago", "N hr ago")
+- **Data reception:** `CommuteStatusListenerService` extends `WearableListenerService`, receives `onDataChanged()` for `/commute-status`, extracts all `CommuteStatus` fields from `DataMap`, persists to `StatusStore`
+- **`StatusStore`:** Kotlin object wrapping SharedPreferences + `StateFlow<CommuteStatusSnapshot?>`. Survives process death. `init()` always re-syncs from SharedPreferences on Activity start (so clearing app data resets to the placeholder state correctly)
+- **Timestamp note:** `CommuteStatus.timestamp` is stored in seconds (Unix epoch); the watch app multiplies by 1000 before computing relative time
+
 ## Technical Architecture
 
 ### Tech Stack
 
 - **Android App:** Kotlin, `minSdk = 34` (Android 14), Garmin Connect IQ Mobile SDK `2.3.0`, `com.google.android.gms:play-services-wearable`
+- **Wear OS App:** Kotlin, `minSdk = 30` (Wear OS 3 / API 30 — Pixel Watch 1st gen compatible), Compose for Wear OS (`androidx.wear.compose:compose-material`, `compose-foundation`), `com.google.android.gms:play-services-wearable`. Same `applicationId` as the phone app so the Wearable Data Layer auto-pairs.
 - **AI Decision Engine:** Gemini Flash via **Firebase AI Logic SDK** (`com.google.firebase:firebase-ai`, BoM 34.10.0). Model: `gemini-flash-latest` (Gemini 3 Flash Preview); `temperature=0`, `ThinkingLevel.LOW`. API key managed by Firebase (`google-services.json`). Model name configurable via `local.properties` (`GEMINI_MODEL_NAME`).
 - **Garmin Watch App:** Monkey C, Connect IQ SDK `8.4.1`, target: Garmin Venu 3 (`venu3`)
 - **Communication:** BLE via Connect IQ Mobile SDK (`IQConnectType.WIRELESS`)
@@ -91,6 +98,7 @@ When a watch glance/tile is viewed, it instantly displays the cached status — 
 
 - **Android app** (`android/`): `MainActivity.kt` initializes `GarminNotifier` and `WearOsNotifier`, manages manual fetch direction, API usage display, and watch connection status text. `CommutePipeline.run()` encapsulates the full pipeline: `MtaAlertFetcher` (HTTP GET) → `MtaAlertParser` (parse + route filter + active period filter + prompt text builder) → Gemini Flash decision engine → `CommuteStatus.fromJson()` → display + broadcast. After a successful result, `notifyAll()` (package-level function in `WatchNotifier.kt`) broadcasts to all registered `WatchNotifier` implementations with per-notifier failure isolation. `SystemPromptBuilder` generates the system prompt dynamically from the saved `CommuteProfile`. `PollingForegroundService` runs the same pipeline on `AlarmManager` exact-alarm schedule with `PARTIAL_WAKE_LOCK` and calls `notifyAll()` after each poll. Direction is resolved automatically from the active window index (0→TO_WORK, 1→TO_HOME) with SharedPreferences fallback.
 - **Garmin app** (`garmin/`): `CommuteBuddyApp.mc` receives and validates BLE payloads, stores fields in `Application.Storage`. `CommuteBuddyGlanceView.mc` renders color-coded one-line status. Detail view uses `ViewLoop` + `DetailPageFactory` for native paged navigation with dynamic layout measurement.
+- **Wear OS app** (`android/wear/`): `CommuteStatusListenerService` receives `/commute-status` data items via `WearableListenerService.onDataChanged()`, extracts fields from `DataMap`, and persists to `StatusStore` (SharedPreferences + `StateFlow`). `MainActivity` observes the flow via `collectAsState()` and renders the action tier in color with a relative timestamp.
 - Apps share a BLE message schema (`shared/schema.json`) but no source code.
 
 ### Key Files
@@ -100,7 +108,7 @@ commute-buddy/
 ├── android/                                        # Open in Android Studio
 │   ├── build.gradle.kts
 │   ├── settings.gradle.kts
-│   └── app/
+│   ├── app/
 │       ├── build.gradle.kts                        # minSdk 34, Connect IQ SDK, Firebase AI Logic SDK (BoM 34.10.0)
 │       ├── google-services.json                    # Firebase project config (gitignored)
 │       └── src/main/
@@ -146,6 +154,14 @@ commute-buddy/
 │               ├── MtaAlertParserTest.kt
 │               ├── ApiRateLimiterTest.kt
 │               └── WatchNotifierOrchestratorTest.kt
+│   └── wear/
+│       ├── build.gradle.kts                        # minSdk 30, Compose for Wear OS, play-services-wearable
+│       └── src/main/
+│           ├── AndroidManifest.xml                 # WAKE_LOCK; WearableListenerService with DATA_CHANGED filter
+│           └── kotlin/com/commutebuddy/wear/
+│               ├── MainActivity.kt                 # Compose activity: tier color + relative timestamp; observes StatusStore flow
+│               ├── StatusStore.kt                  # SharedPreferences + StateFlow<CommuteStatusSnapshot?>; always re-syncs on init()
+│               └── CommuteStatusListenerService.kt # WearableListenerService: receives /commute-status DataMap, persists via StatusStore
 ├── garmin/                                         # Open in VS Code
 │   ├── monkey.jungle
 │   ├── manifest.xml                                # Target: venu3, permission: Communications
@@ -195,7 +211,8 @@ Bash (e.g., Claude Code, WSL):
 GRADLE=(/c/Users/blure/.gradle/wrapper/dists/gradle-8.13-bin/*/gradle-8.13/bin/gradle)
 cd "A:/Phil/Phil Docs/Development/commute-buddy/android"
 "${GRADLE[0]}" :app:testDebugUnitTest   # run unit tests
-"${GRADLE[0]}" :app:assembleDebug       # build APK
+"${GRADLE[0]}" :app:assembleDebug       # build phone APK
+"${GRADLE[0]}" :wear:assembleDebug      # build Wear OS APK
 ```
 
 PowerShell:
@@ -266,7 +283,7 @@ Expand the Total Addressable Market (TAM) by supporting Wear OS devices. The ini
 
 **Steel Thread (end-to-end validation)**
 - [x] PHASE2-01: Android-side dual-broadcast infrastructure — Create `WatchNotifier` interface, extract existing Garmin BLE push into `GarminNotifier`, implement `WearOsNotifier` using Wearable Data Layer API (`DataClient` / `PutDataMapRequest`). Wire both notifiers into `CommutePipeline` so every poll broadcasts to all connected watch types. No-op gracefully when a watch type is not paired. Android-only — no Wear OS module yet.
-- [ ] PHASE2-02: Wear OS steel thread — receive + display raw status — Create `wear/` Gradle module (min Wear OS 3 / API 30). Implement `WearableListenerService` to receive `CommuteStatus` via `DataClient`. Minimal Main Activity shows one-word action status + "X min ago" timestamp. Validates the full pipeline: phone poll → DataClient → watch display. Test on Wear OS emulator.
+- [x] PHASE2-02: Wear OS steel thread — receive + display raw status — Create `wear/` Gradle module (min Wear OS 3 / API 30). Implement `WearableListenerService` to receive `CommuteStatus` via `DataClient`. Minimal Main Activity shows one-word action status + "X min ago" timestamp. Validates the full pipeline: phone poll → DataClient → watch display. Test on Wear OS emulator.
 
 **Wear OS UI**
 - [ ] PHASE2-03: Wear OS Tile — ProtoLayout glanceable status — Build a Tile using `androidx.wear.protolayout`. Title slot: action word in tier color. Main slot: circular MTA route badges. Bottom slot: `reroute_hint` (prioritized) or `summary` with `maxLines` ellipsis. Tap anywhere launches Main Activity.
