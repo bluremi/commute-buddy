@@ -74,9 +74,10 @@ When a watch glance/tile is viewed, it instantly displays the cached status — 
 - **Detail view:** Native `ViewLoop` paged navigation. Page 1: action title → colored route badges → timestamp (FONT_XTINY) → reroute hint (action-tier color). Summary text follows in white. When the hint fills the screen, page 1 is header-only and summary starts on page 2. Deterministic word-boundary pagination via `fitTextToArea()`
 - **BLE schema:** `action` (string), `summary`, `affected_routes`, `reroute_hint` (optional), `timestamp` (long) — documented in `shared/schema.json`
 
-### Wear OS Watch App (Steel Thread)
+### Wear OS Watch App
+- **Tile (glanceable):** ProtoLayout tile in the watch carousel. Three slots: `titleSlot` shows action label in tier color (bold) + relative timestamp in gray; `mainSlot` shows summary or reroute hint (12sp, up to 4 lines, ellipsis, tier-colored for hints / light gray for summary); `bottomSlot` shows MTA route badges (18dp circles) arranged in centered rows of 4, wrapping to a second row for 5+ routes. Entire tile is tappable and launches MainActivity. Shows a "Waiting for data…" placeholder when no data exists. Refreshes automatically whenever `CommuteStatusListenerService` receives new data.
 - **Main Activity:** Compose for Wear OS. Two states: (a) "Waiting for data…" placeholder (gray) when no status has been received yet; (b) action label in tier color (green/yellow/red) with relative timestamp below ("just now", "N min ago", "N hr ago")
-- **Data reception:** `CommuteStatusListenerService` extends `WearableListenerService`, receives `onDataChanged()` for `/commute-status`, extracts all `CommuteStatus` fields from `DataMap`, persists to `StatusStore`
+- **Data reception:** `CommuteStatusListenerService` extends `WearableListenerService`, receives `onDataChanged()` for `/commute-status`, extracts all `CommuteStatus` fields from `DataMap`, persists to `StatusStore`, and calls `TileService.getUpdater()` to push a tile refresh
 - **`StatusStore`:** Kotlin object wrapping SharedPreferences + `StateFlow<CommuteStatusSnapshot?>`. Survives process death. `init()` always re-syncs from SharedPreferences on Activity start (so clearing app data resets to the placeholder state correctly)
 - **Timestamp note:** `CommuteStatus.timestamp` is stored in seconds (Unix epoch); the watch app multiplies by 1000 before computing relative time
 
@@ -98,7 +99,7 @@ When a watch glance/tile is viewed, it instantly displays the cached status — 
 
 - **Android app** (`android/`): `MainActivity.kt` initializes `GarminNotifier` and `WearOsNotifier`, manages manual fetch direction, API usage display, and watch connection status text. `CommutePipeline.run()` encapsulates the full pipeline: `MtaAlertFetcher` (HTTP GET) → `MtaAlertParser` (parse + route filter + active period filter + prompt text builder) → Gemini Flash decision engine → `CommuteStatus.fromJson()` → display + broadcast. After a successful result, `notifyAll()` (package-level function in `WatchNotifier.kt`) broadcasts to all registered `WatchNotifier` implementations with per-notifier failure isolation. `SystemPromptBuilder` generates the system prompt dynamically from the saved `CommuteProfile`. `PollingForegroundService` runs the same pipeline on `AlarmManager` exact-alarm schedule with `PARTIAL_WAKE_LOCK` and calls `notifyAll()` after each poll. Direction is resolved automatically from the active window index (0→TO_WORK, 1→TO_HOME) with SharedPreferences fallback.
 - **Garmin app** (`garmin/`): `CommuteBuddyApp.mc` receives and validates BLE payloads, stores fields in `Application.Storage`. `CommuteBuddyGlanceView.mc` renders color-coded one-line status. Detail view uses `ViewLoop` + `DetailPageFactory` for native paged navigation with dynamic layout measurement.
-- **Wear OS app** (`android/wear/`): `CommuteStatusListenerService` receives `/commute-status` data items via `WearableListenerService.onDataChanged()`, extracts fields from `DataMap`, and persists to `StatusStore` (SharedPreferences + `StateFlow`). `MainActivity` observes the flow via `collectAsState()` and renders the action tier in color with a relative timestamp.
+- **Wear OS app** (`android/wear/`): `CommuteStatusListenerService` receives `/commute-status` data items via `WearableListenerService.onDataChanged()`, extracts fields from `DataMap`, persists to `StatusStore` (SharedPreferences + `StateFlow`), and triggers a tile refresh via `TileService.getUpdater()`. `MainActivity` observes the flow via `collectAsState()` and renders the action tier in color with a relative timestamp. `CommuteTileService` extends `TileService` and builds a ProtoLayout tile with action/timestamp in `titleSlot`, summary/hint text in `mainSlot`, and route badges in `bottomSlot`; the entire tile is wrapped in a clickable `Box` that launches `MainActivity`. `MtaLineColors` provides the same trunk-line color mapping as the phone app.
 - Apps share a BLE message schema (`shared/schema.json`) but no source code.
 
 ### Key Files
@@ -161,7 +162,9 @@ commute-buddy/
 │           └── kotlin/com/commutebuddy/wear/
 │               ├── MainActivity.kt                 # Compose activity: tier color + relative timestamp; observes StatusStore flow
 │               ├── StatusStore.kt                  # SharedPreferences + StateFlow<CommuteStatusSnapshot?>; always re-syncs on init()
-│               └── CommuteStatusListenerService.kt # WearableListenerService: receives /commute-status DataMap, persists via StatusStore
+│               ├── CommuteStatusListenerService.kt # WearableListenerService: receives /commute-status DataMap, persists via StatusStore, triggers tile refresh
+│               ├── CommuteTileService.kt           # ProtoLayout TileService: titleSlot (action+timestamp), mainSlot (summary/hint text), bottomSlot (route badges); full-tile tap → MainActivity
+│               └── MtaLineColors.kt                # MTA trunk-line color map (same groups as phone app); lineColor() + isLightBackground()
 ├── garmin/                                         # Open in VS Code
 │   ├── monkey.jungle
 │   ├── manifest.xml                                # Target: venu3, permission: Communications
@@ -208,11 +211,11 @@ commute-buddy/
 
 Bash (e.g., Claude Code, WSL):
 ```bash
-GRADLE=(/c/Users/blure/.gradle/wrapper/dists/gradle-8.13-bin/*/gradle-8.13/bin/gradle)
+GRADLE=$(ls /c/Users/blure/.gradle/wrapper/dists/gradle-8.13-bin/*/gradle-8.13/bin/gradle 2>/dev/null | head -1)
 cd "A:/Phil/Phil Docs/Development/commute-buddy/android"
-"${GRADLE[0]}" :app:testDebugUnitTest   # run unit tests
-"${GRADLE[0]}" :app:assembleDebug       # build phone APK
-"${GRADLE[0]}" :wear:assembleDebug      # build Wear OS APK
+"$GRADLE" :app:testDebugUnitTest   # run unit tests
+"$GRADLE" :app:assembleDebug       # build phone APK
+"$GRADLE" :wear:assembleDebug      # build Wear OS APK
 ```
 
 PowerShell:
@@ -271,7 +274,7 @@ Expand the Total Addressable Market (TAM) by supporting Wear OS devices. The ini
 
 **3. Wear OS Tile (Glanceable State)**
 - Built using **ProtoLayout API** (Tiles cannot use Compose and cannot scroll)
-- `titleSlot`: Action status colored to tier. `mainSlot`: Circular route badges. `bottomSlot`: `reroute_hint` (prioritized over `summary`) with `maxLines` ellipsis for overflow
+- `titleSlot`: Action label in tier color (bold) + relative timestamp in gray. `mainSlot`: Summary or reroute hint text (12sp, 4 lines max, ellipsis, tier-colored for hints). `bottomSlot`: MTA route badges (18dp circles, rows of 4, center-aligned, wraps for 5+ routes)
 - Tap anywhere launches Main Activity
 
 **4. Wear OS Main Activity (Detail State)**
@@ -286,7 +289,7 @@ Expand the Total Addressable Market (TAM) by supporting Wear OS devices. The ini
 - [x] PHASE2-02: Wear OS steel thread — receive + display raw status — Create `wear/` Gradle module (min Wear OS 3 / API 30). Implement `WearableListenerService` to receive `CommuteStatus` via `DataClient`. Minimal Main Activity shows one-word action status + "X min ago" timestamp. Validates the full pipeline: phone poll → DataClient → watch display. Test on Wear OS emulator.
 
 **Wear OS UI**
-- [ ] PHASE2-03: Wear OS Tile — ProtoLayout glanceable status — Build a Tile using `androidx.wear.protolayout`. Title slot: action word in tier color. Main slot: circular MTA route badges. Bottom slot: `reroute_hint` (prioritized) or `summary` with `maxLines` ellipsis. Tap anywhere launches Main Activity.
+- [x] PHASE2-03: Wear OS Tile — ProtoLayout glanceable status — Build a Tile using `androidx.wear.protolayout`. Title slot: action word in tier color + timestamp. Main slot: summary/hint text (4 lines, 12sp). Bottom slot: route badges (18dp, rows of 4). Tap anywhere launches Main Activity.
 - [ ] PHASE2-04: Wear OS Main Activity — polished detail view — Compose for Wear OS with `ScalingLazyColumn`. Full information hierarchy: action → route badges → timestamp → reroute hint (tier-colored) → summary. Scrollable, no truncation.
 
 **Hardening**
@@ -297,4 +300,8 @@ Expand the Total Addressable Market (TAM) by supporting Wear OS devices. The ini
 
 
 **BUGS**
-- [ ] BUG-10: The tile picker screen shows a grey circle for the app on pixel watches. The tile itself shows an MTA vector graphic instead of the commute buddy logo
+- [ ] BUG-10: The tile picker screen shows a grey circle for the app on pixel watches. The tile itself, when loaded, shows an MTA vector graphic instead of the commute buddy logo. I want both to show the standard app icon.
+  - **Fix — three-part:**
+  - **1. Manifest service icon:** Change `android:icon="@drawable/ic_tile"` to `android:icon="@mipmap/ic_launcher"` on the `CommuteTileService` entry in `wear/AndroidManifest.xml`. This fixes what the OS shows for the tile service in system-level UI.
+  - **2. Tile app chip / in-tile icon:** ProtoLayout's `ResourceBuilders.Resources` cannot accept an XML adaptive icon (`@mipmap/...`) — it requires a flat vector or raster. The current `onTileResourcesRequest` returns an empty `Resources` builder so no image is registered. If an app chip or image element inside the tile layout ever references `ic_tile`, update it to reference a flat version of the logo. Create a flat, non-adaptive vector asset (`@drawable/ic_logo_flat`) derived from the app icon foreground layer, register it in `ResourceBuilders.Resources` by ID, and use that ID in any `Image` or `AppChip` ProtoLayout element. If no such element exists yet, skip for now.
+  - **3. Tile picker preview:** The grey circle comes from `tile_preview.xml` (currently a plain dark oval placeholder). The fix is to take a screenshot of the fully rendered tile on an emulator (once PHASE2-03 is complete), crop it to square, save as `tile_preview.webp` in `res/drawable-nodpi/` (nodpi prevents density scaling), and leave the manifest `androidx.wear.tiles.PREVIEW` metadata pointing to `@drawable/tile_preview`. Replace the existing `tile_preview.xml` with this asset.

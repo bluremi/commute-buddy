@@ -84,18 +84,20 @@ adb -s 57171FDCQ008DS reboot && adb -s 57171FDCQ008DS wait-for-device && adb -s 
 
 ## Running Gradle (Bash — Claude Code's shell)
 
-Claude Code runs in **bash**, not PowerShell. There is no `gradlew` in the repo, so locate the cached binary with a glob and run it directly:
+Claude Code runs in **bash**, not PowerShell. There is no `gradlew` in the repo, so locate the cached binary with a glob and run it directly.
+
+**IMPORTANT: Do NOT use bash array syntax `GRADLE=(...)` / `${GRADLE[0]}` — the Bash tool runs commands via `eval` and array assignment causes a syntax error every time. Use `$()` command substitution instead:**
 
 ```bash
-GRADLE=(/c/Users/blure/.gradle/wrapper/dists/gradle-8.13-bin/*/gradle-8.13/bin/gradle)
-cd "A:/Phil/Phil Docs/Development/commute-buddy/android" && "${GRADLE[0]}" :app:testDebugUnitTest
+GRADLE=$(ls /c/Users/blure/.gradle/wrapper/dists/gradle-8.13-bin/*/gradle-8.13/bin/gradle 2>/dev/null | head -1)
+cd "A:/Phil/Phil Docs/Development/commute-buddy/android" && "$GRADLE" :app:testDebugUnitTest
 ```
 
 The hash-named subdirectory (e.g. `5xuhj0ry160q40clulazy9h7d`) varies, so always use the glob `*/gradle-8.13/bin/gradle` — do **not** hardcode the hash.
 
 Other common tasks (same pattern, different task):
-- Build debug APK: `"${GRADLE[0]}" :app:assembleDebug`
-- Install to device: `"${GRADLE[0]}" :app:installDebug`
+- Build debug APK: `"$GRADLE" :app:assembleDebug`
+- Install to device: `"$GRADLE" :app:installDebug`
 
 ## Windows / PowerShell Notes (for manual terminal use)
 
