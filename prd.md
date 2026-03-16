@@ -300,8 +300,4 @@ Expand the Total Addressable Market (TAM) by supporting Wear OS devices. The ini
 
 
 **BUGS**
-- [ ] BUG-10: The tile picker screen shows a grey circle for the app on pixel watches. The tile itself, when loaded, shows an MTA vector graphic instead of the commute buddy logo. I want both to show the standard app icon.
-  - **Fix — three-part:**
-  - **1. Manifest service icon:** Change `android:icon="@drawable/ic_tile"` to `android:icon="@mipmap/ic_launcher"` on the `CommuteTileService` entry in `wear/AndroidManifest.xml`. This fixes what the OS shows for the tile service in system-level UI.
-  - **2. Tile app chip / in-tile icon:** ProtoLayout's `ResourceBuilders.Resources` cannot accept an XML adaptive icon (`@mipmap/...`) — it requires a flat vector or raster. The current `onTileResourcesRequest` returns an empty `Resources` builder so no image is registered. If an app chip or image element inside the tile layout ever references `ic_tile`, update it to reference a flat version of the logo. Create a flat, non-adaptive vector asset (`@drawable/ic_logo_flat`) derived from the app icon foreground layer, register it in `ResourceBuilders.Resources` by ID, and use that ID in any `Image` or `AppChip` ProtoLayout element. If no such element exists yet, skip for now.
-  - **3. Tile picker preview:** The grey circle comes from `tile_preview.xml` (currently a plain dark oval placeholder). The fix is to take a screenshot of the fully rendered tile on an emulator (once PHASE2-03 is complete), crop it to square, save as `tile_preview.webp` in `res/drawable-nodpi/` (nodpi prevents density scaling), and leave the manifest `androidx.wear.tiles.PREVIEW` metadata pointing to `@drawable/tile_preview`. Replace the existing `tile_preview.xml` with this asset.
+- [x] BUG-10: Tile picker showed grey circle and MTA vector instead of app icon/preview.
