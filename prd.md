@@ -294,3 +294,7 @@ Expand the Total Addressable Market (TAM) by supporting Wear OS devices. The ini
 
 ### Out of Scope
 - **Monetization:** Deferred until product-market fit is validated. See `docs/monetization-plan.md`.
+
+
+**BUGS**
+- [ ] BUG-10: The tile picker screen shows a grey circle for the app on pixel watches. The tile itself shows an MTA vector graphic instead of the commute buddy logo
