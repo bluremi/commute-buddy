@@ -56,21 +56,21 @@ The Wear OS Tile is the equivalent of the Garmin Glance: a system-rendered surfa
 ### Implementation Plan
 
 #### Increment 1: Dependencies + Skeleton TileService
-- [ ] Add ProtoLayout and Tiles dependencies to `wear/build.gradle.kts`: `tiles:1.5.0`, `protolayout:1.3.0`, `protolayout-material3:1.3.0`, `protolayout-expression:1.3.0`, Guava (`com.google.guava:guava`) for `Futures.immediateFuture`
-- [ ] Create `CommuteTileService.kt` extending `TileService` — return a minimal tile with hardcoded "Commute Buddy" text using `materialScope` + `primaryLayout`
-- [ ] Register `CommuteTileService` in `AndroidManifest.xml` with `BIND_TILE_PROVIDER` permission, intent-filter, label, and preview metadata
-- [ ] Add a placeholder tile preview drawable (`res/drawable/tile_preview.xml`) — simple solid-color circle with text
-- [ ] Add `tile_label` and `tile_description` strings to `res/values/strings.xml`
+- [x] Add ProtoLayout and Tiles dependencies to `wear/build.gradle.kts`: `tiles:1.5.0`, `protolayout:1.3.0`, `protolayout-material3:1.3.0`, `protolayout-expression:1.3.0`, Guava (`com.google.guava:guava`) for `Futures.immediateFuture`
+- [x] Create `CommuteTileService.kt` extending `TileService` — return a minimal tile with hardcoded "Commute Buddy" text using `materialScope` + `primaryLayout`
+- [x] Register `CommuteTileService` in `AndroidManifest.xml` with `BIND_TILE_PROVIDER` permission, intent-filter, label, and preview metadata
+- [x] Add a placeholder tile preview drawable (`res/drawable/tile_preview.xml`) — simple solid-color circle with text
+- [x] Add `tile_label` and `tile_description` strings to `res/values/strings.xml`
 
 **Testing:** Build `wear:assembleDebug`. Deploy to Wear OS emulator, add the tile to the carousel, verify it appears and shows the placeholder text.
 **Model: Sonnet** | Reason: First use of ProtoLayout M3 DSL in this codebase — needs to get imports, materialScope pattern, and manifest registration correct.
 
 #### Increment 2: Data-Driven Layout — Action Tier + Timestamp + Placeholder
-- [ ] In `CommuteTileService.onTileRequest()`, read from `StatusStore.load(this)` to get the current `CommuteStatusSnapshot`
-- [ ] When snapshot is null: render "Waiting for data…" placeholder in gray
-- [ ] When snapshot exists: `titleSlot` shows action label ("Normal", "Minor Delays", etc.) in tier color (green/yellow/red) with bold weight
-- [ ] Add relative timestamp text below the action label (reuse `relativeTime()` logic — extract to a shared utility or duplicate in tile)
-- [ ] Set `setFreshnessIntervalMillis(10 * 60 * 1000)` (10 minutes) so the timestamp stays reasonably current
+- [x] In `CommuteTileService.onTileRequest()`, read from `StatusStore.load(this)` to get the current `CommuteStatusSnapshot`
+- [x] When snapshot is null: render "Waiting for data…" placeholder in gray
+- [x] When snapshot exists: `titleSlot` shows action label ("Normal", "Minor Delays", etc.) in tier color (green/yellow/red) with bold weight
+- [x] Add relative timestamp text below the action label (reuse `relativeTime()` logic — extract to a shared utility or duplicate in tile)
+- [x] Set `setFreshnessIntervalMillis(10 * 60 * 1000)` (10 minutes) so the timestamp stays reasonably current
 
 **Testing:** Deploy to emulator. Use `adb shell am broadcast` or send a test status from the phone app. Verify tile shows correct action text in tier color with timestamp. Clear app data and verify placeholder appears.
 **Model: Sonnet** | Reason: Integrating StatusStore with ProtoLayout rendering logic, conditional layouts, and color mapping.

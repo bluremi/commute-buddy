@@ -5,6 +5,7 @@ garmin/bin/
 android/.gradle/
 android/build/
 android/app/build/
+android/wear/build/
 android/local.properties
 android/app/google-services.json
 *.apk
