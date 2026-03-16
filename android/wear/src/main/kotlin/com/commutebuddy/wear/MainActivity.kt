@@ -3,6 +3,7 @@ package com.commutebuddy.wear
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -69,7 +70,8 @@ fun WearApp() {
         ScalingLazyColumn(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            state = listState
+            state = listState,
+            contentPadding = PaddingValues(bottom = 80.dp)
         ) {
             if (snapshot == null) {
                 item {
