@@ -262,7 +262,7 @@ private fun buildLayout(
                 mainSlot = {
                     LayoutElementBuilders.Text.Builder()
                         .setText(TypeBuilders.StringProp.Builder(bottomText).build())
-                        .setMaxLines(TypeBuilders.Int32Prop.Builder().setValue(3).build())
+                        .setMaxLines(TypeBuilders.Int32Prop.Builder().setValue(4).build())
                         .setOverflow(
                             LayoutElementBuilders.TextOverflowProp.Builder()
                                 .setValue(LayoutElementBuilders.TEXT_OVERFLOW_ELLIPSIZE)
