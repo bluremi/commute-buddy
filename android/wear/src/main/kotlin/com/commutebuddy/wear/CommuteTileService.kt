@@ -1,6 +1,7 @@
 package com.commutebuddy.wear
 
 import android.content.Context
+import androidx.wear.protolayout.ActionBuilders
 import androidx.wear.protolayout.ColorBuilders
 import androidx.wear.protolayout.DeviceParametersBuilders
 import androidx.wear.protolayout.DimensionBuilders
@@ -167,12 +168,28 @@ private fun buildBadgeRow(affectedRoutes: String): LayoutElementBuilders.LayoutE
     return row.build()
 }
 
+private fun buildClickable(context: Context): ModifiersBuilders.Clickable =
+    ModifiersBuilders.Clickable.Builder()
+        .setId("open_main")
+        .setOnClick(
+            ActionBuilders.LaunchAction.Builder()
+                .setAndroidActivity(
+                    ActionBuilders.AndroidActivity.Builder()
+                        .setClassName("com.commutebuddy.wear.MainActivity")
+                        .setPackageName(context.packageName)
+                        .build()
+                )
+                .build()
+        )
+        .build()
+
 private fun buildLayout(
     context: Context,
     deviceParams: DeviceParametersBuilders.DeviceParameters,
     snapshot: CommuteStatusSnapshot?
 ): LayoutElementBuilders.LayoutElement {
-    return materialScope(context, deviceParams) {
+    val clickable = buildClickable(context)
+    val inner = materialScope(context, deviceParams) {
         if (snapshot == null) {
             primaryLayout(
                 mainSlot = {
@@ -187,6 +204,15 @@ private fun buildLayout(
                 }
             )
         } else {
+            val bottomText: String
+            val bottomColor: Int
+            if (!snapshot.rerouteHint.isNullOrEmpty()) {
+                bottomText = snapshot.rerouteHint
+                bottomColor = tierColorArgb(snapshot.action)
+            } else {
+                bottomText = snapshot.summary
+                bottomColor = 0xFFBDBDBD.toInt() // light gray
+            }
             primaryLayout(
                 titleSlot = {
                     LayoutElementBuilders.Column.Builder()
@@ -219,8 +245,35 @@ private fun buildLayout(
                 },
                 mainSlot = {
                     buildBadgeRow(snapshot.affectedRoutes)
+                },
+                bottomSlot = {
+                    LayoutElementBuilders.Text.Builder()
+                        .setText(TypeBuilders.StringProp.Builder(bottomText).build())
+                        .setMaxLines(TypeBuilders.Int32Prop.Builder().setValue(2).build())
+                        .setOverflow(
+                            LayoutElementBuilders.TextOverflowProp.Builder()
+                                .setValue(LayoutElementBuilders.TEXT_OVERFLOW_ELLIPSIZE)
+                                .build()
+                        )
+                        .setFontStyle(
+                            LayoutElementBuilders.FontStyle.Builder()
+                                .setColor(ColorBuilders.argb(bottomColor))
+                                .build()
+                        )
+                        .build()
                 }
             )
         }
     }
+    // Wrap in a full-screen Box so the entire tile is tappable
+    return LayoutElementBuilders.Box.Builder()
+        .setWidth(DimensionBuilders.expand())
+        .setHeight(DimensionBuilders.expand())
+        .setModifiers(
+            ModifiersBuilders.Modifiers.Builder()
+                .setClickable(clickable)
+                .build()
+        )
+        .addContent(inner)
+        .build()
 }
