@@ -1,6 +1,7 @@
 package com.commutebuddy.wear
 
 import android.util.Log
+import androidx.wear.tiles.TileService
 import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.DataMapItem
@@ -26,6 +27,8 @@ class CommuteStatusListenerService : WearableListenerService() {
                 )
                 Log.d(TAG, "Received commute status: action=${snapshot.action}, timestamp=${snapshot.timestamp}")
                 StatusStore.save(applicationContext, snapshot)
+                TileService.getUpdater(applicationContext)
+                    .requestUpdate(CommuteTileService::class.java)
             }
         }
         dataEvents.release()
