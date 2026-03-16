@@ -91,16 +91,17 @@ class CommuteTileService : TileService() {
     }
 }
 
-private const val BADGE_SIZE_DP = 22f
-private const val BADGE_FONT_SP = 10f
-private const val BADGE_SPACING_DP = 4f
+private const val BADGE_SIZE_DP = 18f
+private const val BADGE_FONT_SP = 9f
+private const val BADGE_SPACING_DP = 3f
+private const val BADGE_ROW_SPACING_DP = 2f
+private const val BADGES_PER_ROW = 4
 private const val COLOR_WHITE = 0xFFFFFFFF.toInt()
 private const val COLOR_BLACK = 0xFF000000.toInt()
 
 private fun buildBadge(line: String): LayoutElementBuilders.LayoutElement {
     val bgColor = MtaLineColors.lineColor(line)
     val textColor = if (MtaLineColors.isLightBackground(line)) COLOR_BLACK else COLOR_WHITE
-    val radius = BADGE_SIZE_DP / 2f
     return LayoutElementBuilders.Box.Builder()
         .setWidth(DimensionBuilders.dp(BADGE_SIZE_DP))
         .setHeight(DimensionBuilders.dp(BADGE_SIZE_DP))
@@ -113,7 +114,7 @@ private fun buildBadge(line: String): LayoutElementBuilders.LayoutElement {
                         .setColor(ColorBuilders.argb(bgColor))
                         .setCorner(
                             ModifiersBuilders.Corner.Builder()
-                                .setRadius(DimensionBuilders.dp(radius))
+                                .setRadius(DimensionBuilders.dp(BADGE_SIZE_DP / 2f))
                                 .build()
                         )
                         .build()
@@ -143,7 +144,8 @@ private fun buildBadge(line: String): LayoutElementBuilders.LayoutElement {
         .build()
 }
 
-private fun buildBadgeRow(affectedRoutes: String): LayoutElementBuilders.LayoutElement {
+/** Renders badges in rows of [BADGES_PER_ROW], wrapping into a Column if needed. */
+private fun buildBadgeRows(affectedRoutes: String): LayoutElementBuilders.LayoutElement {
     val lines = affectedRoutes.split(",").map { it.trim() }.filter { it.isNotEmpty() }
     if (lines.isEmpty()) {
         return LayoutElementBuilders.Box.Builder()
@@ -151,21 +153,35 @@ private fun buildBadgeRow(affectedRoutes: String): LayoutElementBuilders.LayoutE
             .setHeight(DimensionBuilders.wrap())
             .build()
     }
-    val row = LayoutElementBuilders.Row.Builder()
+    val col = LayoutElementBuilders.Column.Builder()
         .setWidth(DimensionBuilders.wrap())
         .setHeight(DimensionBuilders.wrap())
-        .setVerticalAlignment(LayoutElementBuilders.VERTICAL_ALIGN_CENTER)
-    for ((index, line) in lines.withIndex()) {
-        if (index > 0) {
-            row.addContent(
+        .setHorizontalAlignment(LayoutElementBuilders.HORIZONTAL_ALIGN_CENTER)
+    for ((rowIdx, chunk) in lines.chunked(BADGES_PER_ROW).withIndex()) {
+        if (rowIdx > 0) {
+            col.addContent(
                 LayoutElementBuilders.Spacer.Builder()
-                    .setWidth(DimensionBuilders.dp(BADGE_SPACING_DP))
+                    .setHeight(DimensionBuilders.dp(BADGE_ROW_SPACING_DP))
                     .build()
             )
         }
-        row.addContent(buildBadge(line))
+        val row = LayoutElementBuilders.Row.Builder()
+            .setWidth(DimensionBuilders.wrap())
+            .setHeight(DimensionBuilders.wrap())
+            .setVerticalAlignment(LayoutElementBuilders.VERTICAL_ALIGN_CENTER)
+        for ((idx, line) in chunk.withIndex()) {
+            if (idx > 0) {
+                row.addContent(
+                    LayoutElementBuilders.Spacer.Builder()
+                        .setWidth(DimensionBuilders.dp(BADGE_SPACING_DP))
+                        .build()
+                )
+            }
+            row.addContent(buildBadge(line))
+        }
+        col.addContent(row.build())
     }
-    return row.build()
+    return col.build()
 }
 
 private fun buildClickable(context: Context): ModifiersBuilders.Clickable =
@@ -244,12 +260,9 @@ private fun buildLayout(
                         .build()
                 },
                 mainSlot = {
-                    buildBadgeRow(snapshot.affectedRoutes)
-                },
-                bottomSlot = {
                     LayoutElementBuilders.Text.Builder()
                         .setText(TypeBuilders.StringProp.Builder(bottomText).build())
-                        .setMaxLines(TypeBuilders.Int32Prop.Builder().setValue(2).build())
+                        .setMaxLines(TypeBuilders.Int32Prop.Builder().setValue(3).build())
                         .setOverflow(
                             LayoutElementBuilders.TextOverflowProp.Builder()
                                 .setValue(LayoutElementBuilders.TEXT_OVERFLOW_ELLIPSIZE)
@@ -258,9 +271,17 @@ private fun buildLayout(
                         .setFontStyle(
                             LayoutElementBuilders.FontStyle.Builder()
                                 .setColor(ColorBuilders.argb(bottomColor))
+                                .setSize(
+                                    DimensionBuilders.SpProp.Builder()
+                                        .setValue(12f)
+                                        .build()
+                                )
                                 .build()
                         )
                         .build()
+                },
+                bottomSlot = {
+                    buildBadgeRows(snapshot.affectedRoutes)
                 }
             )
         }
