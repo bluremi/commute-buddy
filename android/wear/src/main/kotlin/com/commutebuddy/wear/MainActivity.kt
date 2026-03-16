@@ -3,9 +3,17 @@ package com.commutebuddy.wear
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -63,6 +71,40 @@ private fun relativeTime(timestampSeconds: Long): String {
 }
 
 @Composable
+private fun MtaRouteBadge(line: String) {
+    val bg = Color(MtaLineColors.lineColor(line))
+    val fg = if (MtaLineColors.isLightBackground(line)) Color.Black else Color.White
+    Box(
+        modifier = Modifier
+            .size(24.dp)
+            .background(color = bg, shape = CircleShape),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = line,
+            color = fg,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun MtaRouteBadges(affectedRoutes: String) {
+    val routes = affectedRoutes.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+    if (routes.isEmpty()) return
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        modifier = Modifier.fillMaxWidth().padding(top = 6.dp)
+    ) {
+        routes.forEach { line -> MtaRouteBadge(line) }
+    }
+}
+
+@Composable
 fun WearApp() {
     val snapshot by StatusStore.flow.collectAsState()
     val listState = rememberScalingLazyListState()
@@ -92,6 +134,11 @@ fun WearApp() {
                         fontSize = 18.sp,
                         textAlign = TextAlign.Center
                     )
+                }
+                if (s.affectedRoutes.isNotEmpty()) {
+                    item {
+                        MtaRouteBadges(s.affectedRoutes)
+                    }
                 }
                 item {
                     Text(
