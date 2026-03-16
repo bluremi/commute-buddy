@@ -71,7 +71,7 @@ fun WearApp() {
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             state = listState,
-            contentPadding = PaddingValues(bottom = 80.dp)
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 80.dp)
         ) {
             if (snapshot == null) {
                 item {
