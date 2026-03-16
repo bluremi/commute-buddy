@@ -48,8 +48,8 @@ private fun tierLabel(action: String): String = when (action.uppercase()) {
     else -> action
 }
 
-private fun relativeTime(timestampMs: Long): String {
-    val diffMs = System.currentTimeMillis() - timestampMs
+private fun relativeTime(timestampSeconds: Long): String {
+    val diffMs = System.currentTimeMillis() - (timestampSeconds * 1000)
     val diffMin = (diffMs / 60_000).coerceAtLeast(0)
     return when {
         diffMin < 1 -> "just now"

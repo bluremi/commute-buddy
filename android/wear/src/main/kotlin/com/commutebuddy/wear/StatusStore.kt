@@ -26,11 +26,9 @@ object StatusStore {
     private val _flow = MutableStateFlow<CommuteStatusSnapshot?>(null)
     val flow: StateFlow<CommuteStatusSnapshot?> = _flow.asStateFlow()
 
-    /** Seed the in-memory flow from SharedPreferences (call on Activity start). */
+    /** Sync the in-memory flow from SharedPreferences (call on Activity start). */
     fun init(context: Context) {
-        if (_flow.value == null) {
-            _flow.value = load(context)
-        }
+        _flow.value = load(context)
     }
 
     fun save(context: Context, snapshot: CommuteStatusSnapshot) {
