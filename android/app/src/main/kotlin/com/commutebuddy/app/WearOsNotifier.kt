@@ -30,6 +30,26 @@ class WearOsNotifier : WatchNotifier {
         Log.d(TAG, "WearOsNotifier initialized")
     }
 
+    /** Proactively check if any paired Wear OS nodes are reachable and fire [onConnected] if so. */
+    fun checkConnected() {
+        val ctx = appContext ?: return
+        try {
+            Wearable.getNodeClient(ctx)
+                .connectedNodes
+                .addOnSuccessListener { nodes ->
+                    if (nodes.isNotEmpty()) {
+                        Log.d(TAG, "Wear OS nodes reachable: ${nodes.map { it.displayName }}")
+                        onConnected?.invoke()
+                    } else {
+                        Log.d(TAG, "No Wear OS nodes connected")
+                    }
+                }
+                .addOnFailureListener { e -> Log.w(TAG, "checkConnected failed: ${e.message}") }
+        } catch (e: Exception) {
+            Log.w(TAG, "checkConnected error: ${e.message}")
+        }
+    }
+
     override suspend fun notify(status: CommuteStatus) {
         val ctx = appContext ?: run { Log.w(TAG, "notify skipped: not initialized"); return }
         try {

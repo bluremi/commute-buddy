@@ -183,6 +183,7 @@ class MainActivity : AppCompatActivity() {
         }
         notifiers = listOf(garminNotifier, wearOsNotifier)
         notifiers.forEach { it.initialize(this) }
+        wearOsNotifier.checkConnected()
         updateWatchStatus()
     }
 
