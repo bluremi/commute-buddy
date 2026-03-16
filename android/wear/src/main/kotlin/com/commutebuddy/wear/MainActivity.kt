@@ -3,9 +3,8 @@ package com.commutebuddy.wear
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -13,7 +12,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
+import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 
@@ -61,31 +64,63 @@ private fun relativeTime(timestampSeconds: Long): String {
 @Composable
 fun WearApp() {
     val snapshot by StatusStore.flow.collectAsState()
+    val listState = rememberScalingLazyListState()
     MaterialTheme {
-        Column(
+        ScalingLazyColumn(
             modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            state = listState
         ) {
             if (snapshot == null) {
-                Text(
-                    text = "Waiting for data…",
-                    color = TierGray,
-                    fontSize = 14.sp
-                )
+                item {
+                    Text(
+                        text = "Waiting for data…",
+                        color = TierGray,
+                        fontSize = 14.sp,
+                        textAlign = TextAlign.Center
+                    )
+                }
             } else {
                 val s = snapshot!!
-                Text(
-                    text = tierLabel(s.action),
-                    color = tierColor(s.action),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
-                )
-                Text(
-                    text = relativeTime(s.timestamp),
-                    color = Color.LightGray,
-                    fontSize = 12.sp
-                )
+                item {
+                    Text(
+                        text = tierLabel(s.action),
+                        color = tierColor(s.action),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        textAlign = TextAlign.Center
+                    )
+                }
+                item {
+                    Text(
+                        text = relativeTime(s.timestamp),
+                        color = Color.LightGray,
+                        fontSize = 12.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+                val hint = s.rerouteHint
+                if (!hint.isNullOrEmpty()) {
+                    item {
+                        Text(
+                            text = hint,
+                            color = tierColor(s.action),
+                            fontSize = 13.sp,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                    }
+                }
+                item {
+                    Text(
+                        text = s.summary,
+                        color = Color(0xFFBDBDBD),
+                        fontSize = 12.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(top = 8.dp, bottom = 16.dp)
+                    )
+                }
             }
         }
     }
