@@ -45,4 +45,11 @@ dependencies {
     implementation("androidx.wear.compose:compose-foundation:1.4.1")
     implementation("androidx.activity:activity-compose:1.9.3")
     implementation("com.google.android.gms:play-services-wearable:18.2.0")
+
+    // Tiles + ProtoLayout
+    implementation("androidx.wear.tiles:tiles:1.5.0")
+    implementation("androidx.wear.protolayout:protolayout:1.3.0")
+    implementation("androidx.wear.protolayout:protolayout-material3:1.3.0")
+    implementation("androidx.wear.protolayout:protolayout-expression:1.3.0")
+    implementation("com.google.guava:guava:33.3.1-android")
 }
