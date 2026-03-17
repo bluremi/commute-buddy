@@ -69,6 +69,7 @@ class GarminNotifier : WatchNotifier {
     }
 
     override suspend fun notify(status: CommuteStatus) {
+        if (sdkShutDown) { Log.d(TAG, "BLE send skipped: SDK shut down"); return }
         if (!sdkReady) { Log.d(TAG, "BLE send skipped: SDK not ready"); return }
         val device = connectedDevice ?: run { Log.d(TAG, "BLE send skipped: no device"); return }
         val app = targetApp ?: run { Log.d(TAG, "BLE send skipped: app not installed"); return }

@@ -266,6 +266,9 @@ class PollingForegroundService : Service() {
         serviceScope.cancel()
         getSystemService(AlarmManager::class.java).cancel(buildAlarmPendingIntent())
         garminNotifier.shutdown(this)
+        // WearOsNotifier uses the Wearable Data Layer API (putDataItem) which has no
+        // lifecycle teardown — there are no registered receivers to unregister and
+        // in-flight tasks are fire-and-forget Tasks handled by Play Services.
         Log.d(TAG, "Service destroyed")
     }
 
