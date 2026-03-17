@@ -77,7 +77,7 @@ class WearOsNotifier : WatchNotifier {
             val putDataReq = request.asPutDataRequest().setUrgent()
             Wearable.getDataClient(ctx)
                 .putDataItem(putDataReq)
-                .addOnSuccessListener { Log.d(TAG, "Wear OS data put success"); onConnected?.invoke() }
+                .addOnSuccessListener { Log.d(TAG, "Wear OS data put success") }
                 .addOnFailureListener { e -> Log.w(TAG, "Wear OS data put failed: ${e.message}") }
         } catch (e: ApiException) {
             Log.w(TAG, "Wear OS not available: ${e.statusCode} ${e.message}")
