@@ -18,6 +18,18 @@ class WearOsNotifier : WatchNotifier {
     companion object {
         private const val TAG = "WearOsNotifier"
         const val DATA_PATH = "/commute-status"
+
+        /**
+         * Builds the core data map fields from a [CommuteStatus].
+         * Does NOT include [sent_at] — that is appended by [notify] to guarantee uniqueness.
+         */
+        internal fun buildDataMap(status: CommuteStatus): Map<String, Any> = buildMap {
+            put("action", status.action)
+            put("summary", status.summary)
+            put("affected_routes", status.affectedRoutes)
+            status.rerouteHint?.let { put("reroute_hint", it) }
+            put("timestamp", status.timestamp)
+        }
     }
 
     /** Called after the first successful [putDataItem] — use to update connection status UI. */
@@ -55,11 +67,12 @@ class WearOsNotifier : WatchNotifier {
         try {
             val request = PutDataMapRequest.create(DATA_PATH)
             val dataMap = request.dataMap
-            dataMap.putString("action", status.action)
-            dataMap.putString("summary", status.summary)
-            dataMap.putString("affected_routes", status.affectedRoutes)
-            status.rerouteHint?.let { dataMap.putString("reroute_hint", it) }
-            dataMap.putLong("timestamp", status.timestamp)
+            buildDataMap(status).forEach { (key, value) ->
+                when (value) {
+                    is String -> dataMap.putString(key, value)
+                    is Long -> dataMap.putLong(key, value)
+                }
+            }
             dataMap.putLong("sent_at", System.currentTimeMillis())
             val putDataReq = request.asPutDataRequest().setUrgent()
             Wearable.getDataClient(ctx)
