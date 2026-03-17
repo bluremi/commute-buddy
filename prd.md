@@ -88,6 +88,7 @@ When a watch glance/tile is viewed, it instantly displays the cached status — 
 - **Android App:** Kotlin, `minSdk = 34` (Android 14), Garmin Connect IQ Mobile SDK `2.3.0`, `com.google.android.gms:play-services-wearable`
 - **Wear OS App:** Kotlin, `minSdk = 30` (Wear OS 3 / API 30 — Pixel Watch 1st gen compatible), Compose for Wear OS (`androidx.wear.compose:compose-material`, `compose-foundation`), `com.google.android.gms:play-services-wearable`. Same `applicationId` as the phone app so the Wearable Data Layer auto-pairs.
 - **AI Decision Engine:** Gemini Flash via **Firebase AI Logic SDK** (`com.google.firebase:firebase-ai`, BoM 34.10.0). Model: `gemini-flash-latest` (Gemini 3 Flash Preview); `temperature=0`, `ThinkingLevel.LOW`. API key managed by Firebase (`google-services.json`). Model name configurable via `local.properties` (`GEMINI_MODEL_NAME`).
+- **API Security:** **Firebase App Check** (`firebase-appcheck-playintegrity` for release builds, `firebase-appcheck-debug` for debug/emulator). The Firebase-managed Android API key is restricted in Google Cloud Console to the `com.commutebuddy.app` package + debug/release SHA-1 fingerprints, and scoped to Firebase AI Logic API, Firebase App Check API, Firebase Installations API, and Firebase Management API only.
 - **Garmin Watch App:** Monkey C, Connect IQ SDK `8.4.1`, target: Garmin Venu 3 (`venu3`)
 - **Communication:** BLE via Connect IQ Mobile SDK (`IQConnectType.WIRELESS`)
 - **Data Source:** MTA GTFS-RT subway alerts — `https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/camsys%2Fsubway-alerts.json` (unauthenticated)
@@ -115,6 +116,7 @@ commute-buddy/
 │       └── src/main/
 │           ├── AndroidManifest.xml                 # BLUETOOTH_SCAN, BLUETOOTH_CONNECT, SCHEDULE_EXACT_ALARM, WAKE_LOCK, FOREGROUND_SERVICE_CONNECTED_DEVICE
 │           ├── kotlin/com/commutebuddy/app/
+│           │   ├── CommuteBuddyApplication.kt      # Custom Application class: initializes FirebaseAppCheck before any other code runs (PlayIntegrity for release, Debug provider for debug/emulator builds)
 │           │   ├── MainActivity.kt                 # GarminNotifier + WearOsNotifier init, manual direction toggle, Fetch Live, watch status text, debug menu
 │           │   ├── CommuteLeg.kt                   # Data class: lines, direction, fromStation, toStation
 │           │   ├── CommuteProfile.kt               # Data class: toWorkLegs, toHomeLegs, alternates; monitoredRoutes(); default Astoria profile
@@ -230,6 +232,8 @@ Set-Location "a:\Phil\Phil Docs\Development\commute-buddy\android"
 ### Technical Notes
 
 **Android Permissions (14+/15+):** `FOREGROUND_SERVICE_CONNECTED_DEVICE` (required for `connectedDevice` FGS type), `BLUETOOTH_SCAN`, `BLUETOOTH_CONNECT`, `SCHEDULE_EXACT_ALARM`, `WAKE_LOCK`. On Android 15, `dataSync` FGS cannot start from `BOOT_COMPLETED` — `connectedDevice` is the correct type for BLE services and is boot-exempt. `BLUETOOTH_CONNECT` and `BLUETOOTH_SCAN` require runtime grants; the app requests them in `MainActivity.onCreate()` before starting the service. `SCHEDULE_EXACT_ALARM` requires the user to grant via system settings. `BootReceiver` checks `BLUETOOTH_CONNECT` before `startForegroundService()` and aborts silently if not granted.
+
+**API Key Security:** The Firebase-managed Android API key is locked down in Google Cloud Console: restricted to `com.commutebuddy.app` package + debug/release SHA-1 fingerprints, and scoped to Firebase AI Logic API, Firebase App Check API, Firebase Installations API, and Firebase Management API. Firebase App Check (Play Integrity) is enforced at the Firebase backend for release builds — unauthorized callers (wrong package, missing attestation) are rejected server-side before any Gemini quota is consumed. Debug builds use `DebugAppCheckProviderFactory` so emulators and test devices still work. Known limitation: the API key is still client-side; server-side migration (calling Gemini from a backend) is the only 100% secure architecture.
 
 **Gemini Flash:** The free Firebase AI tier is sufficient for personal use. Response time is ~5 seconds with `ThinkingLevel.LOW` (vs 30-60s without). Note: `gemini-2.0-flash` was deprecated and retired March 3, 2026. The `ApiRateLimiter`'s persisted 50/day cap makes runaway costs virtually impossible.
 
