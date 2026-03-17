@@ -65,7 +65,7 @@ When a watch glance/tile is viewed, it instantly displays the cached status — 
 ### Multi-Watch Broadcasting
 - `WatchNotifier` interface abstracts watch communication; each implementation no-ops gracefully when its watch type is unavailable
 - `GarminNotifier` encapsulates all ConnectIQ SDK init, device discovery, app info loading, and BLE send logic; skips SDK initialization (and suppresses the Garmin Connect install dialog) when Garmin Connect is not installed
-- `WearOsNotifier` uses `DataClient.putDataItem()` with `PutDataMapRequest` at `/commute-status`; includes a `sent_at` timestamp to ensure `onDataChanged()` fires even for identical consecutive payloads
+- `WearOsNotifier` uses `DataClient.putDataItem()` with `PutDataMapRequest` at `/commute-status`; includes a `sent_at` timestamp to ensure `onDataChanged()` fires even for identical consecutive payloads; `putDataItem` success does NOT signal watch connectivity (it only confirms local datastore write) — "Wear OS connected" status is driven solely by `checkConnected()` querying reachable nodes
 - Both notifiers wired into `PollingForegroundService` and `MainActivity`; every poll broadcasts to all watch types simultaneously
 - Failure isolation: a throwing notifier is caught and logged; remaining notifiers always execute
 
@@ -154,7 +154,8 @@ commute-buddy/
 │               ├── CommuteStatusTest.kt
 │               ├── MtaAlertParserTest.kt
 │               ├── ApiRateLimiterTest.kt
-│               └── WatchNotifierOrchestratorTest.kt
+│               ├── WatchNotifierOrchestratorTest.kt    # Orchestrator: empty list, all throwing, failure isolation, all ACTION_* variants, rerouteHint null/present
+│               └── WearOsNotifierTest.kt               # buildDataMap: all fields, reroute_hint absent when null, every ACTION_* variant, field values exact
 │   └── wear/
 │       ├── build.gradle.kts                        # minSdk 30, Compose for Wear OS, play-services-wearable
 │       └── src/main/
@@ -246,41 +247,36 @@ Set-Location "a:\Phil\Phil Docs\Development\commute-buddy\android"
 
 **Garmin BLE Integration (Hardware):** Deploy APK to phone, sideload `.prg` to Garmin Venu 3 via USB. Test live BLE via `IQConnectType.WIRELESS`.
 
-**Wear OS (Phase II):** Wear OS emulator for steel thread validation. Physical testing on Pixel Watch (1st gen) for hardware validation.
+**Wear OS:** Wear OS emulator for tile and activity validation (ADB port forwarding required for Data Layer connectivity to physical phone). Manual hardware verification matrix: Garmin-only, Wear OS-only, both paired, neither paired, reconnect-after-disconnect.
 
 ## Backlog
 
 ### Phase I (Complete)
 All Phase I features and bugs are resolved. See `docs/phase1-changelog.md` for the full historical record.
 
-### Phase II: Wear OS Expansion
+### Phase II: Wear OS Expansion (Complete)
 
-#### Objective
-Expand the Total Addressable Market (TAM) by supporting Wear OS devices. The initial implementation follows a "steel thread" approach to validate the core infrastructure before investing in full feature development.
+#### What Was Built
+Phase II added Wear OS as a second supported watch platform. A "steel thread" approach was used — validating the full data pipeline end-to-end before investing in polished UI. All five stories shipped and are complete.
 
-**The Steel Thread Concept:** A minimalist, end-to-end technical spike to validate the highest-risk integration points. For Phase II, the steel thread proves the data pipeline: broadcasting `CommuteStatus` from the Android background service via the Wearable Data Layer API, and receiving/rendering it on a Wear OS device.
+#### Architectural Decisions
 
-#### Architectural Approach
-
-**1. Android App: Dual-Broadcasting (No Manual Toggle)**
-- Introduce a `WatchNotifier` interface to abstract the watch communication layer
-- `GarminNotifier` (existing Connect IQ SDK logic) and `WearOsNotifier` (Wearable Data Layer API)
-- `CommutePipeline` broadcasts to all registered notifiers; unavailable watch types no-op gracefully
-- **Data Transfer:** `DataClient` via `PutDataMapRequest` — syncs latest status even after temporary disconnection (every payload includes a timestamp, so `DataClient` always triggers `onDataChanged()`)
+**1. Android App: Dual-Broadcasting**
+- `WatchNotifier` interface abstracts watch communication; `GarminNotifier` and `WearOsNotifier` are registered at service init
+- `notifyAll()` broadcasts to all notifiers with per-notifier failure isolation; unavailable watch types no-op gracefully
+- `DataClient` via `PutDataMapRequest` — syncs latest status even after temporary disconnection; `sent_at` timestamp ensures `onDataChanged()` always fires
+- Watch connection status ("Wear OS connected") is driven solely by `checkConnected()` querying reachable nodes — `putDataItem` success is not a connectivity signal
 
 **2. Wear OS App: Compose & ProtoLayout**
-- Standalone Wear OS module in the monorepo, min Wear OS 3 (API 30) — compatible with Pixel Watch 1st gen and the vast majority of the installed base
-- Two pieces: Tile (system-rendered, equivalent to Garmin Glance) and Main Activity (equivalent to Garmin Detail View)
+- Standalone `wear/` Gradle module in the monorepo, min Wear OS 3 (API 30) — compatible with Pixel Watch 1st gen
+- Two surfaces: Tile (ProtoLayout, system-rendered) and Main Activity (Compose for Wear OS)
 
-**3. Wear OS Tile (Glanceable State)**
+**3. Wear OS Tile**
 - Built using **ProtoLayout API** (Tiles cannot use Compose and cannot scroll)
-- `titleSlot`: Action label in tier color (bold) + relative timestamp in gray. `mainSlot`: Summary or reroute hint text (12sp, 4 lines max, ellipsis, tier-colored for hints). `bottomSlot`: MTA route badges (18dp circles, rows of 4, center-aligned, wraps for 5+ routes)
-- Tap anywhere launches Main Activity
+- `titleSlot`: action label in tier color + relative timestamp. `mainSlot`: summary or reroute hint (12sp, 4 lines, ellipsis). `bottomSlot`: MTA route badges (18dp, rows of 4, wrapping). Full-tile tap launches Main Activity.
 
-**4. Wear OS Main Activity (Detail State)**
-- Built using **Compose for Wear OS** with `ScalingLazyColumn`
-- Full information hierarchy: action → route badges → timestamp → reroute hint → summary
-- Natively scrollable, no truncation, no complex pagination
+**4. Wear OS Main Activity**
+- **Compose for Wear OS** with `ScalingLazyColumn` — full information hierarchy, natively scrollable, no truncation
 
 #### Phase II Backlog
 
@@ -293,7 +289,7 @@ Expand the Total Addressable Market (TAM) by supporting Wear OS devices. The ini
 - [x] PHASE2-04: Wear OS Main Activity — polished detail view — Compose for Wear OS with `ScalingLazyColumn`. Full information hierarchy: action → route badges → timestamp → reroute hint (tier-colored) → summary. Scrollable, no truncation.
 
 **Hardening**
-- [ ] PHASE2-05: Dual-broadcast integration testing — Verify: Garmin-only paired, Wear OS-only paired, both paired simultaneously, neither paired, reconnection after disconnect. Ensure no crashes, no silent failures, no duplicate sends.
+- [x] PHASE2-05: Dual-broadcast integration testing — Verify: Garmin-only paired, Wear OS-only paired, both paired simultaneously, neither paired, reconnection after disconnect. Ensure no crashes, no silent failures, no duplicate sends.
 
 ### Out of Scope
 - **Monetization:** Deferred until product-market fit is validated. See `docs/monetization-plan.md`.
