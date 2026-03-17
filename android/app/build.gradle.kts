@@ -68,6 +68,7 @@ dependencies {
     implementation("com.google.firebase:firebase-ai")
     implementation("com.google.firebase:firebase-appcheck-playintegrity")
     implementation("com.google.firebase:firebase-appcheck-debug")
+    implementation("com.google.firebase:firebase-analytics")
     // Wear OS Data Layer API (Android phone side only — no wear module yet)
     implementation("com.google.android.gms:play-services-wearable:18.2.0")
 }
