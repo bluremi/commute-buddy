@@ -8,7 +8,9 @@ import com.garmin.android.connectiq.ConnectIQ
 import com.garmin.android.connectiq.IQApp
 import com.garmin.android.connectiq.IQDevice
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Sends [CommuteStatus] to a paired Garmin watch via the ConnectIQ BLE SDK.
@@ -44,8 +46,11 @@ class GarminNotifier : WatchNotifier {
     @Volatile private var connectedDevice: IQDevice? = null
     @Volatile private var targetApp: IQApp? = null
     private var connectIQ: ConnectIQ? = null
+    private var applicationContext: Context? = null
 
     override fun initialize(context: Context) {
+        applicationContext = context.applicationContext
+        sdkShutDown = false
         if (!isConnectIQEnvironmentReady(context)) return
         connectIQ = ConnectIQ.getInstance(context, ConnectIQ.IQConnectType.WIRELESS)
         connectIQ?.initialize(context, autoUI, object : ConnectIQ.ConnectIQListener {
@@ -69,10 +74,46 @@ class GarminNotifier : WatchNotifier {
     }
 
     override suspend fun notify(status: CommuteStatus) {
+        // Re-initialize if we know the SDK has shut down.
+        if (sdkShutDown) reinitializeAndWait()
+
         if (sdkShutDown) { Log.d(TAG, "BLE send skipped: SDK shut down"); return }
         if (!sdkReady) { Log.d(TAG, "BLE send skipped: SDK not ready"); return }
         val device = connectedDevice ?: run { Log.d(TAG, "BLE send skipped: no device"); return }
         val app = targetApp ?: run { Log.d(TAG, "BLE send skipped: app not installed"); return }
+
+        try {
+            doSend(device, app, status)
+        } catch (e: Exception) {
+            // SDK threw despite our flags being valid — listener was replaced and state is stale.
+            // Re-initialize and retry once.
+            Log.w(TAG, "sendMessage threw (${e.message}) — re-initializing and retrying")
+            reinitializeAndWait()
+            val d = connectedDevice ?: run { Log.d(TAG, "BLE retry skipped: no device after re-init"); return }
+            val a = targetApp ?: run { Log.d(TAG, "BLE retry skipped: app not found after re-init"); return }
+            if (!sdkShutDown && sdkReady) doSend(d, a, status)
+        }
+    }
+
+    private suspend fun reinitializeAndWait() {
+        val ctx = applicationContext ?: return
+        if (!isConnectIQEnvironmentReady(ctx)) return
+        Log.d(TAG, "Re-initializing ConnectIQ SDK")
+        sdkReady = false
+        connectedDevice = null
+        targetApp = null
+        withContext(Dispatchers.Main) { initialize(ctx) }
+        // Wait up to 3s for SDK ready + device discovery + app info (typically ~350ms)
+        withTimeoutOrNull(3_000) {
+            while (!sdkReady || connectedDevice == null || targetApp == null) {
+                if (sdkShutDown) break
+                delay(50)
+            }
+        }
+        Log.d(TAG, "Re-init result: sdkReady=$sdkReady device=${connectedDevice?.friendlyName} app=${targetApp != null}")
+    }
+
+    private suspend fun doSend(device: IQDevice, app: IQApp, status: CommuteStatus) {
         withContext(Dispatchers.Main) {
             connectIQ?.sendMessage(
                 device, app, status.toConnectIQMap(),
