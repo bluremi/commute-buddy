@@ -161,20 +161,7 @@ class MainActivity : AppCompatActivity() {
         createPollingNotificationChannel()
         requestBluetoothPermissionsThenStartService()
 
-        garminNotifier = GarminNotifier().apply {
-            autoUI = true
-            onStatusChanged = { msg ->
-                garminReady = true
-                updateWatchStatus()
-                Log.d(TAG, "Garmin status: $msg")
-            }
-            onSendResult = { success, statusName ->
-                runOnUiThread {
-                    if (success) resultsTextView.append("\n" + getString(R.string.ble_send_success))
-                    else resultsTextView.append("\n" + getString(R.string.ble_send_failed, statusName))
-                }
-            }
-        }
+        garminNotifier = GarminNotifier.getInstance(this)
         wearOsNotifier = WearOsNotifier().apply {
             onConnected = {
                 wearOsReady = true
@@ -189,6 +176,19 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        garminNotifier.addUiListener(
+            onStatus = { msg ->
+                garminReady = true
+                updateWatchStatus()
+                Log.d(TAG, "Garmin status: $msg")
+            },
+            onSend = { success, statusName ->
+                runOnUiThread {
+                    if (success) resultsTextView.append("\n" + getString(R.string.ble_send_success))
+                    else resultsTextView.append("\n" + getString(R.string.ble_send_failed, statusName))
+                }
+            }
+        )
         updateApiUsageDisplay()
         updateAutoPollingDirectionDisplay()
         ContextCompat.registerReceiver(
@@ -200,12 +200,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
+        garminNotifier.removeUiListener()
         unregisterReceiver(pollCompletedReceiver)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        garminNotifier.shutdown(this)
     }
 
     private val allApiButtons get() = listOf(fetchLiveButton)
