@@ -49,8 +49,7 @@ class DiagnosticsPageView extends WatchUi.View {
         var stopAge = (lastStopTs instanceof Number) ? ageStr(now, lastStopTs as Number) : "--";
         var msgAge = (lastMsgTs instanceof Number) ? ageStr(now, lastMsgTs as Number) : "--";
 
-        var lines = "DIAGNOSTICS\n";
-        lines = lines + "st:" + valStr(starts) + " | sp:" + valStr(stops) + " | msg:" + valStr(msgs) + "\n";
+        var lines = "st:" + valStr(starts) + " | sp:" + valStr(stops) + " | msg:" + valStr(msgs) + "\n";
         lines = lines + "mem_s:" + valStr(freememStart) + " | min:" + valStr(freememStartMin) + "\n";
         lines = lines + "mem_p:" + valStr(freememStop) + " | mem_m:" + valStr(freememMsg) + "\n";
         lines = lines + "cb:" + valStr(cbResolved) + " | reg:" + valStr(regOk) + "\n";
