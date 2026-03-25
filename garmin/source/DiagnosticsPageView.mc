@@ -26,7 +26,7 @@ class DiagnosticsPageView extends WatchUi.View {
 
         var cx = dc.getWidth() / 2;
         var textW = 310;
-        var now = Time.now().value();
+        var now = Time.now().value() as Number;
 
         var starts = Application.Storage.getValue("diag_starts");
         var stops = Application.Storage.getValue("diag_stops");
@@ -112,17 +112,17 @@ class DiagnosticsPageView extends WatchUi.View {
     }
 
     //! Format age in seconds as "Xs", "Xm", or "Xh".
-    private function ageStr(now as Lang.Long, ts as Number) as String {
-        var age = now - ts.toLong();
-        if (age < 0l) {
+    private function ageStr(now as Number, ts as Number) as String {
+        var age = now - ts;
+        if (age < 0) {
             return "0s";
         }
-        if (age < 60l) {
+        if (age < 60) {
             return age.toString() + "s";
         }
-        if (age < 3600l) {
-            return (age / 60l).toString() + "m";
+        if (age < 3600) {
+            return (age / 60).toString() + "m";
         }
-        return (age / 3600l).toString() + "h";
+        return (age / 3600).toString() + "h";
     }
 }
