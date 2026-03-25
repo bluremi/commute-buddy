@@ -15,45 +15,72 @@ import kotlinx.coroutines.withTimeoutOrNull
 /**
  * Sends [CommuteStatus] to a paired Garmin watch via the ConnectIQ BLE SDK.
  *
+ * Singleton — obtain via [getInstance]. One SDK owner, one listener, one set of state flags.
+ * Both [MainActivity] and [PollingForegroundService] share the same instance, eliminating the
+ * listener-hijacking race where the Activity's init replaced the Service's listener and the
+ * subsequent Activity shutdown killed the SDK the Service depended on.
+ *
  * No-ops gracefully when Bluetooth is off, Garmin Connect is not installed,
  * no device is paired, or the Commute Buddy watch app is not installed on the device.
  *
- * Set [autoUI] to `true` when used from an Activity (allows SDK dialogs).
- * Leave `false` (default) when used from a Service.
- * In both cases the pre-flight check runs; if it fails (BT off or Garmin Connect missing), init is skipped silently.
- *
- * Set [onStatusChanged] to receive human-readable status strings (e.g. for display in a TextView).
- * Set [onSendResult] to receive BLE send outcomes: `(success, statusName)`.
+ * The Activity should call [addUiListener] in `onResume()` and [removeUiListener] in `onPause()`
+ * to receive status/send callbacks without touching the SDK lifecycle.
  */
-class GarminNotifier : WatchNotifier {
+class GarminNotifier private constructor(private val appContext: Context) : WatchNotifier {
 
     companion object {
         private const val TAG = "GarminNotifier"
         private const val GARMIN_APP_UUID = "e5f12c3a-7b04-4d8e-9a6f-2c1b3e5d7a9f"
-    }
 
-    /** Set to `true` before calling [initialize] when used from an Activity context. */
-    var autoUI: Boolean = false
+        @Volatile private var instance: GarminNotifier? = null
+
+        fun getInstance(context: Context): GarminNotifier =
+            instance ?: synchronized(this) {
+                instance ?: GarminNotifier(context.applicationContext).also { instance = it }
+            }
+    }
 
     /** Called with a status string whenever the SDK / device / app state changes. */
     var onStatusChanged: ((String) -> Unit)? = null
+        private set
 
     /** Called after each BLE send attempt: `(success, statusName)`. */
     var onSendResult: ((Boolean, String) -> Unit)? = null
+        private set
+
+    /**
+     * Attach UI callbacks. Call from Activity.onResume(). Does not touch the SDK lifecycle.
+     */
+    fun addUiListener(onStatus: (String) -> Unit, onSend: (Boolean, String) -> Unit) {
+        onStatusChanged = onStatus
+        onSendResult = onSend
+    }
+
+    /**
+     * Detach UI callbacks. Call from Activity.onPause(). Does not touch the SDK lifecycle.
+     */
+    fun removeUiListener() {
+        onStatusChanged = null
+        onSendResult = null
+    }
 
     @Volatile private var sdkReady = false
     @Volatile private var sdkShutDown = false
     @Volatile private var connectedDevice: IQDevice? = null
     @Volatile private var targetApp: IQApp? = null
     private var connectIQ: ConnectIQ? = null
-    private var applicationContext: Context? = null
 
+    /**
+     * Initializes the ConnectIQ SDK. Idempotent — if the SDK is already ready this is a no-op,
+     * so the Activity calling initialize() will not replace the Service's active listener.
+     * Should be called by [PollingForegroundService] on first start.
+     */
     override fun initialize(context: Context) {
-        applicationContext = context.applicationContext
+        if (sdkReady) return  // already ready — do not replace the active listener
         sdkShutDown = false
-        if (!isConnectIQEnvironmentReady(context)) return
-        connectIQ = ConnectIQ.getInstance(context, ConnectIQ.IQConnectType.WIRELESS)
-        connectIQ?.initialize(context, autoUI, object : ConnectIQ.ConnectIQListener {
+        if (!isConnectIQEnvironmentReady(appContext)) return
+        connectIQ = ConnectIQ.getInstance(appContext, ConnectIQ.IQConnectType.WIRELESS)
+        connectIQ?.initialize(appContext, false, object : ConnectIQ.ConnectIQListener {
             override fun onSdkReady() {
                 Log.d(TAG, "ConnectIQ SDK ready")
                 sdkReady = true
@@ -85,8 +112,7 @@ class GarminNotifier : WatchNotifier {
         try {
             doSend(device, app, status)
         } catch (e: Exception) {
-            // SDK threw despite our flags being valid — listener was replaced and state is stale.
-            // Re-initialize and retry once.
+            // SDK threw despite our flags being valid — re-initialize and retry once.
             Log.w(TAG, "sendMessage threw (${e.message}) — re-initializing and retrying")
             reinitializeAndWait()
             val d = connectedDevice ?: run { Log.d(TAG, "BLE retry skipped: no device after re-init"); return }
@@ -96,13 +122,12 @@ class GarminNotifier : WatchNotifier {
     }
 
     private suspend fun reinitializeAndWait() {
-        val ctx = applicationContext ?: return
-        if (!isConnectIQEnvironmentReady(ctx)) return
+        if (!isConnectIQEnvironmentReady(appContext)) return
         Log.d(TAG, "Re-initializing ConnectIQ SDK")
         sdkReady = false
         connectedDevice = null
         targetApp = null
-        withContext(Dispatchers.Main) { initialize(ctx) }
+        withContext(Dispatchers.Main) { initialize(appContext) }
         // Wait up to 3s for SDK ready + device discovery + app info (typically ~350ms)
         withTimeoutOrNull(3_000) {
             while (!sdkReady || connectedDevice == null || targetApp == null) {
@@ -132,17 +157,14 @@ class GarminNotifier : WatchNotifier {
         }
     }
 
+    /**
+     * No-op. The SDK connection is owned by the singleton and persists for the app's lifetime.
+     * Explicit shutdown is not needed — the OS cleans up the remote binding when the process ends.
+     * This method is kept temporarily while callers are updated in subsequent increments.
+     */
+    @Suppress("UNUSED_PARAMETER")
     fun shutdown(context: Context) {
-        if (sdkShutDown) return
-        try {
-            connectIQ?.shutdown(context)
-        } catch (e: IllegalArgumentException) {
-            // ConnectIQ is a singleton; another GarminNotifier instance (e.g. PollingForegroundService)
-            // may have already called shutdown(), unregistering the shared receiver. Harmless.
-            Log.d(TAG, "ConnectIQ receiver already unregistered — shutdown skipped")
-        } catch (e: Exception) {
-            Log.e(TAG, "Error shutting down ConnectIQ", e)
-        }
+        // Intentionally empty. See BUG-11 Increment 1.
     }
 
     // -------------------------------------------------------------------------
