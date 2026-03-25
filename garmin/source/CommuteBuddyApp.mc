@@ -1,6 +1,8 @@
 import Toybox.Application;
 import Toybox.Communications;
 import Toybox.Lang;
+import Toybox.System;
+import Toybox.Time;
 import Toybox.WatchUi;
 
 class CommuteBuddyApp extends Application.AppBase {
@@ -9,13 +11,36 @@ class CommuteBuddyApp extends Application.AppBase {
         AppBase.initialize();
     }
 
+    (:glance)
     function onStart(state) {
-        Communications.registerForPhoneAppMessages(method(:onPhoneMessage));
+        var starts = Application.Storage.getValue("diag_starts");
+        Application.Storage.setValue("diag_starts", (starts instanceof Number ? starts + 1 : 1));
+        Application.Storage.setValue("diag_free_mem_start", System.getSystemStats().freeMemory);
+        Application.Storage.setValue("diag_last_start_ts", Time.now().value());
+
+        try {
+            Application.Storage.setValue("diag_err_phase", "method_resolution");
+            var cb = method(:onPhoneMessage);
+            Application.Storage.setValue("diag_cb_resolved", cb != null ? 1 : 0);
+            if (cb == null) {
+                Application.Storage.setValue("diag_null_cb_at", Time.now().value());
+                return;
+            }
+            Application.Storage.setValue("diag_err_phase", "api_registration");
+            Communications.registerForPhoneAppMessages(cb);
+            Application.Storage.setValue("diag_reg_ok", 1);
+            Application.Storage.deleteValue("diag_err_phase");
+        } catch (e instanceof Lang.Exception) {
+            Application.Storage.setValue("diag_err_msg", e.getErrorMessage());
+        }
     }
 
+    (:glance)
     function onStop(state) {
+        Communications.registerForPhoneAppMessages(null);
     }
 
+    (:glance)
     function onPhoneMessage(msg as Communications.PhoneAppMessage) as Void {
         var data = msg.data;
         if (data == null || !(data instanceof Dictionary)) {
