@@ -37,6 +37,10 @@ class CommuteBuddyApp extends Application.AppBase {
 
     (:glance)
     function onStop(state) {
+        var stops = Application.Storage.getValue("diag_stops");
+        Application.Storage.setValue("diag_stops", (stops instanceof Number ? stops + 1 : 1));
+        Application.Storage.setValue("diag_free_mem_stop", System.getSystemStats().freeMemory);
+        Application.Storage.setValue("diag_last_stop_ts", Time.now().value());
         Communications.registerForPhoneAppMessages(null);
     }
 
@@ -47,6 +51,11 @@ class CommuteBuddyApp extends Application.AppBase {
             return;
         }
         var dict = data as Dictionary;
+
+        var msgs = Application.Storage.getValue("diag_msgs");
+        Application.Storage.setValue("diag_msgs", (msgs instanceof Number ? msgs + 1 : 1));
+        Application.Storage.setValue("diag_last_msg_ts", Time.now().value());
+        Application.Storage.setValue("diag_last_msg_bytes", dict.toString().length());
 
         var action = dict.get("action");
         var summary = dict.get("summary");
