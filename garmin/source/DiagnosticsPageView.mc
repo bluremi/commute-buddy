@@ -32,11 +32,13 @@ class DiagnosticsPageView extends WatchUi.View {
         var stops = Application.Storage.getValue("diag_stops");
         var msgs = Application.Storage.getValue("diag_msgs");
         var freememStart = Application.Storage.getValue("diag_free_mem_start");
+        var freememStartMin = Application.Storage.getValue("diag_min_free_mem_start");
         var freememStop = Application.Storage.getValue("diag_free_mem_stop");
         var lastStartTs = Application.Storage.getValue("diag_last_start_ts");
         var lastStopTs = Application.Storage.getValue("diag_last_stop_ts");
         var lastMsgTs = Application.Storage.getValue("diag_last_msg_ts");
         var lastMsgBytes = Application.Storage.getValue("diag_last_msg_bytes");
+        var freememMsg = Application.Storage.getValue("diag_free_mem_msg");
         var cbResolved = Application.Storage.getValue("diag_cb_resolved");
         var regOk = Application.Storage.getValue("diag_reg_ok");
         var nullCbAt = Application.Storage.getValue("diag_null_cb_at");
@@ -47,7 +49,7 @@ class DiagnosticsPageView extends WatchUi.View {
 
         lines = lines + "DIAGNOSTICS\n";
         lines = lines + "starts:" + valStr(starts) + " stops:" + valStr(stops) + " msgs:" + valStr(msgs) + "\n";
-        lines = lines + "mem@start:" + valStr(freememStart) + "\n";
+        lines = lines + "mem@start:" + valStr(freememStart) + " min:" + valStr(freememStartMin) + "\n";
         lines = lines + "mem@stop:" + valStr(freememStop) + "\n";
         lines = lines + "cb:" + valStr(cbResolved) + " reg:" + valStr(regOk) + "\n";
 
@@ -63,9 +65,9 @@ class DiagnosticsPageView extends WatchUi.View {
         }
         if (lastMsgTs instanceof Number) {
             lines = lines + "msg " + ageStr(now, lastMsgTs as Number) + " ago\n";
-            lines = lines + "msg_bytes:" + valStr(lastMsgBytes) + "\n";
+            lines = lines + "msg_bytes:" + valStr(lastMsgBytes) + " mem:" + valStr(freememMsg) + "\n";
         } else {
-            lines = lines + "msg:--\n";
+            lines = lines + "msg:-- mem@msg:--\n";
         }
         if (nullCbAt instanceof Number) {
             lines = lines + "null_cb:" + ageStr(now, nullCbAt as Number) + " ago\n";

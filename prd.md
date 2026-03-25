@@ -178,6 +178,7 @@ commute-buddy/
 │       ├── DetailPageView.mc                       # Structured header + summary; colored route badges
 │       ├── DetailPageDelegate.mc                   # BehaviorDelegate for page views
 │       ├── DetailPagination.mc                     # Word-boundary chunking via fitTextToArea
+│       ├── DiagnosticsPageView.mc                  # Diagnostic data dump page (BUG-12); reads diag_* Storage keys
 │       └── MtaColors.mc                            # getLineColor(), isLightBackground(), splitCsv()
 ├── shared/
 │   └── schema.json                                 # BLE message format: action, summary, affected_routes, reroute_hint, timestamp
@@ -301,3 +302,5 @@ Phase II added Wear OS as a second supported watch platform. A "steel thread" ap
 
 **BUGS**
 - [x] BUG-10: Tile picker showed grey circle and MTA vector instead of app icon/preview.
+- [ ] BUG-11: Android ConnectIQ SDK singleton conflict — background polls fail to send to Garmin after Activity is opened/closed. See `plan.md` for full context and implementation plan.
+- [ ] BUG-12: Garmin Glance goes blank (icon only, no text) intermittently after 1-2 days of runtime. Three fix attempts so far, all recurred. See `docs/bug-12-garmin-glance-crash.md` for full investigation history.

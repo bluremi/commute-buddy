@@ -15,7 +15,12 @@ class CommuteBuddyApp extends Application.AppBase {
     function onStart(state) {
         var starts = Application.Storage.getValue("diag_starts");
         Application.Storage.setValue("diag_starts", (starts instanceof Number ? starts + 1 : 1));
-        Application.Storage.setValue("diag_free_mem_start", System.getSystemStats().freeMemory);
+        var freeMem = System.getSystemStats().freeMemory;
+        Application.Storage.setValue("diag_free_mem_start", freeMem);
+        var minMem = Application.Storage.getValue("diag_min_free_mem_start");
+        if (!(minMem instanceof Number) || freeMem < (minMem as Number)) {
+            Application.Storage.setValue("diag_min_free_mem_start", freeMem);
+        }
         Application.Storage.setValue("diag_last_start_ts", Time.now().value());
 
         try {
@@ -56,6 +61,7 @@ class CommuteBuddyApp extends Application.AppBase {
         Application.Storage.setValue("diag_msgs", (msgs instanceof Number ? msgs + 1 : 1));
         Application.Storage.setValue("diag_last_msg_ts", Time.now().value());
         Application.Storage.setValue("diag_last_msg_bytes", dict.toString().length());
+        Application.Storage.setValue("diag_free_mem_msg", System.getSystemStats().freeMemory);
 
         var action = dict.get("action");
         var summary = dict.get("summary");
