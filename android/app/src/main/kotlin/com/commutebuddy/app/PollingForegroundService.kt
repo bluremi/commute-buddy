@@ -179,8 +179,8 @@ class PollingForegroundService : Service() {
     private lateinit var pollingSettingsRepository: PollingSettingsRepository
 
     @Volatile private var generativeModel: GenerativeModel? = null
-    private val garminNotifier = GarminNotifier()
-    private val notifiers: List<WatchNotifier> = listOf(garminNotifier, WearOsNotifier())
+    private lateinit var garminNotifier: GarminNotifier
+    private lateinit var notifiers: List<WatchNotifier>
 
     private var lastPollTimeMs: Long? = null
     private var nextPollTimeMs: Long? = null
@@ -207,6 +207,8 @@ class PollingForegroundService : Service() {
 
         if (!initialized) {
             initialized = true
+            garminNotifier = GarminNotifier.getInstance(this)
+            notifiers = listOf(garminNotifier, WearOsNotifier())
             val profile = profileRepository.load()
             initGeminiFlash(profile)
             notifiers.forEach { it.initialize(this) }
@@ -265,7 +267,6 @@ class PollingForegroundService : Service() {
         super.onDestroy()
         serviceScope.cancel()
         getSystemService(AlarmManager::class.java).cancel(buildAlarmPendingIntent())
-        garminNotifier.shutdown(this)
         // WearOsNotifier uses the Wearable Data Layer API (putDataItem) which has no
         // lifecycle teardown — there are no registered receivers to unregister and
         // in-flight tasks are fire-and-forget Tasks handled by Play Services.
