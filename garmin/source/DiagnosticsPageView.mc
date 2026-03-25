@@ -45,38 +45,25 @@ class DiagnosticsPageView extends WatchUi.View {
         var errPhase = Application.Storage.getValue("diag_err_phase");
         var errMsg = Application.Storage.getValue("diag_err_msg");
 
-        var lines = "";
+        var startAge = (lastStartTs instanceof Number) ? ageStr(now, lastStartTs as Number) : "--";
+        var stopAge = (lastStopTs instanceof Number) ? ageStr(now, lastStopTs as Number) : "--";
+        var msgAge = (lastMsgTs instanceof Number) ? ageStr(now, lastMsgTs as Number) : "--";
 
-        lines = lines + "DIAGNOSTICS\n";
-        lines = lines + "starts:" + valStr(starts) + " stops:" + valStr(stops) + " msgs:" + valStr(msgs) + "\n";
-        lines = lines + "mem@start:" + valStr(freememStart) + " min:" + valStr(freememStartMin) + "\n";
-        lines = lines + "mem@stop:" + valStr(freememStop) + "\n";
-        lines = lines + "cb:" + valStr(cbResolved) + " reg:" + valStr(regOk) + "\n";
-
-        if (lastStartTs instanceof Number) {
-            lines = lines + "start " + ageStr(now, lastStartTs as Number) + " ago\n";
-        } else {
-            lines = lines + "start:--\n";
-        }
-        if (lastStopTs instanceof Number) {
-            lines = lines + "stop " + ageStr(now, lastStopTs as Number) + " ago\n";
-        } else {
-            lines = lines + "stop:--\n";
-        }
-        if (lastMsgTs instanceof Number) {
-            lines = lines + "msg " + ageStr(now, lastMsgTs as Number) + " ago\n";
-            lines = lines + "msg_bytes:" + valStr(lastMsgBytes) + " mem:" + valStr(freememMsg) + "\n";
-        } else {
-            lines = lines + "msg:-- mem@msg:--\n";
-        }
+        var lines = "DIAGNOSTICS\n";
+        lines = lines + "st:" + valStr(starts) + " | sp:" + valStr(stops) + " | msg:" + valStr(msgs) + "\n";
+        lines = lines + "mem_s:" + valStr(freememStart) + " | min:" + valStr(freememStartMin) + "\n";
+        lines = lines + "mem_p:" + valStr(freememStop) + " | mem_m:" + valStr(freememMsg) + "\n";
+        lines = lines + "cb:" + valStr(cbResolved) + " | reg:" + valStr(regOk) + "\n";
+        lines = lines + "s:" + startAge + " | p:" + stopAge + " | m:" + msgAge + "\n";
+        lines = lines + "bytes:" + valStr(lastMsgBytes);
         if (nullCbAt instanceof Number) {
-            lines = lines + "null_cb:" + ageStr(now, nullCbAt as Number) + " ago\n";
+            lines = lines + "\nnull_cb:" + ageStr(now, nullCbAt as Number);
         }
         if (errPhase instanceof String) {
-            lines = lines + "err:" + (errPhase as String) + "\n";
+            lines = lines + "\nerr:" + (errPhase as String);
         }
         if (errMsg instanceof String) {
-            lines = lines + (errMsg as String) + "\n";
+            lines = lines + "\n" + (errMsg as String);
         }
 
         var y = 30;
