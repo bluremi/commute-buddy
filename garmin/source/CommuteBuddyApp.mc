@@ -3,9 +3,13 @@ import Toybox.Communications;
 import Toybox.Lang;
 import Toybox.System;
 import Toybox.Time;
+import Toybox.Timer;
 import Toybox.WatchUi;
 
 class CommuteBuddyApp extends Application.AppBase {
+
+    hidden var _listenerRegistered as Boolean = false;
+    hidden var _regTimer as Timer.Timer?;
 
     function initialize() {
         AppBase.initialize();
@@ -23,21 +27,9 @@ class CommuteBuddyApp extends Application.AppBase {
         }
         Application.Storage.setValue("diag_last_start_ts", Time.now().value());
 
-        try {
-            Application.Storage.setValue("diag_err_phase", "method_resolution");
-            var cb = method(:onPhoneMessage);
-            Application.Storage.setValue("diag_cb_resolved", cb != null ? 1 : 0);
-            if (cb == null) {
-                Application.Storage.setValue("diag_null_cb_at", Time.now().value());
-                return;
-            }
-            Application.Storage.setValue("diag_err_phase", "api_registration");
-            Communications.registerForPhoneAppMessages(cb);
-            Application.Storage.setValue("diag_reg_ok", 1);
-            Application.Storage.deleteValue("diag_err_phase");
-        } catch (e instanceof Lang.Exception) {
-            Application.Storage.setValue("diag_err_msg", e.getErrorMessage());
-        }
+        // Registration moved to getGlanceView()/getInitialView() — calling
+        // registerForPhoneAppMessages() this early in the lifecycle crashes
+        // intermittently after OS hard-kills (native "Failed invoking <symbol>").
     }
 
     (:glance)
@@ -47,6 +39,7 @@ class CommuteBuddyApp extends Application.AppBase {
         Application.Storage.setValue("diag_free_mem_stop", System.getSystemStats().freeMemory);
         Application.Storage.setValue("diag_last_stop_ts", Time.now().value());
         Communications.registerForPhoneAppMessages(null);
+        _listenerRegistered = false;
     }
 
     (:glance)
@@ -99,14 +92,48 @@ class CommuteBuddyApp extends Application.AppBase {
     }
 
     function getInitialView() {
+        registerPhoneListener();
         var factory = new DetailPageFactory();
         var viewLoop = new WatchUi.ViewLoop(factory, {:wrap => false});
         var delegate = new WatchUi.ViewLoopDelegate(viewLoop);
         return [viewLoop, delegate];
     }
 
+    (:glance)
     function getGlanceView() {
+        // Defer registration so the view renders before the risky native call.
+        // If registerForPhoneAppMessages crashes, the glance shows "IQ!" instead
+        // of a permanent blank tile — scroll away and back to self-heal.
+        _regTimer = new Timer.Timer();
+        _regTimer.start(method(:onRegTimer), 500, false);
         return [new CommuteBuddyGlanceView()];
+    }
+
+    (:glance)
+    function onRegTimer() as Void {
+        _regTimer = null;
+        registerPhoneListener();
+    }
+
+    (:glance)
+    hidden function registerPhoneListener() {
+        if (_listenerRegistered) {
+            return;
+        }
+        try {
+            var cb = method(:onPhoneMessage);
+            Application.Storage.setValue("diag_cb_resolved", cb != null ? 1 : 0);
+            if (cb == null) {
+                Application.Storage.setValue("diag_null_cb_at", Time.now().value());
+                return;
+            }
+            Communications.registerForPhoneAppMessages(cb);
+            _listenerRegistered = true;
+            Application.Storage.setValue("diag_reg_ok", 1);
+        } catch (e instanceof Lang.Exception) {
+            Application.Storage.setValue("diag_err_phase", "reg_in_getView");
+            Application.Storage.setValue("diag_err_msg", e.getErrorMessage());
+        }
     }
 
 }
