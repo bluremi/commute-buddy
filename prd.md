@@ -296,11 +296,15 @@ Phase II added Wear OS as a second supported watch platform. A "steel thread" ap
 **Hardening**
 - [x] PHASE2-05: Dual-broadcast integration testing — Verify: Garmin-only paired, Wear OS-only paired, both paired simultaneously, neither paired, reconnection after disconnect. Ensure no crashes, no silent failures, no duplicate sends.
 
+### Enhancements
+
+- [ ] FEAT-15: Garmin Glance — show last-update timestamp. Display the absolute time of the last update (e.g., "1:28pm") in tiny grey font below the action title and affected routes. Motivated by BUG-12: the glance crash resilience fix means the glance recovers silently from crashes, but the user can't tell whether they're seeing a live status or a stale snapshot from before the last crash. An absolute timestamp (not relative "5 min ago") lets the user judge freshness at a glance — if it says "1:28pm" and it's now 1:45pm, they know to tap through to the detail view.
+
 ### Out of Scope
 - **Monetization:** Deferred until product-market fit is validated. See `docs/monetization-plan.md`.
 
 
 **BUGS**
 - [x] BUG-10: Tile picker showed grey circle and MTA vector instead of app icon/preview.
-- [ ] BUG-11: Android ConnectIQ SDK singleton conflict — background polls fail to send to Garmin after Activity is opened/closed. See `plan.md` for full context and implementation plan.
+- [x] BUG-11: Android ConnectIQ SDK singleton conflict — background polls fail to send to Garmin after Activity is opened/closed. See `plan.md` for full context and implementation plan.
 - [ ] BUG-12: Garmin Glance goes blank (icon only, no text) intermittently after 1-2 days of runtime. Three fix attempts so far, all recurred. See `docs/bug-12-garmin-glance-crash.md` for full investigation history.

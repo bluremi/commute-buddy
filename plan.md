@@ -1,145 +1,65 @@
-# BUG-11: Garmin Glance shows stale data — ConnectIQ SDK singleton conflict
+## FEAT-15: Garmin Glance — show last-update timestamp
 
-## Problem Statement
+### Description
+As a commuter, I want the Garmin glance to show the absolute time of the last update (e.g., "1:28pm") below the status line, so that I can tell whether I'm looking at current data or a stale snapshot from before a glance crash/recovery.
 
-Background polls successfully fetch MTA alerts and run the Gemini decision engine, but the BLE send to the Garmin watch silently fails, leaving the Glance showing stale commute data. The failure is logged as `GarminNotifier: BLE send skipped: SDK not ready`. Forcing a live fetch from the Android Activity UI successfully sends to the watch, but subsequent background polls continue to fail.
+The BUG-12 crash resilience fix (deferred registration via Timer) means the glance now self-heals after crashes instead of going permanently blank. The tradeoff is that after recovery, the glance renders from cached `Application.Storage` data — which may be minutes old. There's no visual cue to distinguish "live and current" from "recovered but stale." An absolute timestamp solves this: if the glance says "1:28pm" and it's now 1:45pm, the user knows to tap through to the detail view rather than trusting the displayed action tier.
 
-## Observed Behavior
+### Acceptance Criteria
 
-### Logcat evidence (tags: `PollingService`, `GarminNotifier`)
+1. **Timestamp displayed on all action tiers**
+   - NORMAL, MINOR_DELAYS, REROUTE, and STAY_HOME glance states all show a timestamp line below the action/routes text
+   - The timestamp reads the existing `cs_timestamp` value from `Application.Storage` (Unix epoch seconds, already stored by `CommuteBuddyApp.onPhoneMessage`)
 
-Captured with 2-minute polling interval. A background poll was allowed to fire, then a manual live fetch was triggered from the Activity.
+2. **12-hour absolute time format**
+   - Format: `h:MMam` / `h:MMpm` (e.g., "1:28pm", "12:05am", "9:00am")
+   - No date component — time only
+   - Uses device-local time zone (via `Time.Gregorian.info()`)
 
-```
-09:35:43 PollingService: onStartCommand: action=null
-09:35:49 PollingService: onStartCommand: action=null
-09:35:54 GarminNotifier: ConnectIQ SDK shut down          ← SDK dies here
-09:37:49 PollingService: onStartCommand: action=com.commutebuddy.app.WAKE_AND_POLL
-09:37:52 PollingService: Polling started
-09:37:52 PollingService: Poll result: Decision             ← pipeline succeeds
-09:37:52 GarminNotifier: BLE send skipped: SDK not ready   ← but send fails
-09:37:52 PollingService: Next alarm in 1m 59s
-09:38:09 PollingService: onStartCommand: action=null       ← Activity triggers service
-09:38:09 GarminNotifier: ConnectIQ SDK ready               ← Activity re-inits SDK
-09:38:09 GarminNotifier: Found device: Venu 3
-09:38:09 GarminNotifier: Garmin app found on Venu 3
-09:38:13 GarminNotifier: BLE send success                  ← Activity send works
-```
+3. **Visual styling: small and unobtrusive**
+   - Grey color (`Graphics.COLOR_LT_GRAY` or similar) — must not compete with the action text for attention
+   - Smallest legible font available in glance context (likely `FONT_GLANCE_NUMBER` or equivalent — exact font determined during implementation)
+   - Horizontally centered
 
-Key observations:
-- The SDK shuts down at 09:35:54, approximately 5 seconds after the second `onStartCommand`
-- When the background poll fires at 09:37:52, the pipeline produces a valid `Decision` but the BLE send is skipped
-- The Service's `reinitializeAndWait()` recovery path did NOT run (no `"Re-init result: ..."` log)
-- Opening the Activity re-initializes the SDK and sends successfully
+4. **Layout accommodates two lines**
+   - The existing action text (and route letters for MINOR_DELAYS/REROUTE) shifts upward so both lines are visually balanced on the glance
+   - No text overlap or clipping on the Venu 3 glance viewport
 
-### Separate issue: Garmin Glance crash (related but distinct)
+5. **No timestamp when no data exists**
+   - The "Waiting..." state (no `cs_action` in Storage) does not display a timestamp
+   - If `cs_timestamp` is missing or not a Number but `cs_action` exists, the action line renders normally without a timestamp (graceful degradation, no crash)
 
-Prior to this investigation, the Glance had an intermittent crash ("Failed invoking \<symbol\>" in `onStart()` after 1-2 days). Root cause: `onStop()` didn't unregister the `Communications.registerForPhoneAppMessages` listener, leaving a dangling callback after OS process recycling. Fix applied 2026-03-24: added `Communications.registerForPhoneAppMessages(null)` in `onStop()` plus `(:glance)` annotations. That fix is still under observation and is independent of this stale-data bug.
+6. **Memory budget respected**
+   - The change stays well within the 32KB glance memory limit
+   - No new imports or allocations that would meaningfully impact memory
 
-## Root Cause Analysis
+### Implementation Plan
 
-### Architecture context
+#### Increment 1: Timestamp formatting + NORMAL/STAY_HOME layout
+- [ ] Add `import Toybox.Time;` to `CommuteBuddyGlanceView.mc`
+- [ ] Add a `formatTimestamp(epochSeconds as Number) as String` helper method that converts Unix epoch seconds to 12-hour local time (e.g., "1:28pm", "12:05am") using `Time.Gregorian.info()`. Handle edge cases: hour 0 → "12am", hour 12 → "12pm", minutes < 10 → zero-padded.
+- [ ] Read `cs_timestamp` from `Application.Storage` at the top of `onUpdate()` alongside the existing `cs_action` / `cs_affected_routes` reads
+- [ ] Modify the NORMAL branch: measure the action font height and timestamp font height, compute y-offsets so both lines are vertically centered as a group. Draw "Normal" in green above, timestamp in `COLOR_LT_GRAY` with `FONT_GLANCE_NUMBER` (or smallest legible glance font) below.
+- [ ] Modify the STAY_HOME branch: same two-line centered layout — "Stay Home" in light gray above, timestamp below.
+- [ ] If `cs_timestamp` is missing or not a Number, fall back to the existing single-line centered layout (no timestamp, no crash)
 
-`ConnectIQ.getInstance()` returns a **singleton** — there is one SDK instance per Android application process. Two separate `GarminNotifier` objects currently initialize this singleton independently:
+**Testing:** Build for simulator (`Ctrl+Shift+B`). Use the Connect IQ simulator to send test payloads with `action=NORMAL` and `action=STAY_HOME`. Verify: timestamp appears below action text, both lines visually centered, correct 12-hour format. Then test with no `cs_timestamp` in the payload — confirm action renders centered with no timestamp.
 
-1. **`PollingForegroundService`** (line 182) — creates `GarminNotifier()`, calls `initialize(this)` on first `onStartCommand`. Uses `autoUI = false`.
-2. **`MainActivity`** (line 164) — creates `GarminNotifier().apply { autoUI = true }`, calls `initialize(this)` in `onCreate()`. Calls `garminNotifier.shutdown(this)` in `onDestroy()`.
+**Model: Sonnet** | Reason: Time formatting edge cases (midnight/noon, zero-padding) and layout math require careful reasoning, not just mechanical changes.
 
-Each `GarminNotifier` has its own `sdkReady`, `sdkShutDown`, `connectedDevice`, and `targetApp` flags. But both operate on the same underlying `ConnectIQ` singleton.
+#### Increment 2: MINOR_DELAYS/REROUTE timestamp + all-tier verification
+- [ ] Modify the MINOR_DELAYS/REROUTE branch in `onUpdate()`: shift the existing colored prefix + route letters line upward to make room, then draw the timestamp in `COLOR_LT_GRAY` / small font below, horizontally centered
+- [ ] The x-position calculation for the colored segments is unchanged — only the y-coordinate shifts up from `cy` to account for the two-line group centering
+- [ ] Verify graceful degradation: if `cs_timestamp` is missing, the colored route line renders centered as before (same fallback as increment 1)
 
-### The listener hijacking sequence
+**Testing:** Build for simulator. Test all four action tiers: NORMAL, STAY_HOME, MINOR_DELAYS (e.g., routes "N,W"), REROUTE (e.g., routes "N,W,4,5"). Verify timestamp appears below each, layout is balanced, no clipping. Test with 1 route and 4+ routes to check the wider route strings don't crowd the timestamp. Sideload to physical Venu 3 to verify on-device rendering.
 
-Diagnosis developed collaboratively between Claude Opus and Gemini 3.1 Pro. Gemini identified the critical insight that the reinit path was never reached (point 5):
+**Model: Sonnet** | Reason: Adjusting the multi-segment colored text layout requires understanding the existing x/y coordinate math and only changing the vertical component.
 
-1. **Service initializes:** `PollingForegroundService.onStartCommand` → `GarminNotifier.initialize()` registers **Listener A** on the ConnectIQ singleton. The async `onSdkReady()` callback fires on Listener A → Service's `sdkReady = true`.
-
-2. **Activity hijacks:** User opens the app → `MainActivity.onCreate()` → second `GarminNotifier.initialize()` registers **Listener B** on the same singleton. The SDK silently discards Listener A. Service's GarminNotifier stops receiving any callbacks.
-
-3. **Activity shuts down:** `MainActivity.onDestroy()` → `garminNotifier.shutdown(this)` → SDK fires `onSdkShutDown()` to **Listener B only** (the Activity's). The singleton is now dead.
-
-4. **Service state is stale:** The Service's `GarminNotifier` still has `sdkShutDown = false` (it never received the shutdown callback because its listener was replaced in step 2). Its `sdkReady` may be `false` (if the listener replacement happened during async init) or stale `true`.
-
-5. **Reinit is never triggered:** When `notify()` runs at poll time, it checks `if (sdkShutDown)` first. Since `sdkShutDown = false`, `reinitializeAndWait()` is **skipped entirely**. Then `if (!sdkReady)` evaluates to `true` → `"BLE send skipped: SDK not ready"`. This is confirmed by the **absence** of any `"Re-init result: ..."` log in the capture.
-
-6. **Activity fixes it temporarily:** Opening the Activity again creates a new `GarminNotifier`, calls `initialize()` on the singleton, and SDK becomes ready — but this only fixes sends from the Activity's notifier. The Service's notifier remains broken.
-
-### Why it wasn't noticed before
-
-Before the Garmin Glance crash was fixed, the Glance would go blank after 1-2 days. The user would open the Activity to investigate → incidentally re-initializing the SDK → masking the stale data problem. With the Glance now stable, the stale data became visible.
-
-**However**, this masking theory may not be the full explanation. The user reports the app worked consistently for 24+ hours before each Glance crash. It's possible the bug only manifests under specific Activity lifecycle conditions (e.g., Activity being destroyed by the OS vs. user-initiated close).
-
-## Proposed Fix
-
-### Approach: Singleton GarminNotifier
-
-Convert `GarminNotifier` from a per-consumer instance to a shared singleton. One SDK owner, one listener, one set of state flags. Both `MainActivity` and `PollingForegroundService` share the same instance.
-
-### Implementation plan
-
-#### [x] Increment 1: Convert GarminNotifier to singleton
-
-**File:** `GarminNotifier.kt`
-
-- Add a `companion object` with a `getInstance(context: Context)` factory that returns a single `GarminNotifier` backed by `applicationContext`
-- Remove the public constructor (make it private)
-- The singleton holds one `ConnectIQ` instance, one set of state flags (`sdkReady`, `sdkShutDown`, `connectedDevice`, `targetApp`)
-- `initialize()` becomes idempotent: if `sdkReady` is already `true`, it no-ops. This prevents the Activity from re-initializing and replacing the Service's listener
-- Add an `addUiListener()` / `removeUiListener()` API for the Activity to attach `onStatusChanged` and `onSendResult` callbacks without touching the SDK lifecycle. These are nullable lambda properties that the Activity sets in `onResume()` and clears in `onPause()`
-- `shutdown()` becomes a no-op when called from `MainActivity`. Only `PollingForegroundService.onDestroy()` should call it (or it can be removed entirely — the OS will clean up the process)
-
-**Verification:** Unit test or manual check that `GarminNotifier.getInstance()` returns the same object across multiple calls. Confirm `initialize()` is idempotent (calling it twice doesn't replace the listener).
-
-#### [x] Increment 2: Update PollingForegroundService to use singleton
-
-**File:** `PollingForegroundService.kt`
-
-- Replace `private val garminNotifier = GarminNotifier()` (line 182) with `GarminNotifier.getInstance(this)` (deferred to `onStartCommand` where `this` is available, or use `applicationContext`)
-- The `notifiers` list construction needs to move from field init to the `initialized` block, since `getInstance()` needs a context
-- `onDestroy()` continues to call `garminNotifier.shutdown()` — this is now the only legitimate shutdown call
-- No changes to polling, scheduling, or pipeline logic
-
-**Verification:** `adb logcat -s PollingService:V GarminNotifier:V` — confirm background polls log `BLE send success` without opening the Activity.
-
-#### [x] Increment 3: Update MainActivity to use singleton + attach/detach pattern
-
-**File:** `MainActivity.kt`
-
-- Replace `garminNotifier = GarminNotifier().apply { ... }` (line 164) with `GarminNotifier.getInstance(this)`
-- Move the `onStatusChanged` and `onSendResult` callback setup from `onCreate()` to `onResume()` using the new `addUiListener()` API
-- Add `removeUiListener()` call in `onPause()`
-- **Remove** `garminNotifier.shutdown(this)` from `onDestroy()` — the Activity no longer owns SDK lifecycle
-- `autoUI` is no longer set per-instance. Since the Service initializes first with `autoUI = false`, and the Activity no longer calls `initialize()`, SDK dialogs won't appear. The existing `isConnectIQEnvironmentReady()` pre-flight check already prevents the crash that `autoUI` was protecting against.
-
-**Verification:**
-1. Open Activity, do a live fetch → success
-2. Close Activity (swipe away or back button)
-3. Wait for background poll → should log `BLE send success` (not "SDK not ready")
-4. Repeat: open Activity, close it, wait for poll — should always succeed
-
-#### Increment 4: End-to-end regression test
-
-Full manual test matrix:
-- [x] Background poll sends to Garmin without ever opening Activity
-- [x] Open Activity → live fetch → close Activity → background poll succeeds
-- [x] Open Activity → close Activity (no fetch) → background poll succeeds
-- [x] Reboot phone → background poll sends to Garmin (BootReceiver path)
-- [x] Bluetooth toggled off then on → recovery (reinit path)
-- [ ] Garmin watch reboot → next background poll sends successfully *(not yet tested)*
-- [ ] Wear OS still receives data in all scenarios above (no regression) *(under observation — wear for ~1 week)*
-
-## Key Files
-
-| File | Role |
-|------|------|
-| `android/app/src/main/kotlin/com/commutebuddy/app/GarminNotifier.kt` | ConnectIQ SDK wrapper — primary change target |
-| `android/app/src/main/kotlin/com/commutebuddy/app/PollingForegroundService.kt` | Background polling service — update to use singleton |
-| `android/app/src/main/kotlin/com/commutebuddy/app/MainActivity.kt` | Activity — remove SDK ownership, add attach/detach |
-| `android/app/src/main/kotlin/com/commutebuddy/app/WatchNotifier.kt` | Interface — no changes expected |
-| `garmin/source/CommuteBuddyApp.mc` | Garmin app — no changes (receives BLE, separate bug track) |
-
-## Resolved Questions
-
-1. **Should `shutdown()` be removed entirely?** Yes — remove it from both `MainActivity.onDestroy()` and `PollingForegroundService.onDestroy()`. Because the Service returns `START_STICKY`, it is designed to run continuously. Calling `connectIQ.shutdown()` explicitly unbinds the remote service connection to Garmin Connect. If the OS destroys the service due to memory constraints, it automatically cleans up the remote binding. The only legitimate place to call `shutdown()` would be when the user explicitly toggles polling off in the settings UI. Leaving the connection open avoids edge cases where the OS restarts the sticky service before the async shutdown fully completes. (Source: Gemini 3.1 Pro)
-
-2. **BLE rate limiting:** The singleton pattern resolves the primary trigger. By maintaining a single persistent SDK connection rather than tearing it down and rebuilding it across Activity lifecycles, BLE stack thrashing is eliminated. No additional mitigation needed. (Source: Gemini 3.1 Pro)
+### Out of Scope
+- Relative timestamps ("5 min ago") — these go stale if the glance is showing a cached render
+- Staleness warnings or color changes based on timestamp age (e.g., turning red after 10 minutes)
+- Date display (the user checks this multiple times per commute window — date is not useful)
+- Changes to the Garmin detail view (it already has a freshness line)
+- Changes to the Wear OS tile or app
+- 24-hour time format option
