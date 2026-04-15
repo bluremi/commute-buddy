@@ -472,7 +472,7 @@ class MainActivity : AppCompatActivity() {
             "REROUTE — hint + long summary (pagination test)" to CommuteStatus(
                 action = CommuteStatus.ACTION_REROUTE,
                 summary = "Due to planned track maintenance between Queensboro Plaza and 57 St–7 Av, N and W trains are suspended in both directions this weekend. Free shuttle buses are operating between Astoria–Ditmars Blvd and Queensboro Plaza, stopping at all stations. Shuttle buses run every 8–12 minutes. Allow 20–30 extra minutes for your trip. LIRR service from Woodside is an additional option for Manhattan-bound customers.",
-                affectedRoutes = "N,W",
+                affectedRoutes = "N,W,4,5",
                 rerouteHint = "Take the Q to 57 St, transfer to 4/5 at 59 St.",
                 timestamp = now
             ),
