@@ -100,6 +100,17 @@ class CommuteBuddyGlanceView extends WatchUi.GlanceView {
             var routesList = MtaColors.splitCsv(routes);
             var n = routesList.size();
 
+            // Compute y for route line (shifted up when timestamp is present)
+            var routeY = cy;
+            var tsY = cy;
+            if (hasTimestamp) {
+                var actionH = dc.getFontHeight(font) as Number;
+                var tsH = dc.getFontHeight(tsFont) as Number;
+                var totalH = actionH + 2 + tsH;
+                routeY = cy - totalH / 2 + actionH / 2;
+                tsY = cy - totalH / 2 + actionH + 2 + tsH / 2;
+            }
+
             // Measure total width of all segments to compute centered start x
             var totalW = (dc.getTextDimensions(prefix, font) as Array<Number>)[0] as Number;
             for (var i = 0; i < n; i++) {
@@ -114,7 +125,7 @@ class CommuteBuddyGlanceView extends WatchUi.GlanceView {
 
             dc.setColor(prefixColor, Graphics.COLOR_BLACK);
             var prefixW = (dc.getTextDimensions(prefix, font) as Array<Number>)[0] as Number;
-            dc.drawText(x, cy, font, prefix,
+            dc.drawText(x, routeY, font, prefix,
                 Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
             x += prefixW;
 
@@ -122,16 +133,23 @@ class CommuteBuddyGlanceView extends WatchUi.GlanceView {
                 if (i > 0) {
                     dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
                     var commaW = (dc.getTextDimensions(",", font) as Array<Number>)[0] as Number;
-                    dc.drawText(x, cy, font, ",",
+                    dc.drawText(x, routeY, font, ",",
                         Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
                     x += commaW;
                 }
                 var line = routesList[i] as String;
                 dc.setColor(MtaColors.getLineColor(line), Graphics.COLOR_BLACK);
                 var lineW = (dc.getTextDimensions(line, font) as Array<Number>)[0] as Number;
-                dc.drawText(x, cy, font, line,
+                dc.drawText(x, routeY, font, line,
                     Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
                 x += lineW;
+            }
+
+            if (hasTimestamp) {
+                var tsText = formatTimestamp(timestamp as Number);
+                dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_BLACK);
+                dc.drawText(cx, tsY, tsFont, tsText,
+                    Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
             }
         }
     }
