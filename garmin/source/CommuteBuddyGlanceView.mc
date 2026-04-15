@@ -1,6 +1,7 @@
 import Toybox.Application;
 import Toybox.Graphics;
 import Toybox.Lang;
+import Toybox.Time;
 import Toybox.WatchUi;
 
 (:glance)
@@ -10,12 +11,26 @@ class CommuteBuddyGlanceView extends WatchUi.GlanceView {
         GlanceView.initialize();
     }
 
+    // Converts Unix epoch seconds to 12-hour local time string, e.g. "1:28pm", "12:05am"
+    function formatTimestamp(epochSeconds as Number) as String {
+        var moment = new Time.Moment(epochSeconds);
+        var info = Time.Gregorian.info(moment, Time.FORMAT_SHORT);
+        var hour24 = info.hour as Number;
+        var min = info.min as Number;
+        var ampm = (hour24 < 12) ? "am" : "pm";
+        var hour12 = hour24 % 12;
+        if (hour12 == 0) { hour12 = 12; }
+        var minStr = (min < 10) ? ("0" + min.toString()) : min.toString();
+        return hour12.toString() + ":" + minStr + ampm;
+    }
+
     function onUpdate(dc as Graphics.Dc) as Void {
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
         dc.clear();
 
         var action = Application.Storage.getValue("cs_action");
         var affectedRoutes = Application.Storage.getValue("cs_affected_routes");
+        var timestamp = Application.Storage.getValue("cs_timestamp");
 
         if (!(action instanceof String)) {
             dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
@@ -33,15 +48,47 @@ class CommuteBuddyGlanceView extends WatchUi.GlanceView {
         var cx = dc.getWidth() / 2;
         var cy = dc.getHeight() / 2;
         var font = Graphics.FONT_GLANCE;
+        var tsFont = Graphics.FONT_GLANCE_NUMBER;
+        var hasTimestamp = (timestamp instanceof Number);
 
         if (actionStr.equals("NORMAL")) {
-            dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_BLACK);
-            dc.drawText(cx, cy, font, "Normal",
-                Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+            if (hasTimestamp) {
+                var tsText = formatTimestamp(timestamp as Number);
+                var actionH = dc.getFontHeight(font) as Number;
+                var tsH = dc.getFontHeight(tsFont) as Number;
+                var totalH = actionH + 2 + tsH;
+                var actionY = cy - totalH / 2 + actionH / 2;
+                var tsY = cy - totalH / 2 + actionH + 2 + tsH / 2;
+                dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_BLACK);
+                dc.drawText(cx, actionY, font, "Normal",
+                    Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+                dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_BLACK);
+                dc.drawText(cx, tsY, tsFont, tsText,
+                    Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+            } else {
+                dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_BLACK);
+                dc.drawText(cx, cy, font, "Normal",
+                    Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+            }
         } else if (actionStr.equals("STAY_HOME")) {
-            dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_BLACK);
-            dc.drawText(cx, cy, font, "Stay Home",
-                Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+            if (hasTimestamp) {
+                var tsText = formatTimestamp(timestamp as Number);
+                var actionH = dc.getFontHeight(font) as Number;
+                var tsH = dc.getFontHeight(tsFont) as Number;
+                var totalH = actionH + 2 + tsH;
+                var actionY = cy - totalH / 2 + actionH / 2;
+                var tsY = cy - totalH / 2 + actionH + 2 + tsH / 2;
+                dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_BLACK);
+                dc.drawText(cx, actionY, font, "Stay Home",
+                    Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+                dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_BLACK);
+                dc.drawText(cx, tsY, tsFont, tsText,
+                    Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+            } else {
+                dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_BLACK);
+                dc.drawText(cx, cy, font, "Stay Home",
+                    Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+            }
         } else {
             // MINOR_DELAYS or REROUTE: prefix in action color + route letters in MTA colors
             var prefix = actionStr.equals("MINOR_DELAYS") ? "Delays \u2014 " : "Reroute \u2014 ";
