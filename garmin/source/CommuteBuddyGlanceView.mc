@@ -48,7 +48,7 @@ class CommuteBuddyGlanceView extends WatchUi.GlanceView {
         var cx = dc.getWidth() / 2;
         var cy = dc.getHeight() / 2;
         var font = Graphics.FONT_GLANCE;
-        var tsFont = Graphics.FONT_GLANCE_NUMBER;
+        var tsFont = Graphics.FONT_TINY;
         var hasTimestamp = (timestamp instanceof Number);
 
         if (actionStr.equals("NORMAL")) {
