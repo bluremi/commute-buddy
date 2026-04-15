@@ -70,7 +70,7 @@ When a watch glance/tile is viewed, it instantly displays the cached status — 
 - Failure isolation: a throwing notifier is caught and logged; remaining notifiers always execute
 
 ### Garmin Watch App
-- **Glance:** One-line color-coded status — NORMAL (green), MINOR_DELAYS (yellow), REROUTE (red), STAY_HOME (gray). MINOR_DELAYS/REROUTE show each route letter in its MTA trunk-line color
+- **Glance:** Two-line color-coded status — action text above (NORMAL green, MINOR_DELAYS yellow, REROUTE red, STAY_HOME gray), absolute last-update time below in `FONT_XTINY` light gray (e.g., "1:28pm"). MINOR_DELAYS/REROUTE show each route letter in its MTA trunk-line color. Both lines are vertically centered as a group. Falls back to single-line layout when no timestamp is available
 - **Detail view:** Native `ViewLoop` paged navigation. Page 1: action title → colored route badges → timestamp (FONT_XTINY) → reroute hint (action-tier color). Summary text follows in white. When the hint fills the screen, page 1 is header-only and summary starts on page 2. Deterministic word-boundary pagination via `fitTextToArea()`
 - **BLE schema:** `action` (string), `summary`, `affected_routes`, `reroute_hint` (optional), `timestamp` (long) — documented in `shared/schema.json`
 
@@ -298,7 +298,7 @@ Phase II added Wear OS as a second supported watch platform. A "steel thread" ap
 
 ### Enhancements
 
-- [ ] FEAT-15: Garmin Glance — show last-update timestamp. Display the absolute time of the last update (e.g., "1:28pm") in tiny grey font below the action title and affected routes. Motivated by BUG-12: the glance crash resilience fix means the glance recovers silently from crashes, but the user can't tell whether they're seeing a live status or a stale snapshot from before the last crash. An absolute timestamp (not relative "5 min ago") lets the user judge freshness at a glance — if it says "1:28pm" and it's now 1:45pm, they know to tap through to the detail view.
+- [x] FEAT-15: Garmin Glance — show last-update timestamp. Display the absolute time of the last update (e.g., "1:28pm") in tiny grey font below the action title and affected routes. Motivated by BUG-12: the glance crash resilience fix means the glance recovers silently from crashes, but the user can't tell whether they're seeing a live status or a stale snapshot from before the last crash. An absolute timestamp (not relative "5 min ago") lets the user judge freshness at a glance — if it says "1:28pm" and it's now 1:45pm, they know to tap through to the detail view.
 
 ### Out of Scope
 - **Monetization:** Deferred until product-market fit is validated. See `docs/monetization-plan.md`.
