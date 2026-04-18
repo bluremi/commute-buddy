@@ -22,3 +22,6 @@ android/app/google-services.json
 # OS
 .DS_Store
 Thumbs.db
+
+# Troubleshooting
+troubleshooting/
