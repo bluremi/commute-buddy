@@ -154,6 +154,19 @@ class PollingForegroundService : Service() {
             return lastPolledDirection ?: DIRECTION_TO_WORK
         }
 
+        /**
+         * Returns true if [result] should be forwarded to watches via [notifyAll].
+         *
+         * Error results are suppressed so the watches keep displaying their last good
+         * status rather than showing a raw exception message.
+         */
+        internal fun shouldNotifyWatches(result: PipelineResult): Boolean = when (result) {
+            is PipelineResult.GoodService -> true
+            is PipelineResult.Decision -> true
+            is PipelineResult.RateLimited -> false
+            is PipelineResult.Error -> false
+        }
+
         /** Returns the next epoch ms strictly after [afterMs] at which [hour]:[minute] occurs. */
         internal fun nextOccurrenceOf(hour: Int, minute: Int, afterMs: Long): Long {
             val after = Calendar.getInstance().apply { timeInMillis = afterMs }
@@ -344,10 +357,7 @@ class PollingForegroundService : Service() {
             is PipelineResult.GoodService -> notifyAll(result.status)
             is PipelineResult.Decision -> notifyAll(result.status)
             is PipelineResult.RateLimited -> Log.w(TAG, "Poll rate limited: ${result.reason}")
-            is PipelineResult.Error -> {
-                Log.e(TAG, "Poll error: ${result.message}")
-                notifyAll(result.status)
-            }
+            is PipelineResult.Error -> Log.e(TAG, "Poll error: ${result.message}")
         }
 
         updateNotification()
