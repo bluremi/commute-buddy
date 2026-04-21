@@ -48,8 +48,8 @@ The fix has two parts: (1) never push a failed-fetch result to the watches — t
 ### Implementation Plan
 
 #### Increment 1: Stop sending pipeline errors to watches
-- [ ] In `PollingForegroundService.kt`, change the `PipelineResult.Error` branch in `poll()` (line 347–350) to log the error but NOT call `notifyAll()` — watches retain their last good status
-- [ ] Add a test in `PollingForegroundServiceSchedulingTest.kt` (or a new focused test file) that verifies the error-suppression decision: `PipelineResult.Error` → no notify, `GoodService` → notify, `Decision` → notify, `RateLimited` → no notify
+- [x] In `PollingForegroundService.kt`, change the `PipelineResult.Error` branch in `poll()` (line 347–350) to log the error but NOT call `notifyAll()` — watches retain their last good status
+- [x] Add a test in `PollingForegroundServiceSchedulingTest.kt` (or a new focused test file) that verifies the error-suppression decision: `PipelineResult.Error` → no notify, `GoodService` → notify, `Decision` → notify, `RateLimited` → no notify
 
 **Testing:** Run `gradle :app:testDebugUnitTest`. Manually verify on device: enable airplane mode, wait for a poll cycle, confirm the watch still shows the previous status (not an error string).
 **Model: Haiku** | Reason: Single-line deletion + straightforward test following existing patterns.

@@ -26,8 +26,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -165,6 +167,64 @@ class PollingForegroundService : Service() {
             is PipelineResult.Decision -> true
             is PipelineResult.RateLimited -> false
             is PipelineResult.Error -> false
+        }
+
+        /**
+         * Exponential backoff with ±15% jitter. [attempt] is clamped to 4, giving a
+         * maximum base delay of 480 s (~8 min) — within the 10-min wake lock safety margin.
+         */
+        internal fun computeBackoffDelayMs(attempt: Int, baseDelayMs: Long = 30_000L): Long {
+            val clamped = attempt.coerceAtMost(4)
+            val base = baseDelayMs shl clamped  // baseDelayMs * 2^clamped
+            val jitter = (base * 0.15 * (Math.random() * 2 - 1)).toLong()
+            return base + jitter
+        }
+
+        /**
+         * Returns true only when [result] is a network-level MTA fetch failure
+         * (IOException: DNS, timeout, socket). Gemini/parse errors and all
+         * non-error results return false — only fetch errors should trigger retries.
+         */
+        internal fun isFetchError(result: PipelineResult): Boolean =
+            result is PipelineResult.Error && result.exception is IOException
+
+        /**
+         * Runs [runPipeline] and retries on MTA fetch failures with exponential backoff.
+         *
+         * Retries stop when:
+         *  - the pipeline returns a non-fetch-error result, OR
+         *  - the next backoff would push past [nextAlarmTimeMs] (avoids duplicate polls), OR
+         *  - total elapsed delay exceeds [maxRetryDurationMs] (wake lock safety margin).
+         *
+         * [nowMs] and [log] are injectable for testing.
+         */
+        internal suspend fun runWithRetry(
+            runPipeline: suspend () -> PipelineResult,
+            nextAlarmTimeMs: Long,
+            maxRetryDurationMs: Long = 8 * 60_000L,
+            nowMs: () -> Long = { System.currentTimeMillis() },
+            log: (String) -> Unit = {}
+        ): PipelineResult {
+            var result = runPipeline()
+            var attempt = 0
+            val startMs = nowMs()
+            while (isFetchError(result)) {
+                val backoffMs = computeBackoffDelayMs(attempt)
+                val elapsed = nowMs() - startMs
+                val timeToAlarm = nextAlarmTimeMs - nowMs()
+                if (elapsed + backoffMs > maxRetryDurationMs || backoffMs >= timeToAlarm) {
+                    log("Retries exhausted (attempt $attempt), skipping watch notification")
+                    break
+                }
+                log("Fetch error on attempt $attempt, retrying in ${backoffMs}ms")
+                delay(backoffMs)
+                attempt++
+                result = runPipeline()
+            }
+            if (attempt > 0 && !isFetchError(result)) {
+                log("Retry succeeded on attempt $attempt")
+            }
+            return result
         }
 
         /** Returns the next epoch ms strictly after [afterMs] at which [hour]:[minute] occurs. */
@@ -342,11 +402,17 @@ class PollingForegroundService : Service() {
         }
         val profile = profileRepository.load()
 
-        val result = CommutePipeline.run(
-            direction = direction,
-            profile = profile,
-            generateContent = { promptText -> model.generateContent(promptText).text },
-            rateLimiter = rateLimiter
+        val result = runWithRetry(
+            runPipeline = {
+                CommutePipeline.run(
+                    direction = direction,
+                    profile = profile,
+                    generateContent = { promptText -> model.generateContent(promptText).text },
+                    rateLimiter = rateLimiter
+                )
+            },
+            nextAlarmTimeMs = getNextAlarmTimeMs(),
+            log = { msg -> Log.d(TAG, msg) }
         )
 
         lastPollTimeMs = System.currentTimeMillis()
