@@ -1,8 +1,6 @@
 import Toybox.Application;
 import Toybox.Communications;
 import Toybox.Lang;
-import Toybox.System;
-import Toybox.Time;
 import Toybox.Timer;
 import Toybox.WatchUi;
 
@@ -17,16 +15,6 @@ class CommuteBuddyApp extends Application.AppBase {
 
     (:glance)
     function onStart(state) {
-        var starts = Application.Storage.getValue("diag_starts");
-        Application.Storage.setValue("diag_starts", (starts instanceof Number ? starts + 1 : 1));
-        var freeMem = System.getSystemStats().freeMemory;
-        Application.Storage.setValue("diag_free_mem_start", freeMem);
-        var minMem = Application.Storage.getValue("diag_min_free_mem_start");
-        if (!(minMem instanceof Number) || freeMem < (minMem as Number)) {
-            Application.Storage.setValue("diag_min_free_mem_start", freeMem);
-        }
-        Application.Storage.setValue("diag_last_start_ts", Time.now().value());
-
         // Registration moved to getGlanceView()/getInitialView() — calling
         // registerForPhoneAppMessages() this early in the lifecycle crashes
         // intermittently after OS hard-kills (native "Failed invoking <symbol>").
@@ -34,10 +22,6 @@ class CommuteBuddyApp extends Application.AppBase {
 
     (:glance)
     function onStop(state) {
-        var stops = Application.Storage.getValue("diag_stops");
-        Application.Storage.setValue("diag_stops", (stops instanceof Number ? stops + 1 : 1));
-        Application.Storage.setValue("diag_free_mem_stop", System.getSystemStats().freeMemory);
-        Application.Storage.setValue("diag_last_stop_ts", Time.now().value());
         Communications.registerForPhoneAppMessages(null);
         _listenerRegistered = false;
     }
@@ -49,12 +33,6 @@ class CommuteBuddyApp extends Application.AppBase {
             return;
         }
         var dict = data as Dictionary;
-
-        var msgs = Application.Storage.getValue("diag_msgs");
-        Application.Storage.setValue("diag_msgs", (msgs instanceof Number ? msgs + 1 : 1));
-        Application.Storage.setValue("diag_last_msg_ts", Time.now().value());
-        Application.Storage.setValue("diag_last_msg_bytes", dict.toString().length());
-        Application.Storage.setValue("diag_free_mem_msg", System.getSystemStats().freeMemory);
 
         var action = dict.get("action");
         var summary = dict.get("summary");
@@ -122,17 +100,13 @@ class CommuteBuddyApp extends Application.AppBase {
         }
         try {
             var cb = method(:onPhoneMessage);
-            Application.Storage.setValue("diag_cb_resolved", cb != null ? 1 : 0);
             if (cb == null) {
-                Application.Storage.setValue("diag_null_cb_at", Time.now().value());
                 return;
             }
             Communications.registerForPhoneAppMessages(cb);
             _listenerRegistered = true;
-            Application.Storage.setValue("diag_reg_ok", 1);
         } catch (e instanceof Lang.Exception) {
-            Application.Storage.setValue("diag_err_phase", "reg_in_getView");
-            Application.Storage.setValue("diag_err_msg", e.getErrorMessage());
+            // Registration can throw after OS hard-kills; swallow to avoid crashing.
         }
     }
 

@@ -24,9 +24,6 @@ class DetailPageFactory extends WatchUi.ViewLoopFactory {
 
     function getView(pageIndex as Number) {
         var page = _pages[pageIndex];
-        if (page.get("diagnostics") == true) {
-            return [new DiagnosticsPageView(), new DetailPageDelegate()];
-        }
         var waiting = page.get("waiting") as Boolean;
         var header = page.get("header") as Dictionary?;
         var summaryChunk = page.get("summaryChunk") as String;
@@ -45,7 +42,6 @@ class DetailPageFactory extends WatchUi.ViewLoopFactory {
                 "header" => null,
                 "summaryChunk" => ""
             });
-            pages.add({"diagnostics" => true});
             return pages;
         }
 
@@ -152,7 +148,6 @@ class DetailPageFactory extends WatchUi.ViewLoopFactory {
             }
         }
 
-        pages.add({"diagnostics" => true});
         return pages;
     }
 
