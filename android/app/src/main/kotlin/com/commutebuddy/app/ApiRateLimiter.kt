@@ -32,7 +32,7 @@ class ApiRateLimiter(
     private val clock: () -> Long = { System.currentTimeMillis() }
 ) {
     companion object {
-        const val DAILY_CAP = 50
+        const val DAILY_CAP = 60
         const val PER_MINUTE_CAP = 10
         const val COOLDOWN_MS = 3000L
         private const val WARNING_THRESHOLD = 0.8

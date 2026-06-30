@@ -80,22 +80,22 @@ class ApiRateLimiterTest {
 
     @Test
     fun `request at exactly DAILY_CAP is denied`() {
-        // Pre-populate prefs so 49 requests are already recorded today
+        // Pre-populate prefs so DAILY_CAP-1 requests are already recorded today
         prefs.edit()
             .putString("rate_limit_date", todayString)
             .putInt("rate_limit_count", ApiRateLimiter.DAILY_CAP - 1)
             .apply()
 
-        // The 50th request should succeed
-        val result50 = limiter.tryAcquire()
-        assertTrue("50th request should be allowed", result50 is RateLimitResult.Allowed)
+        // The DAILY_CAP-th request should succeed
+        val resultAtCap = limiter.tryAcquire()
+        assertTrue("request at DAILY_CAP should be allowed", resultAtCap is RateLimitResult.Allowed)
 
         // Advance past cooldown
         currentTime += ApiRateLimiter.COOLDOWN_MS + 1
 
-        // The 51st request should be denied
-        val result51 = limiter.tryAcquire()
-        assertTrue("51st request should be denied", result51 is RateLimitResult.Denied.DailyCapExhausted)
+        // The request past DAILY_CAP should be denied
+        val resultOverCap = limiter.tryAcquire()
+        assertTrue("request past DAILY_CAP should be denied", resultOverCap is RateLimitResult.Denied.DailyCapExhausted)
     }
 
     @Test
@@ -225,11 +225,11 @@ class ApiRateLimiterTest {
 
     @Test
     fun `budget warning is shown at 80 percent of daily cap`() {
-        // Pre-populate so the next call becomes the 40th (80% of 50)
-        val warningThreshold = (ApiRateLimiter.DAILY_CAP * 0.8).toInt() // 40
+        // Pre-populate so the next call lands exactly on the 80%-of-cap threshold
+        val warningThreshold = (ApiRateLimiter.DAILY_CAP * 0.8).toInt()
         prefs.edit()
             .putString("rate_limit_date", todayString)
-            .putInt("rate_limit_count", warningThreshold - 1) // 39 recorded; next = 40th
+            .putInt("rate_limit_count", warningThreshold - 1) // next request == warningThreshold
             .apply()
 
         val result = limiter.tryAcquire()
