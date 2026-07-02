@@ -42,6 +42,8 @@ class PollingForegroundService : Service() {
         const val NOTIFICATION_CHANNEL_ID = "commute_polling"
         const val ACTION_POLL_COMPLETED = "com.commutebuddy.app.POLL_COMPLETED"
         const val ACTION_WAKE_AND_POLL = "com.commutebuddy.app.WAKE_AND_POLL"
+        const val ACTION_POLL_NOW = "com.commutebuddy.app.POLL_NOW"
+        const val EXTRA_DIRECTION = "direction"
         private const val NOTIFICATION_ID = 1
         private const val PREFS_COMMUTE = "commute_prefs"
         private const val KEY_DIRECTION = "current_direction"
@@ -227,6 +229,56 @@ class PollingForegroundService : Service() {
             return result
         }
 
+        /**
+         * Runs the fetch -> pipeline -> retry sequence for an explicit [direction] — no
+         * time-of-day resolution. Shared by the scheduled poll (which resolves its own
+         * direction first via [resolvePollingDirection]) and the on-demand poll (whose
+         * direction is already explicit), so direction is the only thing that differs
+         * between the two call sites.
+         */
+        internal suspend fun executeDirectionalPoll(
+            direction: String,
+            profile: CommuteProfile,
+            generateContent: suspend (String) -> String?,
+            rateLimiter: ApiRateLimiter,
+            nextAlarmTimeMs: Long,
+            log: (String) -> Unit = {}
+        ): PipelineResult = runWithRetry(
+            runPipeline = {
+                CommutePipeline.run(
+                    direction = direction,
+                    profile = profile,
+                    generateContent = generateContent,
+                    rateLimiter = rateLimiter
+                )
+            },
+            nextAlarmTimeMs = nextAlarmTimeMs,
+            log = log
+        )
+
+        /**
+         * Runs [block] only if [mutex] is currently free, returning its result — or null,
+         * invoking [onSkipped], if a poll is already in flight. Used to serialize the
+         * scheduled and on-demand poll paths against the same [pollMutex] so a rapid
+         * double-tap or an on-demand request racing the alarm cannot run overlapping
+         * pipelines.
+         */
+        internal suspend fun <T> runIfNotInFlight(
+            mutex: Mutex,
+            onSkipped: () -> Unit = {},
+            block: suspend () -> T
+        ): T? {
+            if (!mutex.tryLock()) {
+                onSkipped()
+                return null
+            }
+            return try {
+                block()
+            } finally {
+                mutex.unlock()
+            }
+        }
+
         /** Returns the next epoch ms strictly after [afterMs] at which [hour]:[minute] occurs. */
         internal fun nextOccurrenceOf(hour: Int, minute: Int, afterMs: Long): Long {
             val after = Calendar.getInstance().apply { timeInMillis = afterMs }
@@ -314,19 +366,27 @@ class PollingForegroundService : Service() {
             wl.acquire(10 * 60 * 1000L) // 10-min safety timeout
             serviceScope.launch {
                 try {
-                    if (pollMutex.tryLock()) {
-                        try {
-                            poll()
-                        } finally {
-                            pollMutex.unlock()
-                        }
-                    } else {
-                        Log.w(TAG, "Poll skipped: already in flight")
+                    runIfNotInFlight(pollMutex, onSkipped = { Log.w(TAG, "Poll skipped: already in flight") }) {
+                        poll()
                     }
                 } finally {
                     wl.release()
                     scheduleNextAlarm()
                 }
+            }
+        } else if (intent?.action == ACTION_POLL_NOW) {
+            val direction = intent.getStringExtra(EXTRA_DIRECTION)
+            if (direction == DIRECTION_TO_WORK || direction == DIRECTION_TO_HOME) {
+                // On-demand poll: explicit direction, bypasses window/active-day gating and
+                // resolvePollingDirection entirely. Still guarded by pollMutex + ApiRateLimiter.
+                // Does NOT touch alarm scheduling — the next scheduled alarm is untouched.
+                serviceScope.launch {
+                    runIfNotInFlight(pollMutex, onSkipped = { Log.w(TAG, "On-demand poll skipped: already in flight") }) {
+                        pollNow(direction)
+                    }
+                }
+            } else {
+                Log.w(TAG, "ACTION_POLL_NOW ignored: invalid direction=$direction")
             }
         } else {
             // null intent (OS restart) or standard start — schedule only, no immediate poll
@@ -383,13 +443,6 @@ class PollingForegroundService : Service() {
     // -------------------------------------------------------------------------
 
     private suspend fun poll() {
-        Log.d(TAG, "Polling started")
-        val model = generativeModel
-        if (model == null) {
-            Log.w(TAG, "Poll skipped: model not ready")
-            return
-        }
-
         val cal = Calendar.getInstance()
         val hour = cal.get(Calendar.HOUR_OF_DAY)
         val minute = cal.get(Calendar.MINUTE)
@@ -400,17 +453,33 @@ class PollingForegroundService : Service() {
         if (settings.windows.any { it.isActive(hour, minute) }) {
             prefs.edit().putString(KEY_LAST_POLLED_DIRECTION, direction).apply()
         }
-        val profile = profileRepository.load()
+        Log.d(TAG, "Polling started (direction=$direction)")
+        runPollAndNotify(direction)
+    }
 
-        val result = runWithRetry(
-            runPipeline = {
-                CommutePipeline.run(
-                    direction = direction,
-                    profile = profile,
-                    generateContent = { promptText -> model.generateContent(promptText).text },
-                    rateLimiter = rateLimiter
-                )
-            },
+    /**
+     * On-demand poll for an explicit [direction], requested by a watch outside the
+     * configured polling windows. Shares [runPollAndNotify] with the scheduled [poll] —
+     * direction is the only difference between the two paths.
+     */
+    private suspend fun pollNow(direction: String) {
+        Log.d(TAG, "On-demand poll requested (direction=$direction)")
+        runPollAndNotify(direction)
+    }
+
+    private suspend fun runPollAndNotify(direction: String) {
+        val model = generativeModel
+        if (model == null) {
+            Log.w(TAG, "Poll skipped: model not ready")
+            return
+        }
+
+        val profile = profileRepository.load()
+        val result = executeDirectionalPoll(
+            direction = direction,
+            profile = profile,
+            generateContent = { promptText -> model.generateContent(promptText).text },
+            rateLimiter = rateLimiter,
             nextAlarmTimeMs = getNextAlarmTimeMs(),
             log = { msg -> Log.d(TAG, msg) }
         )
