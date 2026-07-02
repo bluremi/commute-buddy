@@ -48,6 +48,23 @@
           "reroute_hint is omitted entirely (not null) when action is not REROUTE."
         ]
       }
+    },
+    "watchToPhone": {
+      "description": "Message sent from the Garmin watch to the Android app via Communications.transmit() (FEAT-16). This is the app's only watch→phone message path.",
+      "pollNow": {
+        "description": "On-demand poll request. The user opens the ad-hoc 'Fetch update' screen on the watch and taps a direction; the watch transmits this string so the phone runs CommutePipeline.run() immediately for that direction, independent of the configured polling windows.",
+        "type": "string",
+        "format": "POLL_NOW:<DIRECTION>",
+        "enum": ["POLL_NOW:TO_WORK", "POLL_NOW:TO_HOME"],
+        "example": "POLL_NOW:TO_WORK",
+        "notes": [
+          "Sent as a plain String (not a Dictionary) via Communications.transmit(content, options=null, listener).",
+          "DIRECTION is one of TO_WORK / TO_HOME — the same direction identifiers the Android ACTION_POLL_NOW path expects.",
+          "The Android side (Increment 3) validates the payload and silently ignores malformed / unknown strings.",
+          "The result is returned through the existing phoneToWatch.commuteStatus path — there is no dedicated ad-hoc reply message.",
+          "In-flight / failure feedback is out of scope for FEAT-16; the transmit ConnectionListener is a no-op."
+        ]
+      }
     }
   },
 
