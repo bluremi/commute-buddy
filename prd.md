@@ -54,6 +54,8 @@ When a watch glance/tile is viewed, it instantly displays the cached status — 
 - Auto-direction: window 0 → TO_WORK, window 1 → TO_HOME; falls back to last-polled direction outside windows
 - `BootReceiver` auto-starts on device boot (with BT permission guard)
 - Active `connectedDevice` FGS exempts from Android's 9-minute exact alarm Doze throttle
+- Failed fetches never overwrite the watch: `PipelineResult.Error`/`RateLimited` are logged but not sent via `notifyAll()`, so watches retain their last good status instead of showing a raw error string
+- MTA fetch failures (`IOException`: DNS, timeout, socket) retry within the same poll cycle via exponential backoff (~30s → 60s → 120s → 240s → 480s, ±15% jitter), bounded by the earlier of the next scheduled alarm or the 10-min wake lock window; Gemini/parse errors do not retry (unlikely to resolve quickly, would burn rate-limiter quota)
 
 ### Android Companion App
 - **Home screen:** Manual direction toggle (To Work / To Home) for Fetch Live only; auto-polling direction status line; API usage counter (N/50 today); watch connection status ("No watch connected" / "Garmin connected" / "Wear OS connected" / "Garmin + Wear OS connected")
@@ -134,7 +136,7 @@ commute-buddy/
 │           │   ├── WatchNotifier.kt                # WatchNotifier interface + notifyAll() package-level function (failure-isolated broadcast)
 │           │   ├── GarminNotifier.kt               # ConnectIQ SDK init, device discovery, app info loading, BLE send; skips init if Garmin Connect absent
 │           │   ├── WearOsNotifier.kt               # DataClient.putDataItem() to /commute-status; sent_at timestamp for change detection; no-ops without Play Services
-│           │   ├── PollingForegroundService.kt     # connectedDevice FGS; AlarmManager scheduling; wake lock; auto-direction; notifyAll() after each poll
+│           │   ├── PollingForegroundService.kt     # connectedDevice FGS; AlarmManager scheduling; wake lock; auto-direction; suppresses notifyAll() on pipeline error; runWithRetry() backoff loop on MTA fetch (IOException) failures
 │           │   ├── BootReceiver.kt                 # BOOT_COMPLETED → startForegroundService (with BT permission check)
 │           │   ├── PollingSettings.kt              # Data classes: CommuteWindow, PollingSettings (windows, interval, activeDays, backgroundPolling)
 │           │   ├── PollingSettingsRepository.kt    # SharedPreferences persistence for PollingSettings
@@ -150,6 +152,7 @@ commute-buddy/
 │           └── test/kotlin/com/commutebuddy/app/
 │               ├── PollingSettingsTest.kt
 │               ├── PollingForegroundServiceSchedulingTest.kt
+│               ├── PollingForegroundServiceRetryTest.kt    # computeBackoffDelayMs ranges, isFetchError classification, runWithRetry loop behavior
 │               ├── CommuteProfileTest.kt
 │               ├── CommutePipelineTest.kt
 │               ├── SystemPromptBuilderTest.kt
@@ -298,6 +301,7 @@ Phase II added Wear OS as a second supported watch platform. A "steel thread" ap
 
 ### Enhancements
 
+- [ ] FEAT-16: Garmin on-demand poll trigger. When commuting off-schedule (going in late, leaving early), the watch's cached status is stale because the current time is outside the configured polling windows. Add a way to trigger an immediate poll from the Garmin app: a dedicated screen — reachable via a swipe from the main view (side-swipe preferred; the bottom vertical page is an acceptable fallback if side-swipe navigation is disproportionately hard) — with "To Work" / "To Home" buttons. Tapping a button sends a command to the Android app (new **watch→phone** messaging via `Communications.transmit`; phone→watch already exists), which runs `CommutePipeline.run()` immediately for the chosen direction and pushes the result back through the normal BLE channel. After tapping, the watch returns synchronously to the main status view, where the fresh update appears when it arrives — no automatic swipe-back required. Keep the UX minimal. Needs a lightweight "updating…" / failure affordance since the app has no error view today.
 - [x] FEAT-15: Garmin Glance — show last-update timestamp. Display the absolute time of the last update (e.g., "1:28pm") in tiny grey font below the action title and affected routes. Motivated by BUG-12: the glance crash resilience fix means the glance recovers silently from crashes, but the user can't tell whether they're seeing a live status or a stale snapshot from before the last crash. An absolute timestamp (not relative "5 min ago") lets the user judge freshness at a glance — if it says "1:28pm" and it's now 1:45pm, they know to tap through to the detail view.
 
 ### Out of Scope
@@ -308,4 +312,4 @@ Phase II added Wear OS as a second supported watch platform. A "steel thread" ap
 - [x] BUG-10: Tile picker showed grey circle and MTA vector instead of app icon/preview.
 - [x] BUG-11: Android ConnectIQ SDK singleton conflict — background polls fail to send to Garmin after Activity is opened/closed. See `plan.md` for full context and implementation plan.
 - [ ] BUG-12: Garmin Glance goes blank (icon only, no text) intermittently after 1-2 days of runtime. Three fix attempts so far, all recurred. See `docs/bug-12-garmin-glance-crash.md` for full investigation history.
-- [ ] BUG-13: Network failures overwrite last good watch status with error text. When the phone loses connectivity (e.g., underground, no service), `MtaAlertFetcher` fails and the pipeline sends the raw error message ("Unable to resolve host…") to both watches, replacing the previous useful commute recommendation. Fix: (1) never send a failed-fetch result to watches — preserve the last good status; (2) on fetch failure, retry with exponential backoff until the next scheduled poll time rather than waiting for the next alarm.
+- [x] BUG-13: Network failures overwrite last good watch status with error text. When the phone loses connectivity (e.g., underground, no service), `MtaAlertFetcher` fails and the pipeline sends the raw error message ("Unable to resolve host…") to both watches, replacing the previous useful commute recommendation. Fix: (1) never send a failed-fetch result to watches — preserve the last good status; (2) on fetch failure, retry with exponential backoff until the next scheduled poll time rather than waiting for the next alarm.

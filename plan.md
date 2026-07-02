@@ -1,65 +1,82 @@
-## BUG-13: Network failures overwrite last good watch status with error text
+## FEAT-16: Garmin On-Demand Poll Trigger
 
 ### Description
-As a commuter, I want my watch to keep showing the last valid commute recommendation when my phone loses connectivity, so that I don't see a confusing "Unable to resolve host…" error replacing the status I was relying on.
+As a commuter traveling **off my normal schedule** (heading in late, leaving early), I want to trigger an immediate commute update from my Garmin watch, so that I get a fresh recommendation even though the current time is outside my configured polling windows — without pulling out my phone.
 
-When the phone enters an area with no service (e.g., underground, dead spots), `MtaAlertFetcher.fetchAlerts()` fails with a DNS/timeout exception. Currently, `CommutePipeline` wraps the raw error message into a `CommuteStatus(action=NORMAL, summary="Unable to resolve host…")` and `PollingForegroundService.poll()` sends that error status to both watches via `notifyAll()`. This overwrites whatever useful commute recommendation was previously displayed. The user loses actionable information and sees a cryptic error string on their wrist.
-
-The fix has two parts: (1) never push a failed-fetch result to the watches — the last good status stays visible; (2) on network failure, retry with exponential backoff within the current poll cycle rather than silently waiting for the next scheduled alarm (which could be 5–60 minutes away).
+Today the watch only ever shows cached status pushed by the phone during scheduled windows (or the hourly off-window poll). Off-schedule, that status can be hours stale. This story adds the app's **first watch→phone message path** (`Communications.transmit`; only phone→watch exists today) so the watch can ask the phone to run `CommutePipeline.run()` right now for a chosen direction and push the result back through the existing BLE channel.
 
 ### Acceptance Criteria
 
-1. **Failed fetches are never sent to watches**
-   - When `CommutePipeline.run()` returns `PipelineResult.Error`, `PollingForegroundService.poll()` must NOT call `notifyAll()` — the watches retain whatever status they were last sent
-   - This applies to all error types from the pipeline (MTA fetch failure, Gemini API failure, parse failure)
-   - Successful results (`GoodService`, `Decision`) continue to be sent to watches as before
+1. **Ad-hoc screen is reachable via right swipe but is not the landing screen**
+   - The app still opens on the main status view (the existing `ViewLoop` detail carousel); the ad-hoc screen is never shown by default.
+   - A **right swipe** from the main status view reveals a dedicated "Update now" screen.
+   - If a right swipe proves disproportionately costly to implement against the `ViewLoop`, a bottom vertical page is an acceptable fallback (right swipe preferred).
+   - Existing horizontal paging through summary pages is preserved (no regression to the summary carousel).
 
-2. **Exponential backoff retry on network failure**
-   - When the MTA fetch fails with a network error (DNS resolution, connection timeout, socket timeout, `IOException`), the polling service retries with exponential backoff: ~30s → ~60s → ~120s → etc.
-   - Retries stop when either: (a) the fetch succeeds (pipeline runs normally, result sent to watches), or (b) the next scheduled alarm time is reached (avoids overlapping poll cycles)
-   - Backoff includes jitter (±10–20%) to avoid thundering-herd patterns if multiple devices poll the same endpoint
-   - Each retry attempt is logged with the attempt number and next delay
+2. **Ad-hoc screen controls**
+   - The screen presents two clearly labeled, tappable controls (Venu 3 is a touchscreen): **"To Work"** and **"To Home"**.
+   - The screen is self-explanatory (e.g., a short title like "Fetch update").
 
-3. **Backoff does not interfere with rate limiter or wake lock**
-   - Retry attempts do NOT consume Gemini API rate-limiter quota (they only retry the MTA HTTP fetch, not the full pipeline)
-   - The existing wake lock (10-min safety timeout) must cover the retry window; if retries would exceed the wake lock, they stop gracefully
-   - The `pollMutex` remains held during retries so a concurrent alarm cannot trigger a duplicate poll
+3. **Tapping a direction triggers a request and returns to the status view**
+   - Tapping a button transmits a message to the paired Android app identifying the requested direction (`TO_WORK` / `TO_HOME`) via `Communications.transmit`.
+   - Immediately after the tap, the watch returns to the main status view automatically — the user does **not** manually swipe back, and the app does **not** need to auto-navigate again when the reply lands (the status refreshes in place when the new update arrives).
 
-4. **Non-network pipeline errors do not trigger retries**
-   - Gemini API errors, JSON parse errors, and empty-response errors are logged but do NOT trigger the backoff retry loop — only `MtaAlertFetcher` failures retry
-   - Rationale: Gemini errors are unlikely to resolve by retrying seconds later, and retries would burn rate-limiter quota
+4. **Android runs an immediate, direction-explicit poll**
+   - The Android app receives the watch command (via a new ConnectIQ incoming-message listener) and runs `CommutePipeline.run(direction = requested)` immediately, independent of the configured polling windows/active days.
+   - The requested direction is honored explicitly (not re-derived from the time-of-day window logic).
+   - On success, the result is pushed back to the watch through the **existing** BLE/`notifyAll()` path; the main status view updates (new timestamp, refreshed action/summary) with no special-case rendering.
 
-5. **`MainActivity` "Fetch Live" behavior unchanged**
-   - The manual "Fetch Live" button in `MainActivity` continues to show error messages in the UI (it's useful for debugging) — the no-send-on-error change only applies to `PollingForegroundService`
-   - `CommutePipeline` itself remains unchanged; the error-suppression logic lives in the polling service
+5. **Rate limiting and safety are respected**
+   - Ad-hoc polls go through the existing `ApiRateLimiter` (count against the 60/day cap, per-minute cap, cooldown, single-flight mutex).
+   - A rapid double-tap or repeated requests cannot launch overlapping pipelines or bypass the limiter.
 
-6. **Logging and observability**
-   - Network failures log: error type, retry attempt number, next retry delay
-   - Final outcome logged: "Retry succeeded on attempt N" or "All retries exhausted, skipping watch notification"
-   - Existing `ACTION_POLL_COMPLETED` broadcast still fires (so the UI updates its "Last poll" timestamp)
+6. **No regressions**
+   - Glance, scheduled/background polling, BUG-13 error suppression for *scheduled* polls, and the existing phone→watch schema are unchanged.
+   - Uses the already-granted `Communications` permission (no manifest permission change).
 
 ### Out of Scope
-- Displaying a "No connectivity" indicator on the watch (separate UX feature)
-- Caching the last good `CommuteStatus` on the Android side for re-send on reconnect (watches already retain their last-received status)
-- Changing `MtaAlertFetcher` internals (timeout values, URL, etc.)
-- Retry logic for Gemini API failures (rate limiter already handles quota management)
-- Changes to `CommutePipeline` itself — all changes are in `PollingForegroundService`
+- **In-flight and failure feedback** — deferred to a separate future story. This story returns to the status view and relies on the timestamp/status refreshing when the update arrives; if the request fails (phone unreachable, rate-limited, pipeline error), the watch simply shows no update — the same visible outcome as today's BUG-13 behavior. No "Updating…" indicator and no error view in this story.
+- **Wear OS equivalent** — Garmin-only. An on-demand trigger for the Wear OS app is a separate future story.
+- **Directions beyond To Work / To Home** — no custom/arbitrary direction selection.
+- **Changes to scheduled polling** — windows, intervals, active days, and auto-direction logic are untouched.
+- **Reviving a killed app from a watch request** — the Android foreground service must be running to receive the command (its normal operating state).
 
 ### Implementation Plan
 
-#### Increment 1: Stop sending pipeline errors to watches
-- [x] In `PollingForegroundService.kt`, change the `PipelineResult.Error` branch in `poll()` (line 347–350) to log the error but NOT call `notifyAll()` — watches retain their last good status
-- [x] Add a test in `PollingForegroundServiceSchedulingTest.kt` (or a new focused test file) that verifies the error-suppression decision: `PipelineResult.Error` → no notify, `GoodService` → notify, `Decision` → notify, `RateLimited` → no notify
+#### Increment 1: Android — on-demand poll path (direction-explicit), triggerable via intent
+- [x] Add `ACTION_POLL_NOW` to `PollingForegroundService` and handle it in `onStartCommand`, reading a `direction` string extra (`TO_WORK` / `TO_HOME`).
+- [x] Extract a `pollNow(direction: String)` that runs `CommutePipeline.run(direction=…)` immediately + `notifyAll()`, **bypassing** window/active-day gating and `resolvePollingDirection`, but still guarded by `pollMutex` and the existing `ApiRateLimiter`. Does **not** touch alarm scheduling.
+- [x] Refactor the existing scheduled `poll()` to share the pipeline-run core with `pollNow()` (single code path; direction is the only difference).
+- [x] Unit test: on-demand path passes the explicit direction through to the pipeline; overlapping requests are serialized / rate-limited (extend `PollingForegroundServiceSchedulingTest` patterns).
 
-**Testing:** Run `gradle :app:testDebugUnitTest`. Manually verify on device: enable airplane mode, wait for a poll cycle, confirm the watch still shows the previous status (not an error string).
-**Model: Haiku** | Reason: Single-line deletion + straightforward test following existing patterns.
+**Testing:** Run `:app:testDebugUnitTest`. Then live: `adb shell am start-foreground-service -n com.commutebuddy.app/.PollingForegroundService -a com.commutebuddy.app.POLL_NOW --es direction TO_WORK` and confirm in logcat (`PollingService`, `CommutePipeline`) that a poll runs off-window and pushes to the watch.
+**Model: Sonnet** | Reason: Real refactor of the poll path with rate-limiter/mutex interaction; must not disturb existing scheduling.
 
-#### Increment 2: Exponential backoff retry on MTA fetch failure
-- [ ] Add a pure companion function `computeBackoffDelayMs(attempt: Int, baseDelayMs: Long = 30_000L): Long` to `PollingForegroundService` — exponential delay with ±15% jitter, capped at ~8 min (attempt clamped to 4)
-- [ ] Add a pure companion function `isFetchError(result: PipelineResult): Boolean` — returns `true` only when the error's exception is an `IOException` (DNS, timeout, HTTP — the types `MtaAlertFetcher` produces)
-- [ ] Wrap the `CommutePipeline.run()` call in `poll()` with a retry loop: on fetch error, `delay()` by backoff, retry up to the earlier of next alarm time or 8 minutes (wake lock safety margin), log each attempt; on success or non-fetch error, break out. Successful retry sends to watches normally; exhausted retries skip notification.
-- [ ] Add unit tests: `computeBackoffDelayMs` produces expected ranges per attempt; `isFetchError` returns `true` for `IOException`-backed errors, `false` for Gemini/parse errors and `GoodService`/`Decision`/`RateLimited`
-- [ ] Add a test verifying that the retry loop re-invokes the pipeline and stops when the result is no longer a fetch error (mock `MtaAlertFetcher` to fail twice then succeed)
+#### Increment 2: Garmin — ad-hoc screen (right-swipe) + transmit + synchronous return
+- [ ] New `AdHocPageView.mc` (title + "To Work" / "To Home" tappable regions) and `AdHocPageDelegate.mc` (`onTap` hit-tests which button).
+- [ ] `DetailPageFactory`: prepend the ad-hoc page as **index 0** (both the no-data and data branches); `getView(0)` returns it. Status page is therefore always **index 1**.
+- [ ] `getInitialView()`: open the loop with `{:page => 1, :wrap => false}` so the app still lands on status and a **right-swipe** (previous page) reveals the ad-hoc screen at index 0.
+- [ ] On button tap: `Communications.transmit("POLL_NOW:TO_WORK" / "POLL_NOW:TO_HOME", null, listener)`, then — since `ViewLoop` has no page-jump method — `WatchUi.switchToView(freshLoop {:page => 1}, delegate, WatchUi.SLIDE_RIGHT)` to auto-return (valid: a tap is a foreground input context).
+- [ ] Document the watch→phone command string in `shared/schema.json`.
 
-**Testing:** Run `gradle :app:testDebugUnitTest`. Manually verify on device: enable airplane mode mid-commute-window, watch logcat for retry attempts with increasing delays; re-enable connectivity and confirm the retry succeeds and sends to watches.
-**Model: Sonnet** | Reason: Async retry loop with coroutine delay, backoff math, and wake-lock-aware termination requires multi-step reasoning across the polling lifecycle.
+**Testing:** Garmin simulator — app lands on status; right-swipe reveals the ad-hoc screen; both buttons are tappable and return to status without crashing; left-swipe still pages through the summary. (Actual phone delivery is verified in Increment 3.)
+**Model: Sonnet** | Note: Verify in-simulator that the ViewLoop **per-page delegate receives `onTap`** (the repo notes say per-page delegates are currently no-ops). If it doesn't fire, fall back to a custom `ViewLoopDelegate` that `pushView`s a standalone `AdHocView` (its own `BehaviorDelegate`, guaranteed input) and `popView`s on tap. Watch for Monkey C API accuracy (`switchToView`, `Communications.transmit` signature).
+
+#### Increment 3: Android — receive the watch command and dispatch the poll
+- [ ] In `GarminNotifier`, register for incoming app events on the connected device/app (`registerForAppEvents`) when the service is running; unregister on teardown.
+- [ ] On message received, parse the `POLL_NOW:<DIR>` string, validate the direction, and invoke `pollNow(direction)` (via the `ACTION_POLL_NOW` intent or a direct callback).
+- [ ] Ignore malformed / unknown payloads silently.
+- [ ] Unit test the parse/validate helper (`"POLL_NOW:TO_WORK"` → `TO_WORK`; junk → ignored).
+
+**Testing:** On hardware — right-swipe → tap "To Work" on the watch; confirm in logcat the phone runs an off-window poll for that direction. Then **close and reopen** the watch app to see the fresh status (live refresh comes in Increment 4). Round-trip proven.
+**Model: Sonnet** | Reason: ConnectIQ SDK receive-side integration and lifecycle (register/unregister) alongside the pipeline dispatch.
+
+#### Increment 4: Garmin — live-refresh the status view when the on-demand update arrives
+Verified mechanism: `ViewLoop` has no reload/setPage method (only `changeView(direction)` + a `:page` constructor option), and `DetailPageView` renders constructor snapshots — so the only way to show fresh data is to build a **new** `ViewLoop` and `switchToView` to it. `switchToView` throws `OperationNotAllowedException` from a glance/background context, so the rebuild must be gated to the foreground full-app process.
+
+- [ ] Add instance flag `_fullAppForeground` to `CommuteBuddyApp`: set `true` at the end of `getInitialView()`, `false` in `onStop()`. (Never set in the glance process, which is a separate process.)
+- [ ] In `onPhoneMessage`, after storing `cs_*`: if `_fullAppForeground`, **rebuild** — construct a fresh `DetailPageFactory` + `ViewLoop({:page => 1, :wrap => false})` + `ViewLoopDelegate` and `WatchUi.switchToView(loop, delegate, WatchUi.SLIDE_IMMEDIATE)`, wrapped in `try/catch` (`OperationNotAllowedException` safety). Otherwise keep the existing `requestUpdate()` (glance path, unchanged).
+- [ ] Confirm the glance still refreshes normally and does **not** attempt `switchToView` (flag stays false in the glance process).
+
+**Testing:** Hardware — tap a direction, **stay** on the status view; within a few seconds it rebuilds to the new recommendation + timestamp with no manual interaction. Simulator — with the full app open, inject a phone message → view rebuilds to new data; with only the glance open, inject a message → glance updates and does **not** crash.
+**Model: Sonnet** | Note: If calling `switchToView` directly inside the message callback proves flaky, defer it via a 0 ms `Timer` started from `onPhoneMessage` (foreground) — the standard "don't do heavy nav inside the callback" pattern; the flag + `try/catch` still guard it.
