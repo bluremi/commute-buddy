@@ -99,6 +99,36 @@ Other common tasks (same pattern, different task):
 - Build debug APK: `"$GRADLE" :app:assembleDebug`
 - Install to device: `"$GRADLE" :app:installDebug`
 
+## Building & Sideloading the Garmin App (Venu 3, connected via USB)
+
+The Venu 3 connects as an **MTP device** (no drive letter), so a plain file copy won't work — sideload by copying the `.prg` into `Internal Storage\GARMIN\Apps` through the Windows Shell COM object. Claude Code can do the whole build-and-deploy itself; no need to make the user do it manually.
+
+**1. Build the release `.prg` (Bash):**
+```bash
+SDK="/c/Users/blure/AppData/Roaming/Garmin/ConnectIQ/Sdks/connectiq-sdk-win-8.4.1-2026-02-03-e9f77eeaa"
+KEY="/c/Users/blure/.garmin/developer_key"
+cd "A:/Phil/Phil Docs/Development/commute-buddy/garmin" && mkdir -p bin
+"$SDK/bin/monkeyc.bat" -f monkey.jungle -d venu3 -o "bin/CommuteBuddy.prg" -y "$KEY" -r
+```
+The SDK dir is date-stamped and will change on SDK updates — glob `.../ConnectIQ/Sdks/connectiq-sdk-win-*/bin/monkeyc.bat` rather than hardcoding it. Drop `-r` to compile-check only (writes to `/tmp`); it builds for `venu3` in ~seconds and prints `BUILD SUCCESSFUL`.
+
+**2. Sideload to the watch (PowerShell — MTP via Shell.Application):**
+```powershell
+$src = "A:\Phil\Phil Docs\Development\commute-buddy\garmin\bin\CommuteBuddy.prg"
+$sh = New-Object -ComObject Shell.Application
+$venu = $sh.NameSpace(17).Items() | Where-Object { $_.Name -eq 'Venu 3' }
+$internal = $venu.GetFolder.Items() | Where-Object { $_.Name -eq 'Internal Storage' }
+$garmin = $internal.GetFolder.Items() | Where-Object { $_.Name -eq 'GARMIN' }
+$apps = ($garmin.GetFolder.Items() | Where-Object { $_.Name -eq 'Apps' }).GetFolder
+$apps.CopyHere($src, 4 -bor 16 -bor 512)   # 4=no UI, 16=Yes-to-all, 512=no new-dir confirm
+# MTP copy is async — poll until it lands:
+for ($i=0; $i -lt 30; $i++) { Start-Sleep 1; if (@($apps.Items()|%{$_.Name}) -match 'CommuteBuddy') { break } }
+```
+Notes:
+- `NameSpace(17)` is "This PC"; the device shows as **`Venu 3`** → `Internal Storage` → `GARMIN` → `Apps`.
+- MTP **hides `.PRG` files** from enumeration — after copying, the listing may not show `CommuteBuddy.prg` even though it's there and the app runs. The poll above catches the brief window where it *is* listed; if it times out, the copy still likely succeeded. Confirm on the watch itself.
+- Garmin identifies apps by the UUID baked into the `.prg` (manifest `id`), **not** the filename, so re-copying `CommuteBuddy.prg` cleanly replaces the prior install. The user reboots/reopens the widget to pick up the new build.
+
 ## Windows / PowerShell Notes (for manual terminal use)
 
 - **No `gradlew` scripts in the repo.** From a PowerShell terminal:
