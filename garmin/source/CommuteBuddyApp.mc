@@ -9,6 +9,13 @@ class CommuteBuddyApp extends Application.AppBase {
     hidden var _listenerRegistered as Boolean = false;
     hidden var _regTimer as Timer.Timer?;
 
+    // True only in the foreground full-app process (set at the end of
+    // getInitialView, cleared in onStop). Never set in the glance process, which
+    // is a separate process where getInitialView is never called. Gates the
+    // live-refresh rebuild in onPhoneMessage: switchToView throws
+    // OperationNotAllowedException from a glance/background context (FEAT-16).
+    hidden var _fullAppForeground as Boolean = false;
+
     function initialize() {
         AppBase.initialize();
     }
@@ -24,6 +31,7 @@ class CommuteBuddyApp extends Application.AppBase {
     function onStop(state) {
         Communications.registerForPhoneAppMessages(null);
         _listenerRegistered = false;
+        _fullAppForeground = false;
     }
 
     (:glance)
@@ -66,7 +74,27 @@ class CommuteBuddyApp extends Application.AppBase {
         if (timestamp instanceof Number) {
             Application.Storage.setValue("cs_timestamp", timestamp as Number);
         }
-        WatchUi.requestUpdate();
+
+        // Glance process (or full app stopped): a plain redraw is enough — the
+        // glance view reads storage on every render.
+        if (!_fullAppForeground) {
+            WatchUi.requestUpdate();
+            return;
+        }
+
+        // Foreground full app: DetailPageView renders constructor snapshots and
+        // ViewLoop has no reload method, so the only way to show fresh data is to
+        // build a new loop and switch to it. Gated to the foreground process
+        // (switchToView throws OperationNotAllowedException from background) and
+        // wrapped in try/catch as a final safety net.
+        try {
+            var factory = new DetailPageFactory();
+            var loop = new WatchUi.ViewLoop(factory, {:wrap => false});
+            var delegate = new WatchUi.ViewLoopDelegate(loop);
+            WatchUi.switchToView(loop, delegate, WatchUi.SLIDE_IMMEDIATE);
+        } catch (e instanceof Lang.Exception) {
+            WatchUi.requestUpdate();
+        }
     }
 
     function getInitialView() {
@@ -74,6 +102,7 @@ class CommuteBuddyApp extends Application.AppBase {
         var factory = new DetailPageFactory();
         var viewLoop = new WatchUi.ViewLoop(factory, {:wrap => false});
         var delegate = new WatchUi.ViewLoopDelegate(viewLoop);
+        _fullAppForeground = true;
         return [viewLoop, delegate];
     }
 
