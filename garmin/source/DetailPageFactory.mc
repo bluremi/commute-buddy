@@ -19,16 +19,11 @@ class DetailPageFactory extends WatchUi.ViewLoopFactory {
     }
 
     function getSize() as Number {
-        // +1 for the ad-hoc "Fetch update" page prepended at index 0 (FEAT-16).
-        return _pages.size() + 1;
+        return _pages.size();
     }
 
     function getView(pageIndex as Number) {
-        // Index 0 is the ad-hoc poll trigger page; status/summary pages follow.
-        if (pageIndex == 0) {
-            return [new AdHocPageView(), new AdHocPageDelegate()];
-        }
-        var page = _pages[pageIndex - 1];
+        var page = _pages[pageIndex];
         var waiting = page.get("waiting") as Boolean;
         var header = page.get("header") as Dictionary?;
         var summaryChunk = page.get("summaryChunk") as String;

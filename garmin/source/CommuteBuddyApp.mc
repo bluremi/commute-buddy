@@ -72,9 +72,7 @@ class CommuteBuddyApp extends Application.AppBase {
     function getInitialView() {
         registerPhoneListener();
         var factory = new DetailPageFactory();
-        // Land on the status page (index 1); a right-swipe reveals the ad-hoc
-        // "Fetch update" page at index 0 (FEAT-16).
-        var viewLoop = new WatchUi.ViewLoop(factory, {:page => 1, :wrap => false});
+        var viewLoop = new WatchUi.ViewLoop(factory, {:wrap => false});
         var delegate = new WatchUi.ViewLoopDelegate(viewLoop);
         return [viewLoop, delegate];
     }
