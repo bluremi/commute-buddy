@@ -52,15 +52,15 @@ Today the watch only ever shows cached status pushed by the phone during schedul
 **Testing:** Run `:app:testDebugUnitTest`. Then live: `adb shell am start-foreground-service -n com.commutebuddy.app/.PollingForegroundService -a com.commutebuddy.app.POLL_NOW --es direction TO_WORK` and confirm in logcat (`PollingService`, `CommutePipeline`) that a poll runs off-window and pushes to the watch.
 **Model: Sonnet** | Reason: Real refactor of the poll path with rate-limiter/mutex interaction; must not disturb existing scheduling.
 
-#### Increment 2: Garmin — ad-hoc screen (right-swipe) + transmit + synchronous return
-- [ ] New `AdHocPageView.mc` (title + "To Work" / "To Home" tappable regions) and `AdHocPageDelegate.mc` (`onTap` hit-tests which button).
-- [ ] `DetailPageFactory`: prepend the ad-hoc page as **index 0** (both the no-data and data branches); `getView(0)` returns it. Status page is therefore always **index 1**.
-- [ ] `getInitialView()`: open the loop with `{:page => 1, :wrap => false}` so the app still lands on status and a **right-swipe** (previous page) reveals the ad-hoc screen at index 0.
-- [ ] On button tap: `Communications.transmit("POLL_NOW:TO_WORK" / "POLL_NOW:TO_HOME", null, listener)`, then — since `ViewLoop` has no page-jump method — `WatchUi.switchToView(freshLoop {:page => 1}, delegate, WatchUi.SLIDE_RIGHT)` to auto-return (valid: a tap is a foreground input context).
-- [ ] Document the watch→phone command string in `shared/schema.json`.
+#### Increment 2: Garmin — ad-hoc screen (horizontal-swipe overlay) + transmit + synchronous return
+- [x] New `AdHocPageView.mc` (title + "To Work" / "To Home" tappable regions) and `AdHocPageDelegate.mc` (`onTap` hit-tests which button by screen midpoint).
+- [x] `PollRequestListener.mc`: no-op `ConnectionListener` for `Communications.transmit` (in-flight/failure feedback out of scope).
+- [x] On button tap: `Communications.transmit("POLL_NOW:TO_WORK" / "POLL_NOW:TO_HOME", null, listener)`, then `WatchUi.popView(WatchUi.SLIDE_RIGHT)` to return to status.
+- [x] Document the watch→phone command string in `shared/schema.json`.
 
-**Testing:** Garmin simulator — app lands on status; right-swipe reveals the ad-hoc screen; both buttons are tappable and return to status without crashing; left-swipe still pages through the summary. (Actual phone delivery is verified in Increment 3.)
-**Model: Sonnet** | Note: Verify in-simulator that the ViewLoop **per-page delegate receives `onTap`** (the repo notes say per-page delegates are currently no-ops). If it doesn't fire, fall back to a custom `ViewLoopDelegate` that `pushView`s a standalone `AdHocView` (its own `BehaviorDelegate`, guaranteed input) and `popView`s on tap. Watch for Monkey C API accuracy (`switchToView`, `Communications.transmit` signature).
+**Final approach (deviated from original index-0 plan):** The `ViewLoop` is a **vertical** carousel (`ViewLoopDelegate` only exposes `onNextView`/`onPreviousView` via SWIPE_UP/DOWN and is *not* a `BehaviorDelegate`, so it has no swipe hook). Prepending the ad-hoc page as index 0 put it *above* status — disorienting. Instead: the horizontal axis is unused by the loop, so `DetailPageDelegate.onSwipe` catches a **left/right swipe** and `pushView`s the ad-hoc screen as an overlay; tapping a button transmits and `popView`s back. `DetailPageFactory`/`getInitialView` reverted to status+summary only. Confirmed on-device that the ViewLoop forwards off-axis (horizontal) swipes to the per-page delegate.
+
+**Testing:** ✅ Verified on-device (Venu 3): app lands on status with nothing above it; horizontal swipe reveals the ad-hoc screen; both buttons tap → transmit + pop back to status; vertical swipe still pages the summary. (Actual phone delivery is verified in Increment 3.)
 
 #### Increment 3: Android — receive the watch command and dispatch the poll
 - [ ] In `GarminNotifier`, register for incoming app events on the connected device/app (`registerForAppEvents`) when the service is running; unregister on teardown.
