@@ -399,6 +399,7 @@ class PollingForegroundService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         serviceScope.cancel()
+        if (::garminNotifier.isInitialized) garminNotifier.unregisterForIncomingMessages()
         getSystemService(AlarmManager::class.java).cancel(buildAlarmPendingIntent())
         // WearOsNotifier uses the Wearable Data Layer API (putDataItem) which has no
         // lifecycle teardown — there are no registered receivers to unregister and

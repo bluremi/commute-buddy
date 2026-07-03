@@ -2,6 +2,7 @@ package com.commutebuddy.app
 
 import android.bluetooth.BluetoothAdapter
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager.NameNotFoundException
 import android.util.Log
 import com.garmin.android.connectiq.ConnectIQ
@@ -38,6 +39,26 @@ class GarminNotifier private constructor(private val appContext: Context) : Watc
             instance ?: synchronized(this) {
                 instance ?: GarminNotifier(context.applicationContext).also { instance = it }
             }
+
+        /**
+         * Parses an incoming watch message into a validated poll direction, or null if the
+         * payload is not a recognized POLL_NOW command (FEAT-16). The ConnectIQ SDK delivers
+         * the transmitted content as the first element of a `List<Object>`; for the watch's
+         * `Communications.transmit("POLL_NOW:TO_WORK", ...)` that element is the raw String.
+         *
+         * Accepts only `POLL_NOW:TO_WORK` / `POLL_NOW:TO_HOME`; everything else (wrong prefix,
+         * unknown direction, non-String, empty/null list) returns null so the caller ignores
+         * it silently.
+         */
+        internal fun parsePollNowDirection(message: List<Any?>?): String? {
+            val text = message?.firstOrNull() as? String ?: return null
+            val prefix = "POLL_NOW:"
+            if (!text.startsWith(prefix)) return null
+            return when (val direction = text.substring(prefix.length)) {
+                "TO_WORK", "TO_HOME" -> direction
+                else -> null
+            }
+        }
     }
 
     /** Called with a status string whenever the SDK / device / app state changes. */
@@ -68,7 +89,28 @@ class GarminNotifier private constructor(private val appContext: Context) : Watc
     @Volatile private var sdkShutDown = false
     @Volatile private var connectedDevice: IQDevice? = null
     @Volatile private var targetApp: IQApp? = null
+    @Volatile private var eventsRegistered = false
     private var connectIQ: ConnectIQ? = null
+
+    /**
+     * Incoming watch→phone message listener (FEAT-16). A valid `POLL_NOW:<DIR>` command
+     * re-triggers the service's existing [PollingForegroundService.ACTION_POLL_NOW] path,
+     * so the on-demand poll goes through the same mutex + rate-limiter dispatch as every
+     * other poll. Malformed / unknown payloads are ignored silently.
+     */
+    private val appEventListener =
+        ConnectIQ.IQApplicationEventListener { _, _, message, _ ->
+            val direction = parsePollNowDirection(message)
+            if (direction == null) {
+                Log.d(TAG, "Ignoring unrecognized watch message: $message")
+                return@IQApplicationEventListener
+            }
+            Log.d(TAG, "Watch requested on-demand poll: $direction")
+            val intent = Intent(appContext, PollingForegroundService::class.java)
+                .setAction(PollingForegroundService.ACTION_POLL_NOW)
+                .putExtra(PollingForegroundService.EXTRA_DIRECTION, direction)
+            appContext.startForegroundService(intent)
+        }
 
     /**
      * Initializes the ConnectIQ SDK. Idempotent — if the SDK is already ready this is a no-op,
@@ -217,6 +259,7 @@ class GarminNotifier private constructor(private val appContext: Context) : Watc
                 override fun onApplicationInfoReceived(app: IQApp) {
                     Log.d(TAG, "Garmin app found on ${device.friendlyName}")
                     targetApp = app
+                    registerForIncomingMessages(device, app)
                     onStatusChanged?.invoke("Garmin app ready on ${device.friendlyName}")
                 }
 
@@ -226,5 +269,39 @@ class GarminNotifier private constructor(private val appContext: Context) : Watc
                 }
             }
         )
+    }
+
+    /**
+     * Registers the incoming-message listener for the Commute Buddy app on [device] (FEAT-16).
+     * Called once the app info is confirmed. Uses the already-granted ConnectIQ binding — no
+     * additional permission. Re-registering after an SDK re-init simply replaces the listener.
+     */
+    private fun registerForIncomingMessages(device: IQDevice, app: IQApp) {
+        val iq = connectIQ ?: return
+        try {
+            iq.registerForAppEvents(device, app, appEventListener)
+            eventsRegistered = true
+            Log.d(TAG, "Registered for incoming app events on ${device.friendlyName}")
+        } catch (e: Exception) {
+            Log.w(TAG, "registerForAppEvents failed: ${e.message}")
+        }
+    }
+
+    /**
+     * Unregisters the incoming-message listener. Called from [PollingForegroundService.onDestroy]
+     * so the watch→phone command path is torn down with the service that services it.
+     */
+    fun unregisterForIncomingMessages() {
+        if (!eventsRegistered) return
+        val iq = connectIQ ?: return
+        val device = connectedDevice ?: return
+        val app = targetApp ?: return
+        try {
+            iq.unregisterForApplicationEvents(device, app)
+            Log.d(TAG, "Unregistered from incoming app events")
+        } catch (e: Exception) {
+            Log.w(TAG, "unregisterForApplicationEvents failed: ${e.message}")
+        }
+        eventsRegistered = false
     }
 }
