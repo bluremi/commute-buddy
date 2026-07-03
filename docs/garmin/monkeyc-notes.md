@@ -95,6 +95,30 @@ function getView(pageIndex as Number) {
 }
 ```
 
+## ViewLoop is a vertical carousel — and forwards off-axis swipes to the page delegate
+
+`WatchUi.ViewLoop` navigates on the **vertical** axis only. Its `ViewLoopDelegate` inherits from plain `Object` (**not** `BehaviorDelegate`) and exposes only `onNextView` (SWIPE_UP / KEY_DOWN) and `onPreviousView` (SWIPE_DOWN / KEY_UP) — there is **no** `onSwipe`/`onTap` hook at the loop-delegate level. So prepending a page at index 0 places it *above* the landing page, not to the side, and you cannot intercept a swipe on the `ViewLoopDelegate`.
+
+**The useful part (verified on-device, Venu 3, FEAT-16):** because the loop only consumes the vertical axis, a **horizontal (left/right) swipe is forwarded to the current page's per-page delegate** — the `BehaviorDelegate` returned from `ViewLoopFactory.getView()`. Override `onSwipe` there to add a perpendicular gesture (e.g. reveal a side screen) without disturbing vertical paging:
+
+```monkeyc
+class DetailPageDelegate extends WatchUi.BehaviorDelegate {
+    function onSwipe(evt as WatchUi.SwipeEvent) as Boolean {
+        var dir = evt.getDirection();
+        if (dir == WatchUi.SWIPE_LEFT || dir == WatchUi.SWIPE_RIGHT) {
+            WatchUi.pushView(new AdHocPageView(), new AdHocPageDelegate(), WatchUi.SLIDE_LEFT);
+            return true;   // consume; return false for up/down so the loop pages
+        }
+        return false;
+    }
+}
+```
+
+Notes:
+- Handle **both** `SWIPE_LEFT` and `SWIPE_RIGHT` — the system can consume `SWIPE_RIGHT` as a back/exit gesture before your delegate sees it, so relying on right-only is fragile.
+- This is the same channel that delivers `onTap` to page delegates (also confirmed working) — the repo's earlier worry that "per-page delegates are no-ops" is **false** for input events on a `ViewLoop`.
+- Return to the loop from the pushed overlay with `WatchUi.popView(...)` (lands exactly where the user left off) rather than rebuilding a fresh `ViewLoop` + `switchToView`.
+
 ## Reference
 
 - **Connect IQ API docs:** https://developer.garmin.com/connect-iq/api-docs/
