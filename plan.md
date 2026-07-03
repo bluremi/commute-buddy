@@ -63,12 +63,12 @@ Today the watch only ever shows cached status pushed by the phone during schedul
 **Testing:** ✅ Verified on-device (Venu 3): app lands on status with nothing above it; horizontal swipe reveals the ad-hoc screen; both buttons tap → transmit + pop back to status; vertical swipe still pages the summary. (Actual phone delivery is verified in Increment 3.)
 
 #### Increment 3: Android — receive the watch command and dispatch the poll
-- [ ] In `GarminNotifier`, register for incoming app events on the connected device/app (`registerForAppEvents`) when the service is running; unregister on teardown.
-- [ ] On message received, parse the `POLL_NOW:<DIR>` string, validate the direction, and invoke `pollNow(direction)` (via the `ACTION_POLL_NOW` intent or a direct callback).
-- [ ] Ignore malformed / unknown payloads silently.
-- [ ] Unit test the parse/validate helper (`"POLL_NOW:TO_WORK"` → `TO_WORK`; junk → ignored).
+- [x] In `GarminNotifier`, register for incoming app events on the connected device/app (`registerForAppEvents` + `IQApplicationEventListener`) once the watch app is confirmed; unregister on teardown (`PollingForegroundService.onDestroy` → `unregisterForIncomingMessages`).
+- [x] On message received, parse the `POLL_NOW:<DIR>` string, validate the direction, and dispatch via the existing `ACTION_POLL_NOW` intent (`startForegroundService`) — reuses increment 1's `pollMutex` + `ApiRateLimiter` path. No new permission.
+- [x] Ignore malformed / unknown payloads silently (`parsePollNowDirection` returns null → logged and dropped).
+- [x] Unit test the parse/validate helper (`GarminNotifierParseTest`: TO_WORK/TO_HOME accepted; junk, wrong prefix, bare direction, empty, non-string, wrong case, null all rejected).
 
-**Testing:** On hardware — right-swipe → tap "To Work" on the watch; confirm in logcat the phone runs an off-window poll for that direction. Then **close and reopen** the watch app to see the fresh status (live refresh comes in Increment 4). Round-trip proven.
+**Testing:** ✅ Verified on hardware (Pixel 10 Pro XL + Venu 3). Logcat confirmed the full round-trip off-window (next scheduled alarm was 734 min away): `Registered for incoming app events` → `Watch requested on-demand poll: TO_WORK` → `ACTION_POLL_NOW` → `On-demand poll requested (direction=TO_WORK)` → `Poll result: Decision` → `BLE send success`. Reopening the watch app showed the fresh recommendation with a `<1 min ago` timestamp.
 **Model: Sonnet** | Reason: ConnectIQ SDK receive-side integration and lifecycle (register/unregister) alongside the pipeline dispatch.
 
 #### Increment 4: Garmin — live-refresh the status view when the on-demand update arrives
